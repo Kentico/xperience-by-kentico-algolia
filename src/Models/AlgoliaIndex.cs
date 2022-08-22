@@ -26,16 +26,5 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
             get;
             set;
         }
-
-
-        /// <summary>
-        /// The code names of the sites whose pages will be included in the index. If empty, all sites
-        /// are included.
-        /// </summary>
-        public IEnumerable<string> SiteNames
-        {
-            get;
-            set;
-        }
     }
 }

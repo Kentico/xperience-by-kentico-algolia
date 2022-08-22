@@ -18,12 +18,12 @@ namespace Kentico.Xperience.AlgoliaSearch
     {
         /// <summary>
         /// Registers instances of <see cref="IInsightsClient"/>, <see cref="ISearchClient"/>, and
-        /// <see cref="IAlgoliaIndexRegister"/> with Dependency Injection.
+        /// <see cref="IAlgoliaIndexStore"/> with Dependency Injection.
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="configuration">The application configuration.</param>
-        /// <param name="register">The implementation of <see cref="IAlgoliaIndexRegister"/> to register.</param>
-        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, IAlgoliaIndexRegister register)
+        /// <param name="store">The implementation of <see cref="IAlgoliaIndexStore"/> to register.</param>
+        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, IAlgoliaIndexStore store)
         {
             services.Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME));
             services.PostConfigure<AlgoliaOptions>(options =>
@@ -50,7 +50,7 @@ namespace Kentico.Xperience.AlgoliaSearch
 
                     return new SearchClient(options.Value.ApplicationId, options.Value.ApiKey);
                 })
-                .AddSingleton(register);
+                .AddSingleton(store);
         }
     }
 }

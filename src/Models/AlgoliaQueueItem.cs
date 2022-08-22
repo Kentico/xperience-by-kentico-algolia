@@ -19,10 +19,9 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
 
 
         /// <summary>
-        /// True if the <see cref="Node"/> was recently deleted and should be removed
-        /// from the Algolia index.
+        /// True if the <see cref="Node"/> data should be removed from the Algolia index.
         /// </summary>
-        public bool Deleted
+        public bool Delete
         {
             get;
             set;

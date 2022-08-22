@@ -14,7 +14,7 @@ namespace Kentico.Xperience.AlgoliaSearch
     /// Thread worker which enqueues recently created, updated, or deleted nodes
     /// indexed by Algolia and updates the Algolia indexes in the background thread.
     /// </summary>
-    public class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
+    internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
     {
         private IAlgoliaIndexingService algoliaIndexingService;
 
