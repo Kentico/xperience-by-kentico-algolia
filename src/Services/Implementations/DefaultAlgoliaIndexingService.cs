@@ -1,6 +1,4 @@
-﻿using Algolia.Search.Clients;
-
-using CMS;
+﻿using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
@@ -29,7 +27,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     /// </summary>
     internal class DefaultAlgoliaIndexingService : IAlgoliaIndexingService
     {
-        private readonly ISearchClient searchClient;
         private readonly IEventLogService eventLogService;
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaRegistrationService algoliaRegistrationService;
@@ -41,15 +38,13 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaIndexingService"/> class.
         /// </summary>
-        public DefaultAlgoliaIndexingService(ISearchClient searchClient,
-            IEventLogService eventLogService,
+        public DefaultAlgoliaIndexingService(IEventLogService eventLogService,
             IAlgoliaIndexService algoliaIndexService,
             IAlgoliaRegistrationService algoliaRegistrationService,
             IAlgoliaTaskLogger algoliaTaskLogger,
             IMediaFileInfoProvider mediaFileInfoProvider,
             IMediaFileUrlRetriever mediaFileUrlRetriever)
         {
-            this.searchClient = searchClient;
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaRegistrationService = algoliaRegistrationService;
@@ -61,8 +56,13 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public int DeleteRecords(IEnumerable<string> objectIds, string indexName)
         {
+            if (String.IsNullOrEmpty(indexName))
+            {
+                throw new ArgumentNullException(nameof(indexName));
+            }
+
             var deletedCount = 0;
-            if (objectIds == null || objectIds.Count() == 0)
+            if (objectIds == null || !objectIds.Any())
             {
                 return 0;
             }
@@ -83,7 +83,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             var successfulOperations = 0;
 
             // Group queue items based on index name
-            var groups = items.ToList().GroupBy(item => item.IndexName);
+            var groups = items.GroupBy(item => item.IndexName);
             foreach (var group in groups)
             {
                 try
@@ -97,8 +97,8 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
                     var deleteTasks = group.Where(queueItem => queueItem.Delete);
                     var updateTasks = group.Where(queueItem => !queueItem.Delete);
-                    var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type)).ToList();
-                    var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString()).ToList();
+                    var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type));
+                    var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
 
                     successfulOperations += UpsertRecords(upsertData, group.Key);
                     successfulOperations += DeleteRecords(deleteData, group.Key);
@@ -119,6 +119,11 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public void Rebuild(string indexName)
         {
+            if (String.IsNullOrEmpty(indexName))
+            {
+                throw new ArgumentNullException(nameof(indexName));
+            }
+
             var algoliaIndex = algoliaRegistrationService.GetIndex(indexName);
             if (algoliaIndex == null)
             {
@@ -158,31 +163,37 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public int UpsertRecords(IEnumerable<JObject> dataObjects, string indexName)
         {
+            if (String.IsNullOrEmpty(indexName))
+            {
+                throw new ArgumentNullException(nameof(indexName));
+            }
+
             var upsertedCount = 0;
-            if (dataObjects == null || dataObjects.Count() == 0)
+            if (dataObjects == null || !dataObjects.Any())
             {
                 return 0;
             }
 
-            try
+            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
+            var responses = searchIndex.SaveObjects(dataObjects).Responses;
+            foreach (var response in responses)
             {
-                var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-                var responses = searchIndex.SaveObjects(dataObjects).Responses;
-                foreach (var response in responses)
-                {
-                    upsertedCount += response.ObjectIDs.Count();
-                }
+                upsertedCount += response.ObjectIDs.Count();
+            }
 
-                return upsertedCount;
-            }
-            catch (ArgumentNullException ex)
-            {
-                eventLogService.LogError(nameof(DefaultAlgoliaIndexingService), nameof(UpsertRecords), ex.Message);
-                return upsertedCount;
-            }
+            return upsertedCount;
         }
 
 
+        /// <summary>
+        /// Converts the assets from the <paramref name="node"/>'s value into absolute URLs.
+        /// </summary>
+        /// <remarks>Logs an error if the definition of the <paramref name="columnName"/> can't
+        /// be found.</remarks>
+        /// <param name="node">The <see cref="TreeNode"/> the value was loaded from.</param>
+        /// <param name="nodeValue">The original value of the column.</param>
+        /// <param name="columnName">The name of the column the value was loaded from.</param>
+        /// <returns>An list of absolute URLs, or an empty list.</returns>
         private IEnumerable<string> GetAssetUrlsForColumn(TreeNode node, object nodeValue, string columnName)
         {
             var strValue = ValidationHelper.GetString(nodeValue, String.Empty);
@@ -241,7 +252,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             }
 
             // Convert node value to URLs if necessary
-            if (Attribute.IsDefined(property, typeof(UrlAttribute)))
+            if (Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
             {
                 nodeValue = GetAssetUrlsForColumn(node, nodeValue, usedColumn);
             }
@@ -326,23 +337,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 // empty URL
                 data[nameof(AlgoliaSearchModel.Url)] = String.Empty;
             }
-
-            // Convert scheduled publishing times to Unix timestamp in UTC
-            var publishToUnix = Int32.MaxValue;
-            if (node.DocumentPublishTo != DateTime.MaxValue)
-            {
-                var nodePublishToUnix = node.DocumentPublishTo.ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
-                publishToUnix = ValidationHelper.GetInteger(nodePublishToUnix, publishToUnix);
-            }
-            var publishFromUnix = 0;
-            if (node.DocumentPublishFrom != DateTime.MinValue)
-            {
-                var nodePublishFromUnix = node.DocumentPublishFrom.ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
-                publishFromUnix = ValidationHelper.GetInteger(nodePublishFromUnix, publishFromUnix);
-            }
-
-            data[nameof(AlgoliaSearchModel.DocumentPublishTo)] = publishToUnix;
-            data[nameof(AlgoliaSearchModel.DocumentPublishFrom)] = publishFromUnix;
         }
     }
 }

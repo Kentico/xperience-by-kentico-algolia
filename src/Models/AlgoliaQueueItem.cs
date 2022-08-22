@@ -9,7 +9,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
     public class AlgoliaQueueItem
     {
         /// <summary>
-        /// The <see cref="TreeNode"/> that was recently created, updated, or deleted.
+        /// The <see cref="TreeNode"/> that was changed.
         /// </summary>
         public TreeNode Node
         {
@@ -19,7 +19,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
 
 
         /// <summary>
-        /// True if the <see cref="Node"/> data should be removed from the Algolia index.
+        /// <c>true</c> if the <see cref="Node"/> data should be removed from the Algolia index.
         /// </summary>
         public bool Delete
         {

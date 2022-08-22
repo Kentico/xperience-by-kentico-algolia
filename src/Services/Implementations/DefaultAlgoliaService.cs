@@ -79,7 +79,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 }
             ).ToList();
 
-            if (!displayEmptyFacets)
+            if (!displayEmptyFacets || filter == null)
             {
                 return facets.ToArray();
             }
@@ -87,7 +87,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             // Loop through all facets present in previous filter
             foreach (var previousFacetedAttribute in filter.FacetedAttributes)
             {
-                var matchingFacetFromResponse = facets.Where(facet => facet.Attribute == previousFacetedAttribute.Attribute).FirstOrDefault();
+                var matchingFacetFromResponse = facets.FirstOrDefault(facet => facet.Attribute == previousFacetedAttribute.Attribute);
                 if (matchingFacetFromResponse == null)
                 {
                     // Previous attribute was not returned by Algolia, add to new facet list
@@ -96,9 +96,9 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 }
 
                 // Loop through each facet value in previous facet attribute
-                foreach(var previousFacet in previousFacetedAttribute.Facets)
+                foreach (var previousFacet in previousFacetedAttribute.Facets)
                 {
-                    if(matchingFacetFromResponse.Facets.Select(facet => facet.Value).Contains(previousFacet.Value))
+                    if (matchingFacetFromResponse.Facets.Select(facet => facet.Value).Contains(previousFacet.Value))
                     {
                         // The facet value was returned by Algolia search, don't add
                         continue;
@@ -113,7 +113,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             }
 
             // Sort the facet values. Usually handled by Algolia, but we are modifying the list
-            foreach(var facetedAttribute in facets)
+            foreach (var facetedAttribute in facets)
             {
                 facetedAttribute.Facets = facetedAttribute.Facets.OrderBy(facet => facet.Value).ToArray();
             }

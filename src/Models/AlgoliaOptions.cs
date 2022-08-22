@@ -10,14 +10,15 @@
         /// </summary>
         public const string SECTION_NAME = "xperience.algolia";
 
-        
+
         /// <summary>
         /// Algolia application ID.
         /// </summary>
-        public string ApplicationId {
+        public string ApplicationId
+        {
             get;
             set;
-        }
+        } = "NO_APP";
 
 
         /// <summary>
@@ -27,7 +28,7 @@
         {
             get;
             set;
-        }
+        } = "NO_KEY";
 
 
         /// <summary>

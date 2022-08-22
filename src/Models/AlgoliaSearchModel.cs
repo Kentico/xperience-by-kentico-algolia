@@ -34,30 +34,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
 
 
         /// <summary>
-        /// The <see cref="TreeNode.DocumentPublishFrom"/> value which is automatically
-        /// converted to a Unix timestamp in UTC.
-        /// </summary>
-        [Facetable(FilterOnly = true)]
-        public int DocumentPublishFrom
-        {
-            get;
-            set;
-        }
-
-
-        /// <summary>
-        /// The <see cref="TreeNode.DocumentPublishTo"/> value which is automatically
-        /// converted to a Unix timestamp in UTC.
-        /// </summary>
-        [Facetable(FilterOnly = true)]
-        public int DocumentPublishTo
-        {
-            get;
-            set;
-        }
-
-
-        /// <summary>
         /// The absolute live site URL of the indexed page.
         /// </summary>
         [Retrievable]

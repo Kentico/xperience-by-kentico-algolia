@@ -25,19 +25,8 @@ namespace Kentico.Xperience.AlgoliaSearch
         /// <param name="store">The implementation of <see cref="IAlgoliaIndexStore"/> to register.</param>
         public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, IAlgoliaIndexStore store)
         {
-            services.Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME));
-            services.PostConfigure<AlgoliaOptions>(options =>
-            {
-                if (String.IsNullOrEmpty(options.ApplicationId) || String.IsNullOrEmpty(options.ApiKey))
-                {
-                    // Algolia configuration is not valid, but IEventLogService can't be resolved during startup.
-                    // Set dummy values so that DI is not broken, but errors can be captured when attempting to use the client
-                    options.ApplicationId = "NO_APP";
-                    options.ApiKey = "NO_KEY";
-                }
-            });
-
             return services
+                .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME))
                 .AddSingleton<IInsightsClient>(s =>
                 {
                     var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();

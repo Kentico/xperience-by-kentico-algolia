@@ -11,12 +11,12 @@ using System.Linq;
 namespace Kentico.Xperience.AlgoliaSearch
 {
     /// <summary>
-    /// Thread worker which enqueues recently created, updated, or deleted nodes
-    /// indexed by Algolia and updates the Algolia indexes in the background thread.
+    /// Thread worker which enqueues recently updated or deleted nodes indexed
+    /// by Algolia and processes the tasks in the background thread.
     /// </summary>
     internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
     {
-        private IAlgoliaIndexingService algoliaIndexingService;
+        private readonly IAlgoliaIndexingService algoliaIndexingService;
 
 
         protected override int DefaultInterval => 10000;

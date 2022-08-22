@@ -23,9 +23,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     /// </summary>
     internal class DefaultAlgoliaRegistrationService : IAlgoliaRegistrationService
     {
-        private readonly IAlgoliaService algoliaSearchService;
         private readonly IEventLogService eventLogService;
-        private readonly ISearchClient searchClient;
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaIndexStore algoliaIndexStore;
         private readonly List<AlgoliaIndex> registeredIndexes = new List<AlgoliaIndex>();
@@ -39,15 +37,11 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaRegistrationService"/> class.
         /// </summary>
-        public DefaultAlgoliaRegistrationService(IAlgoliaService algoliaSearchService,
-            IEventLogService eventLogService,
-            ISearchClient searchClient,
+        public DefaultAlgoliaRegistrationService(IEventLogService eventLogService,
             IAlgoliaIndexService algoliaIndexService,
             IAlgoliaIndexStore algoliaIndexStore)
         {
-            this.algoliaSearchService = algoliaSearchService;
             this.eventLogService = eventLogService;
-            this.searchClient = searchClient;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaIndexStore = algoliaIndexStore;
         }
@@ -129,15 +123,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 throw new ArgumentNullException(nameof(node));
             }
 
-            foreach (var index in registeredIndexes)
-            {
-                if (IsNodeIndexedByIndex(node, index.IndexName))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return registeredIndexes.Any(index => IsNodeIndexedByIndex(node, index.IndexName));
         }
 
 
@@ -158,30 +144,22 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 eventLogService.LogError(nameof(DefaultAlgoliaRegistrationService), nameof(IsNodeIndexedByIndex), $"Error loading registered Algolia index '{indexName}.'");
                 return false;
             }
-            
+
             var includedPathAttributes = alogliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            foreach (var includedPathAttribute in includedPathAttributes)
-            {
+            return includedPathAttributes.Any(includedPathAttribute => {
                 var path = includedPathAttribute.AliasPath;
                 var matchesPageType = (includedPathAttribute.PageTypes.Length == 0 || includedPathAttribute.PageTypes.Contains(node.ClassName));
+
                 if (path.EndsWith("/%"))
                 {
                     path = path.TrimEnd('%', '/');
-                    if (node.NodeAliasPath.StartsWith(path) && matchesPageType)
-                    {
-                        return true;
-                    }
+                    return node.NodeAliasPath.StartsWith(path) && matchesPageType;
                 }
                 else
                 {
-                    if (node.NodeAliasPath == path && matchesPageType)
-                    {
-                        return true;
-                    }
+                    return node.NodeAliasPath == path && matchesPageType;
                 }
-            }
-
-            return false;
+            });
         }
 
 

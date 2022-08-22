@@ -7,16 +7,23 @@ using Kentico.Xperience.AlgoliaSearch.Services;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaTaskLogger), typeof(DefaultAlgoliaTaskLogger), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.AlgoliaSearch.Services
 {
+    /// <summary>
+    /// Default implementation of <see cref="IAlgoliaTaskLogger"/>.
+    /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
         private readonly IAlgoliaRegistrationService algoliaRegistrationService;
         private readonly IEventLogService eventLogService;
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
+        /// </summary>
         public DefaultAlgoliaTaskLogger(IAlgoliaRegistrationService algoliaRegistrationService, IEventLogService eventLogService)
         {
             this.algoliaRegistrationService = algoliaRegistrationService;
@@ -38,14 +45,14 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public void HandleEvent(TreeNode node, string eventName)
         {
-            foreach (var index in algoliaRegistrationService.GetAllIndexes())
+            foreach (var indexName in algoliaRegistrationService.GetAllIndexes().Select(index => index.IndexName))
             {
-                if (!algoliaRegistrationService.IsNodeIndexedByIndex(node, index.IndexName))
+                if (!algoliaRegistrationService.IsNodeIndexedByIndex(node, indexName))
                 {
                     continue;
                 }
 
-                var indexedColumns = algoliaRegistrationService.GetIndexedColumnNames(index.IndexName);
+                var indexedColumns = algoliaRegistrationService.GetIndexedColumnNames(indexName);
                 if (indexedColumns.Length == 0)
                 {
                     eventLogService.LogError(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), $"Unable to enqueue node change: Error loading indexed columns.");
@@ -65,7 +72,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 {
                     Node = node,
                     Delete = shouldDelete,
-                    IndexName = index.IndexName
+                    IndexName = indexName
                 });
             }
         }

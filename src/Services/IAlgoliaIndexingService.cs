@@ -17,6 +17,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// </summary>
         /// <param name="objectIds">The Algolia internal IDs of the records to delete.</param>
         /// <param name="indexName">The index containing the objects to delete.</param>
+        /// <exception cref="ArgumentNullException" />
         /// <returns>The number of records deleted.</returns>
         int DeleteRecords(IEnumerable<string> objectIds, string indexName);
 
@@ -37,6 +38,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <remarks>Logs an error if there are issues loading the node data.</remarks>
         /// <param name="dataObjects">The objects to upsert into Algolia.</param>
         /// <param name="indexName">The index to upsert the data to.</param>
+        /// <exception cref="ArgumentNullException" />
         /// <returns>The number of objects processed.</returns>
         int UpsertRecords(IEnumerable<JObject> dataObjects, string indexName);
 
@@ -46,8 +48,8 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// pages in the content tree included in the index.
         /// </summary>
         /// <param name="indexName">The index to rebuild.</param>
-        /// <exception cref="InvalidOperationException">Thrown if a search model class is not
-        /// found for the index.</exception>
+        /// <exception cref="InvalidOperationException" />
+        /// <exception cref="ArgumentNullException" />
         void Rebuild(string indexName);
     }
 }

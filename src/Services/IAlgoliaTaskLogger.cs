@@ -6,11 +6,23 @@ using System.Collections.Generic;
 
 namespace Kentico.Xperience.AlgoliaSearch.Services
 {
+    /// <summary>
+    /// Contains methods for logging <see cref="AlgoliaQueueItem"/>s for processing by
+    /// <see cref="AlgoliaQueueWorker"/>.
+    /// </summary>
     public interface IAlgoliaTaskLogger
     {
+        /// <summary>
+        /// Logs a single <see cref="AlgoliaQueueItem"/>.
+        /// </summary>
+        /// <param name="task">The task to log.</param>
         void LogTask(AlgoliaQueueItem task);
 
 
+        /// <summary>
+        /// Logs multiple <see cref="AlgoliaQueueItem"/>s.
+        /// </summary>
+        /// <param name="tasks">The tasks to log.</param>
         void LogTasks(IEnumerable<AlgoliaQueueItem> tasks);
 
 
@@ -22,7 +34,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <remarks>Logs an error if there are issues loading indexed columns.</remarks>
         /// <param name="node">The <see cref="TreeNode"/> that triggered the event.</param>
         /// <param name="eventName">The name of the Xperience event that was triggered.</param>
-        /// <returns>The number of tasks that were created.</returns>
         void HandleEvent(TreeNode node, string eventName);
     }
 }

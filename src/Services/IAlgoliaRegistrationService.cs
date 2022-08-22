@@ -36,7 +36,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// </summary>
         /// <param name="indexName">The Algolia index code name.</param>
         /// <returns>The index settings, or null if not found.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException" />
         IndexSettings GetIndexSettings(string indexName);
 
 
@@ -55,7 +55,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// Returns true if the passed node is included in any registered Algolia index.
         /// </summary>
         /// <param name="node">The <see cref="TreeNode"/> to check for indexing.</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException" />
         bool IsNodeAlgoliaIndexed(TreeNode node);
 
 
@@ -66,7 +66,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <remarks>Logs an error if the search model cannot be found.</remarks>
         /// <param name="node">The node to check for indexing.</param>
         /// <param name="indexName">The Algolia index code name.</param>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException" />
         bool IsNodeIndexedByIndex(TreeNode node, string indexName);
 
 

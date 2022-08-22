@@ -15,7 +15,8 @@ using System.Runtime.CompilerServices;
 namespace Kentico.Xperience.AlgoliaSearch
 {
     /// <summary>
-    /// Registers event handlers required for indexing content.
+    /// Registers all Algolia indexes, initializes page event handlers, and ensures the thread
+    /// queue worker for processing Algolia tasks.
     /// </summary>
     public class AlgoliaSearchModule : Module
     {
