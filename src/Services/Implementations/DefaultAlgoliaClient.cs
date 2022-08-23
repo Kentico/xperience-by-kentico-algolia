@@ -1,7 +1,4 @@
-﻿using Algolia.Search.Clients;
-using Algolia.Search.Models.Common;
-
-using CMS;
+﻿using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
@@ -21,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.AlgoliaSearch.Services
@@ -32,11 +30,9 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaIndexStore algoliaIndexStore;
-        private readonly IAlgoliaTaskLogger algoliaTaskLogger;
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
-        private readonly ISearchClient searchClient;
 
 
         /// <summary>
@@ -44,58 +40,35 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
             IAlgoliaIndexStore algoliaIndexStore,
-            IAlgoliaTaskLogger algoliaTaskLogger,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever,
-            ISearchClient searchClient)
+            IMediaFileUrlRetriever mediaFileUrlRetriever)
         {
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaIndexStore = algoliaIndexStore;
-            this.algoliaTaskLogger = algoliaTaskLogger;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
-            this.searchClient = searchClient;
         }
 
 
-        public int DeleteRecords(IEnumerable<string> objectIds, string indexName)
+        public Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var deletedCount = 0;
             if (objectIds == null || !objectIds.Any())
             {
-                return 0;
+                return Task.FromResult(0);
             }
 
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            var responses = searchIndex.DeleteObjects(objectIds).Responses;
-            foreach (var response in responses)
-            {
-                deletedCount += response.ObjectIDs.Count();
-            }
-
-            return deletedCount;
+            return DeleteRecordsInternal(objectIds, indexName);
         }
 
 
-        public List<IndicesResponse> GetStatistics()
-        {
-            if (searchClient == null)
-            {
-                return Enumerable.Empty<IndicesResponse>().ToList();
-            }
-
-            return searchClient.ListIndices().Items;
-        }
-
-
-        public int ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items)
+        public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items)
         {
             var successfulOperations = 0;
 
@@ -117,8 +90,8 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                     var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type));
                     var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
 
-                    successfulOperations += UpsertRecords(upsertData, group.Key);
-                    successfulOperations += DeleteRecords(deleteData, group.Key);
+                    successfulOperations += await UpsertRecords(upsertData, group.Key);
+                    successfulOperations += await DeleteRecords(deleteData, group.Key);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -134,7 +107,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         }
 
 
-        public void Rebuild(string indexName)
+        public Task Rebuild(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
             {
@@ -147,58 +120,37 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");
             }
 
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            searchIndex.ClearObjects();
-
-            var indexedNodes = new List<TreeNode>();
-            var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            foreach (var includedPathAttribute in includedPathAttributes)
-            {
-                var query = new MultiDocumentQuery()
-                    .Path(includedPathAttribute.AliasPath)
-                    .PublishedVersion()
-                    .WithCoupledColumns();
-
-                if (includedPathAttribute.PageTypes.Length > 0)
-                {
-                    query.Types(includedPathAttribute.PageTypes);
-                }
-
-                indexedNodes.AddRange(query.TypedResult);
-            }
-
-            algoliaTaskLogger.LogTasks(indexedNodes.Select(node =>
-                new AlgoliaQueueItem
-                {
-                    IndexName = algoliaIndex.IndexName,
-                    Node = node,
-                    Delete = false
-                }
-            ));
+            return RebuildInternal(algoliaIndex);
         }
 
 
-        public int UpsertRecords(IEnumerable<JObject> dataObjects, string indexName)
+        public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var upsertedCount = 0;
             if (dataObjects == null || !dataObjects.Any())
             {
-                return 0;
+                return Task.FromResult(0);
             }
 
+            return UpsertRecordsInternal(dataObjects, indexName);
+        }
+
+
+        private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName)
+        {
+            var deletedCount = 0;
             var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            var responses = searchIndex.SaveObjects(dataObjects).Responses;
-            foreach (var response in responses)
+            var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(objectIds).ConfigureAwait(false);
+            foreach (var response in batchIndexingResponse.Responses)
             {
-                upsertedCount += response.ObjectIDs.Count();
+                deletedCount += response.ObjectIDs.Count();
             }
 
-            return upsertedCount;
+            return deletedCount;
         }
 
 
@@ -354,6 +306,45 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 // empty URL
                 data[nameof(AlgoliaSearchModel.Url)] = String.Empty;
             }
+        }
+
+
+        private async Task RebuildInternal(AlgoliaIndex algoliaIndex)
+        {
+            var indexedNodes = new List<TreeNode>();
+            var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
+            foreach (var includedPathAttribute in includedPathAttributes)
+            {
+                var query = new MultiDocumentQuery()
+                    .Path(includedPathAttribute.AliasPath)
+                    .PublishedVersion()
+                    .WithCoupledColumns();
+
+                if (includedPathAttribute.PageTypes.Length > 0)
+                {
+                    query.Types(includedPathAttribute.PageTypes);
+                }
+
+                indexedNodes.AddRange(query.TypedResult);
+            }
+
+            var data = indexedNodes.Select(node => GetTreeNodeData(node, algoliaIndex.Type));
+            var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
+            await searchIndex.ReplaceAllObjectsAsync(data).ConfigureAwait(false);
+        }
+
+
+        private async Task<int> UpsertRecordsInternal(IEnumerable<JObject> dataObjects, string indexName)
+        {
+            var upsertedCount = 0;
+            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
+            var batchIndexingResponse = await searchIndex.SaveObjectsAsync(dataObjects).ConfigureAwait(false);
+            foreach (var response in batchIndexingResponse.Responses)
+            {
+                upsertedCount += response.ObjectIDs.Count();
+            }
+
+            return upsertedCount;
         }
     }
 }

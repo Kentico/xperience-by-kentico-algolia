@@ -69,8 +69,7 @@ namespace Kentico.Xperience.AlgoliaSearch
 
         protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
         {
-            algoliaClient.ProcessAlgoliaTasks(items);
-            return items.Count();
+            return algoliaClient.ProcessAlgoliaTasks(items).Result;
         }
 
 

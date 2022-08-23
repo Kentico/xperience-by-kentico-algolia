@@ -1,11 +1,10 @@
-﻿using Algolia.Search.Models.Common;
-
-using Kentico.Xperience.AlgoliaSearch.Models;
+﻿using Kentico.Xperience.AlgoliaSearch.Models;
 
 using Newtonsoft.Json.Linq;
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Kentico.Xperience.AlgoliaSearch.Services
 {
@@ -21,14 +20,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <param name="indexName">The index containing the objects to delete.</param>
         /// <exception cref="ArgumentNullException" />
         /// <returns>The number of records deleted.</returns>
-        int DeleteRecords(IEnumerable<string> objectIds, string indexName);
-
-
-        /// <summary>
-        /// Gets the indices of the Algolia application with basic statistics.
-        /// </summary>
-        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/></remarks>
-        List<IndicesResponse> GetStatistics();
+        Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName);
 
 
         /// <summary>
@@ -38,7 +30,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// </summary>
         /// <param name="items">The items to process.</param>
         /// <returns>The number of items processed.</returns>
-        int ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items);
+        Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items);
 
 
         /// <summary>
@@ -49,7 +41,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <param name="indexName">The index to upsert the data to.</param>
         /// <exception cref="ArgumentNullException" />
         /// <returns>The number of objects processed.</returns>
-        int UpsertRecords(IEnumerable<JObject> dataObjects, string indexName);
+        Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName);
 
 
         /// <summary>
@@ -59,6 +51,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <param name="indexName">The index to rebuild.</param>
         /// <exception cref="InvalidOperationException" />
         /// <exception cref="ArgumentNullException" />
-        void Rebuild(string indexName);
+        Task Rebuild(string indexName);
     }
 }
