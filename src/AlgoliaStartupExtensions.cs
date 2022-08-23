@@ -1,6 +1,4 @@
-﻿using System;
-
-using Algolia.Search.Clients;
+﻿using Algolia.Search.Clients;
 
 using Kentico.Xperience.AlgoliaSearch.Models;
 using Kentico.Xperience.AlgoliaSearch.Services;

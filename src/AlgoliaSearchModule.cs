@@ -15,13 +15,11 @@ using System.Runtime.CompilerServices;
 namespace Kentico.Xperience.AlgoliaSearch
 {
     /// <summary>
-    /// Registers all Algolia indexes, initializes page event handlers, and ensures the thread
-    /// queue worker for processing Algolia tasks.
+    /// Initializes page event handlers, and ensures the thread queue worker for processing Algolia tasks.
     /// </summary>
     public class AlgoliaSearchModule : Module
     {
-        private IAlgoliaRegistrationService algoliaRegistrationService;
-        private IAlgoliaService algoliaSearchService;
+        private IAlgoliaHelper algoliaHelper;
         private IAlgoliaTaskLogger algoliaTaskLogger;
 
 
@@ -30,18 +28,12 @@ namespace Kentico.Xperience.AlgoliaSearch
         }
 
 
-        /// <summary>
-        /// Registers all Algolia indexes, initializes page event handlers, and ensures the thread
-        /// queue worker for processing Algolia tasks.
-        /// </summary>
         protected override void OnInit()
         {
             base.OnInit();
 
-            algoliaRegistrationService = Service.Resolve<IAlgoliaRegistrationService>();
-            algoliaSearchService = Service.Resolve<IAlgoliaService>();
+            algoliaHelper = Service.Resolve<IAlgoliaHelper>();
             algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
-            algoliaRegistrationService.RegisterAlgoliaIndexes();
 
             DocumentEvents.Delete.After += LogTreeNodeDelete;
             WorkflowEvents.Publish.After += LogTreeNodePublish;
@@ -56,8 +48,8 @@ namespace Kentico.Xperience.AlgoliaSearch
         /// </summary>
         private bool EventShouldContinue(TreeNode node)
         {
-            return algoliaSearchService.IsIndexingEnabled() &&
-                algoliaRegistrationService.IsNodeAlgoliaIndexed(node);
+            return algoliaHelper.IsIndexingEnabled() &&
+                algoliaHelper.IsNodeAlgoliaIndexed(node);
         }
 
 

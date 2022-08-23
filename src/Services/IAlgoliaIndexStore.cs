@@ -1,26 +1,34 @@
 ﻿using Kentico.Xperience.AlgoliaSearch.Models;
 
+using System.Collections.Generic;
+
 namespace Kentico.Xperience.AlgoliaSearch.Services
 {
     /// <summary>
-    /// Contains a collection of <see cref="AlgoliaIndex"/> which are automatically registered by
-    /// <see cref="IAlgoliaRegistrationService"/> during application startup.
+    /// Contains a collection of registered <see cref="AlgoliaIndex"/>es.
     /// </summary>
     public interface IAlgoliaIndexStore
     {
         /// <summary>
-        /// Inserts an <see cref="AlgoliaIndex"/> into the register.
+        /// Inserts an <see cref="AlgoliaIndex"/> into the store.
         /// </summary>
         /// <typeparam name="TModel">The search model class.</typeparam>
         /// <param name="indexName">The code name of the Algolia index.</param>
-        /// <returns>The <see cref="IAlgoliaRegistrationService"/> for chaining.</returns>
+        /// <returns>The <see cref="IAlgoliaIndexStore"/> for chaining.</returns>
         IAlgoliaIndexStore Add<TModel>(string indexName) where TModel : AlgoliaSearchModel;
 
 
         /// <summary>
-        /// Pops off the first <see cref="AlgoliaIndex"/> in the register, or <c>null</c> if the register
-        /// is empty.
+        /// Gets all registered Algolia indexes.
         /// </summary>
-        AlgoliaIndex Pop();
+        IEnumerable<AlgoliaIndex> GetAllIndexes();
+
+
+        /// <summary>
+        /// Gets a registered <see cref="AlgoliaIndex"/> with the specified <paramref name="indexName"/>,
+        /// or <c>null</c>.
+        /// </summary>
+        /// <param name="indexName">The name of the index to retrieve.</param>
+        AlgoliaIndex GetIndex(string indexName);
     }
 }

@@ -2,12 +2,14 @@
 using CMS.Core;
 using CMS.DocumentEngine;
 
+using Kentico.Xperience.AlgoliaSearch.Attributes;
 using Kentico.Xperience.AlgoliaSearch.Models;
 using Kentico.Xperience.AlgoliaSearch.Services;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaTaskLogger), typeof(DefaultAlgoliaTaskLogger), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.AlgoliaSearch.Services
@@ -17,16 +19,25 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
-        private readonly IAlgoliaRegistrationService algoliaRegistrationService;
+        private readonly IAlgoliaIndexStore algoliaIndexStore;
+        private readonly IAlgoliaHelper algoliaHelper;
         private readonly IEventLogService eventLogService;
+        private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
+            nameof(AlgoliaSearchModel.ObjectID),
+            nameof(AlgoliaSearchModel.Url),
+            nameof(AlgoliaSearchModel.ClassName)
+        };
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
         /// </summary>
-        public DefaultAlgoliaTaskLogger(IAlgoliaRegistrationService algoliaRegistrationService, IEventLogService eventLogService)
+        public DefaultAlgoliaTaskLogger(IAlgoliaIndexStore algoliaIndexStore,
+            IAlgoliaHelper algoliaHelper,
+            IEventLogService eventLogService)
         {
-            this.algoliaRegistrationService = algoliaRegistrationService;
+            this.algoliaIndexStore = algoliaIndexStore;
+            this.algoliaHelper = algoliaHelper;
             this.eventLogService = eventLogService;
         }
 
@@ -45,14 +56,14 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public void HandleEvent(TreeNode node, string eventName)
         {
-            foreach (var indexName in algoliaRegistrationService.GetAllIndexes().Select(index => index.IndexName))
+            foreach (var indexName in algoliaIndexStore.GetAllIndexes().Select(index => index.IndexName))
             {
-                if (!algoliaRegistrationService.IsNodeIndexedByIndex(node, indexName))
+                if (!algoliaHelper.IsNodeIndexedByIndex(node, indexName))
                 {
                     continue;
                 }
 
-                var indexedColumns = algoliaRegistrationService.GetIndexedColumnNames(indexName);
+                var indexedColumns = GetIndexedColumnNames(indexName);
                 if (indexedColumns.Length == 0)
                 {
                     eventLogService.LogError(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), $"Unable to enqueue node change: Error loading indexed columns.");
@@ -75,6 +86,37 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                     IndexName = indexName
                 });
             }
+        }
+
+
+        private string[] GetIndexedColumnNames(string indexName)
+        {
+            var alogliaIndex = algoliaIndexStore.GetIndex(indexName);
+            if (alogliaIndex == null)
+            {
+                return new string[0];
+            }
+
+            // Don't include properties with SourceAttribute at first, check the sources and add to list after
+            var indexedColumnNames = alogliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
+            var propertiesWithSourceAttribute = alogliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
+            foreach (var property in propertiesWithSourceAttribute)
+            {
+                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
+                if (sourceAttribute == null)
+                {
+                    continue;
+                }
+
+                indexedColumnNames.AddRange(sourceAttribute.Sources);
+            }
+
+            // Remove column names from AlgoliaSearchModel that aren't database columns
+            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+
+            return indexedColumnNames.ToArray();
         }
     }
 }

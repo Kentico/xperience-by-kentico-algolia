@@ -1,4 +1,7 @@
-﻿using CMS;
+﻿using Algolia.Search.Clients;
+using Algolia.Search.Models.Common;
+
+using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
@@ -19,38 +22,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaIndexingService), typeof(DefaultAlgoliaIndexingService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
+[assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.AlgoliaSearch.Services
 {
     /// <summary>
-    /// Default implementation of <see cref="IAlgoliaIndexingService"/>.
+    /// Default implementation of <see cref="IAlgoliaClient"/>.
     /// </summary>
-    internal class DefaultAlgoliaIndexingService : IAlgoliaIndexingService
+    internal class DefaultAlgoliaClient : IAlgoliaClient
     {
-        private readonly IEventLogService eventLogService;
         private readonly IAlgoliaIndexService algoliaIndexService;
-        private readonly IAlgoliaRegistrationService algoliaRegistrationService;
+        private readonly IAlgoliaIndexStore algoliaIndexStore;
         private readonly IAlgoliaTaskLogger algoliaTaskLogger;
+        private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
+        private readonly ISearchClient searchClient;
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultAlgoliaIndexingService"/> class.
+        /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
-        public DefaultAlgoliaIndexingService(IEventLogService eventLogService,
-            IAlgoliaIndexService algoliaIndexService,
-            IAlgoliaRegistrationService algoliaRegistrationService,
+        public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
+            IAlgoliaIndexStore algoliaIndexStore,
             IAlgoliaTaskLogger algoliaTaskLogger,
+            IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever)
+            IMediaFileUrlRetriever mediaFileUrlRetriever,
+            ISearchClient searchClient)
         {
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
-            this.algoliaRegistrationService = algoliaRegistrationService;
+            this.algoliaIndexStore = algoliaIndexStore;
             this.algoliaTaskLogger = algoliaTaskLogger;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
+            this.searchClient = searchClient;
         }
 
 
@@ -78,6 +84,17 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         }
 
 
+        public List<IndicesResponse> GetStatistics()
+        {
+            if (searchClient == null)
+            {
+                return Enumerable.Empty<IndicesResponse>().ToList();
+            }
+
+            return searchClient.ListIndices().Items;
+        }
+
+
         public int ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items)
         {
             var successfulOperations = 0;
@@ -88,10 +105,10 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             {
                 try
                 {
-                    var algoliaIndex = algoliaRegistrationService.GetIndex(group.Key);
+                    var algoliaIndex = algoliaIndexStore.GetIndex(group.Key);
                     if (algoliaIndex == null)
                     {
-                        eventLogService.LogError(nameof(DefaultAlgoliaIndexingService), nameof(ProcessAlgoliaTasks), $"Attempted to process tasks for index '{group.Key},' but the index is not registered.");
+                        eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), $"Attempted to process tasks for index '{group.Key},' but the index is not registered.");
                         continue;
                     }
 
@@ -105,11 +122,11 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 }
                 catch (InvalidOperationException ex)
                 {
-                    eventLogService.LogError(nameof(DefaultAlgoliaIndexingService), nameof(ProcessAlgoliaTasks), ex.Message);
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), ex.Message);
                 }
                 catch (ArgumentNullException ex)
                 {
-                    eventLogService.LogError(nameof(DefaultAlgoliaIndexingService), nameof(ProcessAlgoliaTasks), ex.Message);
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), ex.Message);
                 }
             }
 
@@ -124,7 +141,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var algoliaIndex = algoliaRegistrationService.GetIndex(indexName);
+            var algoliaIndex = algoliaIndexStore.GetIndex(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");
@@ -208,7 +225,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             var field = formInfo.GetFormField(columnName);
             if (field == null)
             {
-                eventLogService.LogError(nameof(DefaultAlgoliaIndexingService), nameof(GetAssetUrlsForColumn), $"Unable to load field definition for page type '{node.ClassName}' column name '{columnName}.'");
+                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(GetAssetUrlsForColumn), $"Unable to load field definition for page type '{node.ClassName}' column name '{columnName}.'");
                 return Enumerable.Empty<string>();
             }
 

@@ -16,7 +16,7 @@ namespace Kentico.Xperience.AlgoliaSearch
     /// </summary>
     internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
     {
-        private readonly IAlgoliaIndexingService algoliaIndexingService;
+        private readonly IAlgoliaClient algoliaClient;
 
 
         protected override int DefaultInterval => 10000;
@@ -29,7 +29,7 @@ namespace Kentico.Xperience.AlgoliaSearch
         /// </summary>
         public AlgoliaQueueWorker()
         {
-            algoliaIndexingService = Service.Resolve<IAlgoliaIndexingService>();
+            algoliaClient = Service.Resolve<IAlgoliaClient>();
         }
 
 
@@ -69,7 +69,7 @@ namespace Kentico.Xperience.AlgoliaSearch
 
         protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
         {
-            algoliaIndexingService.ProcessAlgoliaTasks(items);
+            algoliaClient.ProcessAlgoliaTasks(items);
             return items.Count();
         }
 
