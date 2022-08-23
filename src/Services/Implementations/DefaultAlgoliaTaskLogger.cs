@@ -1,6 +1,7 @@
 ﻿using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
+using CMS.DocumentEngine.Internal;
 
 using Kentico.Xperience.AlgoliaSearch.Attributes;
 using Kentico.Xperience.AlgoliaSearch.Extensions;
@@ -68,13 +69,16 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                     continue;
                 }
 
-                if (eventName.Equals(WorkflowEvents.Publish.Name) && !node.AnyItemChanged(indexedColumns))
+                if (eventName.Equals(WorkflowEvents.Publish.Name) &&
+                    node.WorkflowHistory.Count > 0 &&
+                    !node.AnyItemChanged(indexedColumns))
                 {
-                    // for Publish event, don't update Algolia if nothing changed
+                    // For Publish event, don't update Algolia if nothing changed. Only applies if it's not the first publishing
                     continue;
                 }
 
-                var shouldDelete = eventName.Equals(DocumentEvents.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
+                var shouldDelete = eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
+                    eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name, StringComparison.OrdinalIgnoreCase) ||
                     eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase);
 
                 LogTask(new AlgoliaQueueItem()

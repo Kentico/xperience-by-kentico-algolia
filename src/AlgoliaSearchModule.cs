@@ -3,11 +3,13 @@ using CMS.Base;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
+using CMS.DocumentEngine.Internal;
 
 using Kentico.Xperience.AlgoliaSearch;
 using Kentico.Xperience.AlgoliaSearch.Extensions;
 using Kentico.Xperience.AlgoliaSearch.Services;
 
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 [assembly: AssemblyDiscoverable]
@@ -36,9 +38,10 @@ namespace Kentico.Xperience.AlgoliaSearch
             algoliaHelper = Service.Resolve<IAlgoliaHelper>();
             algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
 
-            DocumentEvents.Delete.After += LogTreeNodeDelete;
-            WorkflowEvents.Publish.After += LogTreeNodePublish;
-            WorkflowEvents.Archive.After += LogTreeNodeArchive;
+            WorkflowEvents.Publish.After += LogPublish;
+            WorkflowEvents.Archive.After += LogArchive;
+            DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Before += LogBulkDelete;
+            DocumentCultureDataInfo.TYPEINFO.Events.Delete.Before += LogDelete;
             RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
         }
 
@@ -57,7 +60,7 @@ namespace Kentico.Xperience.AlgoliaSearch
         /// <summary>
         /// Called after a page is archived. Logs an Algolia task to be processed later.
         /// </summary>
-        private void LogTreeNodeArchive(object sender, WorkflowEventArgs e)
+        private void LogArchive(object sender, WorkflowEventArgs e)
         {
             if (!EventShouldContinue(e.Document))
             {
@@ -69,10 +72,52 @@ namespace Kentico.Xperience.AlgoliaSearch
 
 
         /// <summary>
-        /// Called after a page is published manually or by content scheduling. Logs an Algolia
-        /// task to be processed later.
+        /// Called before pages are bulk deleted. Logs Algolia tasks to be processed later.
         /// </summary>
-        private void LogTreeNodePublish(object sender, WorkflowEventArgs e)
+        private void LogBulkDelete(object sender, BulkDeleteEventArgs e)
+        {
+            var cultureInfos = new ObjectQuery<DocumentCultureDataInfo>().Where(e.WhereCondition).TypedResult;
+            var nodes = new DocumentQuery()
+                .WhereIn(nameof(TreeNode.DocumentID), cultureInfos.Select(i => i.DocumentNodeID).ToList())
+                .PublishedVersion()
+                .TypedResult;
+            foreach (var node in nodes)
+            {
+                if (!EventShouldContinue(node))
+                {
+                    continue;
+                }
+
+                algoliaTaskLogger.HandleEvent(node, DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name);
+            }
+        }
+
+
+        /// <summary>
+        /// Called before a page is deleted. Logs an Algolia task to be processed later.
+        /// </summary>
+        private void LogDelete(object sender, ObjectEventArgs e)
+        {
+            var cultureInfo = e.Object as DocumentCultureDataInfo;
+            var node = new DocumentQuery()
+                .TopN(1)
+                .WhereEquals(nameof(TreeNode.DocumentID), cultureInfo.DocumentID)
+                .PublishedVersion()
+                .TypedResult
+                .FirstOrDefault();
+            if (!EventShouldContinue(node))
+            {
+                return;
+            }
+
+            algoliaTaskLogger.HandleEvent(node, DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name);
+        }
+
+
+        /// <summary>
+        /// Called after a page is published. Logs an Algolia task to be processed later.
+        /// </summary>
+        private void LogPublish(object sender, WorkflowEventArgs e)
         {
             if (!EventShouldContinue(e.Document))
             {
@@ -80,20 +125,6 @@ namespace Kentico.Xperience.AlgoliaSearch
             }
 
             algoliaTaskLogger.HandleEvent(e.Document, WorkflowEvents.Publish.Name);
-        }
-
-
-        /// <summary>
-        /// Called after a page is deleted. Logs an Algolia task to be processed later.
-        /// </summary>
-        private void LogTreeNodeDelete(object sender, DocumentEventArgs e)
-        {
-            if (!EventShouldContinue(e.Node))
-            {
-                return;
-            }
-
-            algoliaTaskLogger.HandleEvent(e.Node, DocumentEvents.Delete.Name);
         }
     }
 }

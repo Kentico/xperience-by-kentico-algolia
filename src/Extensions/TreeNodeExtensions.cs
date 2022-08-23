@@ -56,17 +56,18 @@ namespace Kentico.Xperience.AlgoliaSearch.Extensions
 
             var includedPathAttributes = alogliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
             return includedPathAttributes.Any(includedPathAttribute => {
-                var path = includedPathAttribute.AliasPath;
                 var matchesPageType = (includedPathAttribute.PageTypes.Length == 0 || includedPathAttribute.PageTypes.Contains(node.ClassName));
-
-                if (path.EndsWith("/%"))
+                if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {
-                    path = path.TrimEnd('%', '/');
-                    return node.NodeAliasPath.StartsWith(path) && matchesPageType;
+                    var pathToMatch = TreePathUtils.EnsureSingleNodePath(includedPathAttribute.AliasPath);
+                    var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, false, false);
+                    var matchesPath = pathsOnPath.Any(path => path.Equals(pathToMatch, StringComparison.OrdinalIgnoreCase));
+
+                    return matchesPath && matchesPageType;
                 }
                 else
                 {
-                    return node.NodeAliasPath == path && matchesPageType;
+                    return node.NodeAliasPath.Equals(includedPathAttribute.AliasPath, StringComparison.OrdinalIgnoreCase) && matchesPageType;
                 }
             });
         }
