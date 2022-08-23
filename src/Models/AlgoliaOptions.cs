@@ -1,4 +1,6 @@
-﻿namespace Kentico.Xperience.AlgoliaSearch.Models
+﻿using Kentico.Xperience.AlgoliaSearch.Services;
+
+namespace Kentico.Xperience.AlgoliaSearch.Models
 {
     /// <summary>
     /// Algolia integration options.
@@ -39,5 +41,44 @@
             get;
             set;
         }
+
+
+        /// <summary>
+        /// The query string parameter name which stores a search result's <see cref="AlgoliaSearchModel.ObjectID"/>.
+        /// Used by the <see cref="IAlgoliaInsightsService.SetInsightsUrls"/> to set search results URLs,
+        /// and is logged by <see cref="IAlgoliaInsightsService.LogSearchResultClicked"/>
+        /// and <see cref="IAlgoliaInsightsService.LogSearchResultConversion"/>.
+        /// </summary>
+        public string ObjectIdParameterName
+        {
+            get;
+            set;
+        } = "object";
+
+
+        /// <summary>
+        /// The query string parameter name which stores an Algolia search query ID.
+        /// Used by the <see cref="IAlgoliaInsightsService.SetInsightsUrls"/> to set search results URLs,
+        /// and is logged by <see cref="IAlgoliaInsightsService.LogSearchResultClicked"/>
+        /// and <see cref="IAlgoliaInsightsService.LogSearchResultConversion"/>.
+        /// </summary>
+        public string QueryIdParameterName
+        {
+            get;
+            set;
+        } = "query";
+
+
+        /// <summary>
+        /// The query string parameter name which stores a search result's position in the response.
+        /// Used by the <see cref="IAlgoliaInsightsService.SetInsightsUrls"/> to set search results URLs,
+        /// and is logged by <see cref="IAlgoliaInsightsService.LogSearchResultClicked"/>
+        /// and <see cref="IAlgoliaInsightsService.LogSearchResultConversion"/>.
+        /// </summary>
+        public string PositionParameterName
+        {
+            get;
+            set;
+        } = "pos";
     }
 }
