@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Kentico.Xperience.AlgoliaSearch
+namespace Kentico.Xperience.AlgoliaSearch.Extensions
 {
     /// <summary>
     /// Application startup extension methods.

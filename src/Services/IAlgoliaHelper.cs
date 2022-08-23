@@ -1,12 +1,7 @@
-﻿using Algolia.Search.Models.Common;
-using Algolia.Search.Models.Search;
+﻿using Algolia.Search.Models.Search;
 
-using CMS.DocumentEngine;
-
-using Kentico.Xperience.AlgoliaSearch.Attributes;
 using Kentico.Xperience.AlgoliaSearch.Models.Facets;
 
-using System;
 using System.Collections.Generic;
 
 namespace Kentico.Xperience.AlgoliaSearch.Services
@@ -34,24 +29,5 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// Returns true if Algolia indexing is enabled, or if the settings key doesn't exist.
         /// </summary>
         bool IsIndexingEnabled();
-
-
-        /// <summary>
-        /// Returns true if the passed node is included in any registered Algolia index.
-        /// </summary>
-        /// <param name="node">The <see cref="TreeNode"/> to check for indexing.</param>
-        /// <exception cref="ArgumentNullException" />
-        bool IsNodeAlgoliaIndexed(TreeNode node);
-
-
-        /// <summary>
-        /// Returns true if the <paramref name="node"/> is included in the Algolia index's allowed
-        /// paths as set by the <see cref="IncludedPathAttribute"/>.
-        /// </summary>
-        /// <remarks>Logs an error if the search model cannot be found.</remarks>
-        /// <param name="node">The node to check for indexing.</param>
-        /// <param name="indexName">The Algolia index code name.</param>
-        /// <exception cref="ArgumentNullException" />
-        bool IsNodeIndexedByIndex(TreeNode node, string indexName);
     }
 }

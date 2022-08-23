@@ -24,6 +24,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// and calls <see cref="ISearchIndex.SetSettings"/>.
         /// </summary>
         /// <param name="indexName">The code name of the index.</param>
+        /// <exception cref="InvalidOperationException" />
         ISearchIndex InitializeIndex(string indexName);
     }
 }

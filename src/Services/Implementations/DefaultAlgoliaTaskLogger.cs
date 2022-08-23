@@ -3,6 +3,7 @@ using CMS.Core;
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.AlgoliaSearch.Attributes;
+using Kentico.Xperience.AlgoliaSearch.Extensions;
 using Kentico.Xperience.AlgoliaSearch.Models;
 using Kentico.Xperience.AlgoliaSearch.Services;
 
@@ -20,7 +21,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
         private readonly IAlgoliaIndexStore algoliaIndexStore;
-        private readonly IAlgoliaHelper algoliaHelper;
         private readonly IEventLogService eventLogService;
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
@@ -33,11 +33,9 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
         /// </summary>
         public DefaultAlgoliaTaskLogger(IAlgoliaIndexStore algoliaIndexStore,
-            IAlgoliaHelper algoliaHelper,
             IEventLogService eventLogService)
         {
             this.algoliaIndexStore = algoliaIndexStore;
-            this.algoliaHelper = algoliaHelper;
             this.eventLogService = eventLogService;
         }
 
@@ -58,7 +56,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         {
             foreach (var indexName in algoliaIndexStore.GetAllIndexes().Select(index => index.IndexName))
             {
-                if (!algoliaHelper.IsNodeIndexedByIndex(node, indexName))
+                if (!node.IsIndexedByIndex(indexName))
                 {
                     continue;
                 }

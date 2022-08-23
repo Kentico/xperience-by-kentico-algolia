@@ -4,6 +4,7 @@ using Algolia.Search.Models.Settings;
 using CMS;
 using CMS.Core;
 using CMS.Helpers;
+
 using Kentico.Xperience.AlgoliaSearch.Attributes;
 using Kentico.Xperience.AlgoliaSearch.Services;
 
@@ -64,13 +65,13 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             }
 
             IndexSettings indexSettings;
-            var searchIndex = searchClient.InitIndex(indexName);
             if (!cachedSettings.TryGetValue(indexName, out indexSettings))
             {
                 indexSettings = GetIndexSettings(algoliaIndex.Type);
                 cachedSettings.Add(indexName, indexSettings);
             }
-            
+
+            var searchIndex = searchClient.InitIndex(indexName);
             searchIndex.SetSettings(indexSettings);
 
             return searchIndex;

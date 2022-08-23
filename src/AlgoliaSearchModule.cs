@@ -5,6 +5,7 @@ using CMS.DataEngine;
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.AlgoliaSearch;
+using Kentico.Xperience.AlgoliaSearch.Extensions;
 using Kentico.Xperience.AlgoliaSearch.Services;
 
 using System.Runtime.CompilerServices;
@@ -49,7 +50,7 @@ namespace Kentico.Xperience.AlgoliaSearch
         private bool EventShouldContinue(TreeNode node)
         {
             return algoliaHelper.IsIndexingEnabled() &&
-                algoliaHelper.IsNodeAlgoliaIndexed(node);
+                node.IsAlgoliaIndexed();
         }
 
 
