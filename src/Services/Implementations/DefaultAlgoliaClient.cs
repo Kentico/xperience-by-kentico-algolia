@@ -3,7 +3,6 @@ using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.FormEngine;
-using CMS.Helpers;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
@@ -30,6 +29,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaIndexStore algoliaIndexStore;
+        private readonly IConversionService conversionService;
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
@@ -40,6 +40,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
             IAlgoliaIndexStore algoliaIndexStore,
+            IConversionService conversionService,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
             IMediaFileUrlRetriever mediaFileUrlRetriever)
@@ -47,6 +48,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaIndexStore = algoliaIndexStore;
+            this.conversionService = conversionService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
         }
@@ -165,7 +167,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <returns>An list of absolute URLs, or an empty list.</returns>
         private IEnumerable<string> GetAssetUrlsForColumn(TreeNode node, object nodeValue, string columnName)
         {
-            var strValue = ValidationHelper.GetString(nodeValue, String.Empty);
+            var strValue = conversionService.GetString(nodeValue, String.Empty);
             if (String.IsNullOrEmpty(strValue))
             {
                 return Enumerable.Empty<string>();

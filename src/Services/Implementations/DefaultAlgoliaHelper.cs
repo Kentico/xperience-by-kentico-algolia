@@ -1,7 +1,5 @@
 ﻿using CMS;
 using CMS.Core;
-using CMS.DataEngine;
-using CMS.Helpers;
 
 using Kentico.Xperience.AlgoliaSearch.Models.Facets;
 using Kentico.Xperience.AlgoliaSearch.Services;
@@ -19,16 +17,17 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     internal class DefaultAlgoliaHelper : IAlgoliaHelper
     {
         private readonly IAppSettingsService appSettingsService;
-        private const string CMS_SETTINGS_KEY_INDEXING_ENABLED = "AlgoliaSearchEnableIndexing";
+        private readonly IConversionService conversionService;
         private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaHelper"/> class.
         /// </summary>
-        public DefaultAlgoliaHelper(IAppSettingsService appSettingsService)
+        public DefaultAlgoliaHelper(IAppSettingsService appSettingsService, IConversionService conversionService)
         {
             this.appSettingsService = appSettingsService;
+            this.conversionService = conversionService;
         }
 
 
@@ -107,19 +106,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public bool IsIndexingEnabled()
         {
-            var indexingDisabled = ValidationHelper.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);
-            if (indexingDisabled)
-            {
-                return false;
-            }
-
-            var existingKey = SettingsKeyInfoProvider.GetSettingsKeyInfo(CMS_SETTINGS_KEY_INDEXING_ENABLED);
-            if (existingKey == null)
-            {
-                return true;
-            }
-
-            return ValidationHelper.GetBoolean(existingKey.KeyValue, true);
+            return !conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);
         }
     }
 }
