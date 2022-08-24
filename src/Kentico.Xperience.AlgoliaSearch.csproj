@@ -12,6 +12,7 @@
 		<Version>0.0.1</Version>
 		<Authors>Kentico Software</Authors>
 		<Company>Kentico Software</Company>
+		<PackageIcon>icon.png</PackageIcon>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>kentico xperience mvc core algolia search</PackageTags>
 		<Description>Enables the creation of Algolia search indexes and the indexing of Xperience content tree pages using a code-first approach.</Description>
@@ -20,8 +21,11 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>1591</NoWarn>
-		<LangVersion>7.3</LangVersion>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\img\icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
 
 	<PropertyGroup Condition=" $(Configuration) == 'Release' ">
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
