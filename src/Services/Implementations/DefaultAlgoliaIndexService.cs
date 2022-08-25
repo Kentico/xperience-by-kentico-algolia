@@ -21,7 +21,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     /// </summary>
     internal class DefaultAlgoliaIndexService : IAlgoliaIndexService
     {
-        private readonly IAlgoliaIndexStore algoliaIndexStore;
         private readonly ISearchClient searchClient;
         private readonly Dictionary<string, IndexSettings> cachedSettings = new Dictionary<string, IndexSettings>();
 
@@ -29,9 +28,8 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaIndexService"/> class.
         /// </summary>
-        public DefaultAlgoliaIndexService(IAlgoliaIndexStore algoliaIndexStore, ISearchClient searchClient)
+        public DefaultAlgoliaIndexService(ISearchClient searchClient)
         {
-            this.algoliaIndexStore = algoliaIndexStore;
             this.searchClient = searchClient;
         }
 
@@ -58,7 +56,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public ISearchIndex InitializeIndex(string indexName)
         {
-            var algoliaIndex = algoliaIndexStore.GetIndex(indexName);
+            var algoliaIndex = IndexStore.Instance.Get(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"Registered index with name '{indexName}' doesn't exist.");

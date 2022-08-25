@@ -28,7 +28,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
-        private readonly IAlgoliaIndexStore algoliaIndexStore;
         private readonly IConversionService conversionService;
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
@@ -39,7 +38,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
-            IAlgoliaIndexStore algoliaIndexStore,
             IConversionService conversionService,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
@@ -47,7 +45,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         {
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
-            this.algoliaIndexStore = algoliaIndexStore;
             this.conversionService = conversionService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
@@ -80,7 +77,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
             {
                 try
                 {
-                    var algoliaIndex = algoliaIndexStore.GetIndex(group.Key);
+                    var algoliaIndex = IndexStore.Instance.Get(group.Key);
                     if (algoliaIndex == null)
                     {
                         eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), $"Attempted to process tasks for index '{group.Key},' but the index is not registered.");
@@ -116,7 +113,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var algoliaIndex = algoliaIndexStore.GetIndex(indexName);
+            var algoliaIndex = IndexStore.Instance.Get(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");

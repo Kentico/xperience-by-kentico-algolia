@@ -21,7 +21,6 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
-        private readonly IAlgoliaIndexStore algoliaIndexStore;
         private readonly IEventLogService eventLogService;
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
@@ -33,10 +32,8 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
         /// </summary>
-        public DefaultAlgoliaTaskLogger(IAlgoliaIndexStore algoliaIndexStore,
-            IEventLogService eventLogService)
+        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService)
         {
-            this.algoliaIndexStore = algoliaIndexStore;
             this.eventLogService = eventLogService;
         }
 
@@ -55,7 +52,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         public void HandleEvent(TreeNode node, string eventName)
         {
-            foreach (var indexName in algoliaIndexStore.GetAllIndexes().Select(index => index.IndexName))
+            foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))
             {
                 if (!node.IsIndexedByIndex(indexName))
                 {
@@ -93,7 +90,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Services
 
         private string[] GetIndexedColumnNames(string indexName)
         {
-            var alogliaIndex = algoliaIndexStore.GetIndex(indexName);
+            var alogliaIndex = IndexStore.Instance.Get(indexName);
             if (alogliaIndex == null)
             {
                 return new string[0];

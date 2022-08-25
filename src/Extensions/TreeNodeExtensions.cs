@@ -2,7 +2,6 @@
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.AlgoliaSearch.Attributes;
-using Kentico.Xperience.AlgoliaSearch.Services;
 
 using System;
 using System.Linq;
@@ -24,7 +23,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Extensions
                 throw new ArgumentNullException(nameof(node));
             }
 
-            return Service.Resolve<IAlgoliaIndexStore>().GetAllIndexes().Any(index => node.IsIndexedByIndex(index.IndexName));
+            return IndexStore.Instance.GetAll().Any(index => node.IsIndexedByIndex(index.IndexName));
         }
 
 
@@ -47,7 +46,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Extensions
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var alogliaIndex = Service.Resolve<IAlgoliaIndexStore>().GetIndex(indexName);
+            var alogliaIndex = IndexStore.Instance.Get(indexName);
             if (alogliaIndex == null)
             {
                 Service.Resolve<IEventLogService>().LogError(nameof(TreeNodeExtensions), nameof(IsIndexedByIndex), $"Error loading registered Algolia index '{indexName}.'");

@@ -1,11 +1,12 @@
 ﻿using Algolia.Search.Clients;
 
 using Kentico.Xperience.AlgoliaSearch.Models;
-using Kentico.Xperience.AlgoliaSearch.Services;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
+using System;
 
 namespace Kentico.Xperience.AlgoliaSearch.Extensions
 {
@@ -15,14 +16,17 @@ namespace Kentico.Xperience.AlgoliaSearch.Extensions
     public static class AlgoliaStartupExtensions
     {
         /// <summary>
-        /// Registers instances of <see cref="IInsightsClient"/>, <see cref="ISearchClient"/>, and
-        /// <see cref="IAlgoliaIndexStore"/> with Dependency Injection.
+        /// Registers instances of <see cref="IInsightsClient"/> and <see cref="ISearchClient"/> with
+        /// Dependency Injection and configures the Algolia options. Registers the provided <paramref name="indexes"/>
+        /// with the <see cref="IndexStore"/>.
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="configuration">The application configuration.</param>
-        /// <param name="store">The implementation of <see cref="IAlgoliaIndexStore"/> to register.</param>
-        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, IAlgoliaIndexStore store)
+        /// <param name="indexes">The Algolia indexes to register.</param>
+        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, params AlgoliaIndex[] indexes)
         {
+            Array.ForEach(indexes, index => IndexStore.Instance.Add(index));
+
             return services
                 .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME))
                 .AddSingleton<IInsightsClient>(s =>
@@ -36,8 +40,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Extensions
                     var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
 
                     return new SearchClient(options.Value.ApplicationId, options.Value.ApiKey);
-                })
-                .AddSingleton(store);
+                });
         }
     }
 }
