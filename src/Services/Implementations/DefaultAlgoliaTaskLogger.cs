@@ -3,7 +3,6 @@ using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.DocumentEngine.Internal;
 
-using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
@@ -11,7 +10,8 @@ using Kentico.Xperience.Algolia.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+
+using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaTaskLogger), typeof(DefaultAlgoliaTaskLogger), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
@@ -21,23 +21,6 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
-        private readonly IEventLogService eventLogService;
-        private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
-            nameof(AlgoliaSearchModel.ObjectID),
-            nameof(AlgoliaSearchModel.Url),
-            nameof(AlgoliaSearchModel.ClassName)
-        };
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
-        /// </summary>
-        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService)
-        {
-            this.eventLogService = eventLogService;
-        }
-
-
         public void LogTask(AlgoliaQueueItem task)
         {
             AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(task);
@@ -59,63 +42,36 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                var indexedColumns = GetIndexedColumnNames(indexName);
-                if (indexedColumns.Length == 0)
-                {
-                    eventLogService.LogError(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), $"Unable to enqueue node change: Error loading indexed columns.");
-                    continue;
-                }
-
-                if (eventName.Equals(WorkflowEvents.Publish.Name) &&
-                    node.WorkflowHistory.Count > 0 &&
-                    !node.AnyItemChanged(indexedColumns))
-                {
-                    // For Publish event, don't update Algolia if nothing changed. Only applies if it's not the first publishing
-                    continue;
-                }
-
-                var shouldDelete = eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
-                    eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name, StringComparison.OrdinalIgnoreCase) ||
-                    eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase);
-
                 LogTask(new AlgoliaQueueItem()
                 {
                     Node = node,
-                    Delete = shouldDelete,
+                    TaskType = GetTaskType(node, eventName),
                     IndexName = indexName
                 });
             }
         }
 
 
-        private string[] GetIndexedColumnNames(string indexName)
+        private AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
         {
-            var alogliaIndex = IndexStore.Instance.Get(indexName);
-            if (alogliaIndex == null)
+            if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count == 0)
             {
-                return new string[0];
+                return AlgoliaTaskType.CREATE;
             }
 
-            // Don't include properties with SourceAttribute at first, check the sources and add to list after
-            var indexedColumnNames = alogliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
-            var propertiesWithSourceAttribute = alogliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
-            foreach (var property in propertiesWithSourceAttribute)
+            if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count > 0)
             {
-                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                if (sourceAttribute == null)
-                {
-                    continue;
-                }
-
-                indexedColumnNames.AddRange(sourceAttribute.Sources);
+                return AlgoliaTaskType.UPDATE;
             }
 
-            // Remove column names from AlgoliaSearchModel that aren't database columns
-            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+            if (eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
+                eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name, StringComparison.OrdinalIgnoreCase) ||
+                eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return AlgoliaTaskType.DELETE;
+            }
 
-            return indexedColumnNames.ToArray();
+            return AlgoliaTaskType.UNKNOWN;
         }
     }
 }

@@ -19,9 +19,9 @@ namespace Kentico.Xperience.Algolia.Models
 
 
         /// <summary>
-        /// <c>true</c> if the <see cref="Node"/> data should be removed from the Algolia index.
+        /// The type of the Algolia task.
         /// </summary>
-        public bool Delete
+        public AlgoliaTaskType TaskType
         {
             get;
             set;
@@ -35,6 +35,33 @@ namespace Kentico.Xperience.Algolia.Models
         {
             get;
             set;
+        }
+
+
+        /// <summary>
+        /// Represents the type of the <see cref="AlgoliaQueueItem"/>.
+        /// </summary>
+        public enum AlgoliaTaskType
+        {
+            /// <summary>
+            /// Unsupported task type.
+            /// </summary>
+            UNKNOWN,
+
+            /// <summary>
+            /// A task for a page which was published for the first time.
+            /// </summary>
+            CREATE,
+
+            /// <summary>
+            /// A task for a page which was previously published.
+            /// </summary>
+            UPDATE,
+
+            /// <summary>
+            /// A task for a page which should be removed from the index.
+            /// </summary>
+            DELETE
         }
     }
 }

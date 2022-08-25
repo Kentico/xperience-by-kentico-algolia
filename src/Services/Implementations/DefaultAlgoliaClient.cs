@@ -19,6 +19,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
+
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -32,6 +34,11 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
+        private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
+            nameof(AlgoliaSearchModel.ObjectID),
+            nameof(AlgoliaSearchModel.Url),
+            nameof(AlgoliaSearchModel.ClassName)
+        };
 
 
         /// <summary>
@@ -84,19 +91,15 @@ namespace Kentico.Xperience.Algolia.Services
                         continue;
                     }
 
-                    var deleteTasks = group.Where(queueItem => queueItem.Delete);
-                    var updateTasks = group.Where(queueItem => !queueItem.Delete);
-                    var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type));
+                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
+                    var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
+                    var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type, queueItem.TaskType));
                     var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
 
                     successfulOperations += await UpsertRecords(upsertData, group.Key);
                     successfulOperations += await DeleteRecords(deleteData, group.Key);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), ex.Message);
-                }
-                catch (ArgumentNullException ex)
+                catch (Exception ex)
                 {
                     eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), ex.Message);
                 }
@@ -192,6 +195,31 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        private string[] GetIndexedColumnNames(Type searchModel)
+        {
+            // Don't include properties with SourceAttribute at first, check the sources and add to list after
+            var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
+            var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
+            foreach (var property in propertiesWithSourceAttribute)
+            {
+                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
+                if (sourceAttribute == null)
+                {
+                    continue;
+                }
+
+                indexedColumnNames.AddRange(sourceAttribute.Sources);
+            }
+
+            // Remove column names from AlgoliaSearchModel that aren't database columns
+            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+
+            return indexedColumnNames.ToArray();
+        }
+
+
         /// <summary>
         /// Gets the <paramref name="node"/> value using the <paramref name="property"/>
         /// name, or the property's <see cref="SourceAttribute"/> if specified.
@@ -231,7 +259,19 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private JObject GetTreeNodeData(TreeNode node, Type searchModelType)
+        /// <summary>
+        /// Creates an anonymous object with the indexed column names of the <paramref name="searchModelType"/> and
+        /// their values loaded from the passed <paramref name="node"/>.
+        /// </summary>
+        /// <remarks>When the <paramref name="taskType"/> is <see cref="AlgoliaTaskType.UPDATE"/>, only the updated
+        /// columns will be included in the resulting object for a partial update. For <see cref="AlgoliaTaskType.CREATE"/>,
+        /// all indexed columns are included.</remarks>
+        /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
+        /// <param name="searchModelType">The class of the Algolia search model.</param>
+        /// <param name="taskType">The Algolia task being processed.</param>
+        /// <returns>The anonymous data that will be passed to Algolia.</returns>
+        /// <exception cref="ArgumentNullException" />
+        private JObject GetTreeNodeData(TreeNode node, Type searchModelType, AlgoliaTaskType taskType)
         {
             if (node == null)
             {
@@ -244,34 +284,33 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             var data = new JObject();
-            MapTreeNodeProperties(node, data, searchModelType);
+            MapChangedProperties(node, data, searchModelType, taskType);
             MapCommonProperties(node, data);
 
             return data;
         }
 
 
-        /// <summary>
-        /// Locates the registered search model properties which match the property names of the passed
-        /// <paramref name="node"/> and sets the <paramref name="data"/> values from the <paramref name="node"/>.
-        /// </summary>
-        /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
-        /// <param name="data">The dynamic data that will be passed to Algolia.</param>
-        /// <param name="searchModelType">The class of the Algolia search model.</param>
-        private void MapTreeNodeProperties(TreeNode node, JObject data, Type searchModelType)
+        private void MapChangedProperties(TreeNode node, JObject data, Type searchModelType, AlgoliaTaskType taskType)
         {
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new DecimalPrecisionConverter());
 
+            var columnsToUpdate = new List<string>();
+            var indexedColumns = GetIndexedColumnNames(searchModelType);
+            if (taskType == AlgoliaTaskType.CREATE)
+            {
+                columnsToUpdate.AddRange(indexedColumns);
+            }
+            else if (taskType == AlgoliaTaskType.UPDATE)
+            {
+                columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
+            }
+
             var searchModel = Activator.CreateInstance(searchModelType);
-            PropertyInfo[] properties = searchModel.GetType().GetProperties();
+            var properties = searchModel.GetType().GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
             foreach (var prop in properties)
             {
-                if (prop.DeclaringType == typeof(AlgoliaSearchModel))
-                {
-                    continue;
-                }
-
                 object nodeValue = GetNodeValue(node, prop, searchModelType);
                 if (nodeValue == null)
                 {
@@ -327,7 +366,7 @@ namespace Kentico.Xperience.Algolia.Services
                 indexedNodes.AddRange(query.TypedResult);
             }
 
-            var data = indexedNodes.Select(node => GetTreeNodeData(node, algoliaIndex.Type));
+            var data = indexedNodes.Select(node => GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE));
             var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
             await searchIndex.ReplaceAllObjectsAsync(data).ConfigureAwait(false);
         }
@@ -337,7 +376,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             var upsertedCount = 0;
             var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            var batchIndexingResponse = await searchIndex.SaveObjectsAsync(dataObjects).ConfigureAwait(false);
+            var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true).ConfigureAwait(false);
             foreach (var response in batchIndexingResponse.Responses)
             {
                 upsertedCount += response.ObjectIDs.Count();
