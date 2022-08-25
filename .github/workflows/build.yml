@@ -18,6 +18,6 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore src/Kentico.Xperience.AlgoliaSearch.csproj
+      run: dotnet restore src/Kentico.Xperience.Algolia.csproj
     - name: Build
-      run: dotnet build src/Kentico.Xperience.AlgoliaSearch.csproj --no-restore
+      run: dotnet build src/Kentico.Xperience.Algolia.csproj --no-restore
