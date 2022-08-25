@@ -15,6 +15,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models.Facets
     /// </summary>
     public class AlgoliaFacetFilterViewModel : IAlgoliaFacetFilter
     {
+        /// <inheritdoc/>
         public AlgoliaFacetedAttribute[] FacetedAttributes { get; set; } = new AlgoliaFacetedAttribute[0];
 
 
@@ -39,6 +40,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models.Facets
         }
 
 
+        /// <inheritdoc/>
         public string GetFilter(Type searchModelType = null)
         {
             var checkedFacets = new List<AlgoliaFacet>();
@@ -69,6 +71,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models.Facets
         }
 
 
+        /// <inheritdoc/>
         public void Localize(IStringLocalizer localizer)
         {
             foreach (var facetedAttribute in FacetedAttributes)

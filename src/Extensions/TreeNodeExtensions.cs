@@ -9,6 +9,9 @@ using System.Reflection;
 
 namespace Kentico.Xperience.AlgoliaSearch.Extensions
 {
+    /// <summary>
+    /// Algolia extension methods for the <see cref="TreeNode"/> class.
+    /// </summary>
     public static class TreeNodeExtensions
     {
         /// <summary>

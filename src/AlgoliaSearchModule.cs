@@ -26,11 +26,13 @@ namespace Kentico.Xperience.AlgoliaSearch
         private IAlgoliaTaskLogger algoliaTaskLogger;
 
 
+        /// <inheritdoc/>
         public AlgoliaSearchModule() : base(nameof(AlgoliaSearchModule))
         {
         }
 
 
+        /// <inheritdoc/>
         protected override void OnInit()
         {
             base.OnInit();

@@ -20,7 +20,6 @@
 		<RepositoryType>git</RepositoryType>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>1591</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
