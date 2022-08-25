@@ -2,13 +2,13 @@
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
-		<RootNamespace>Kentico.Xperience.AlgoliaSearch</RootNamespace>
+		<RootNamespace>Kentico.Xperience.Algolia</RootNamespace>
 		<LangVersion>Latest</LangVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Title>Xperience Algolia Search</Title>
-		<PackageId>Kentico.Xperience.AlgoliaSearch</PackageId>
+		<Title>Xperience by Kentico Algolia Search</Title>
+		<PackageId>Kentico.Xperience.Algolia</PackageId>
 		<Version>0.0.1</Version>
 		<Authors>Kentico Software</Authors>
 		<Company>Kentico Software</Company>

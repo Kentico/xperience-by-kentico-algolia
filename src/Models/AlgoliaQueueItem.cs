@@ -1,6 +1,6 @@
 ﻿using CMS.DocumentEngine;
 
-namespace Kentico.Xperience.AlgoliaSearch.Models
+namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// A queued item to be processed by <see cref="AlgoliaQueueWorker"/> which

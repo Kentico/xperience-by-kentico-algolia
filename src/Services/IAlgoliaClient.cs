@@ -1,4 +1,4 @@
-﻿using Kentico.Xperience.AlgoliaSearch.Models;
+﻿using Kentico.Xperience.Algolia.Models;
 
 using Newtonsoft.Json.Linq;
 
@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Contains methods to interface with the Algolia API.

@@ -1,10 +1,10 @@
 ﻿using CMS.DocumentEngine;
 
-using Kentico.Xperience.AlgoliaSearch.Models;
+using Kentico.Xperience.Algolia.Models;
 
 using System.Collections.Generic;
 
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Contains methods for logging <see cref="AlgoliaQueueItem"/>s for processing by

@@ -3,13 +3,13 @@ using Algolia.Search.Models.Search;
 
 using CMS.DocumentEngine;
 
-using Kentico.Xperience.AlgoliaSearch.Models;
-using Kentico.Xperience.AlgoliaSearch.Models.Facets;
+using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Models.Facets;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Contains methods for logging Algolia Insights events.

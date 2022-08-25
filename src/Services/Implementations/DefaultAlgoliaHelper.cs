@@ -1,15 +1,15 @@
 ﻿using CMS;
 using CMS.Core;
 
-using Kentico.Xperience.AlgoliaSearch.Models.Facets;
-using Kentico.Xperience.AlgoliaSearch.Services;
+using Kentico.Xperience.Algolia.Models.Facets;
+using Kentico.Xperience.Algolia.Services;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaHelper), typeof(DefaultAlgoliaHelper), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Default implementation of <see cref="IAlgoliaHelper"/>.

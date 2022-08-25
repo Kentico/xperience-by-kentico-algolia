@@ -3,10 +3,10 @@ using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.DocumentEngine.Internal;
 
-using Kentico.Xperience.AlgoliaSearch.Attributes;
-using Kentico.Xperience.AlgoliaSearch.Extensions;
-using Kentico.Xperience.AlgoliaSearch.Models;
-using Kentico.Xperience.AlgoliaSearch.Services;
+using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Extensions;
+using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Services;
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using System.Linq;
 using System.Reflection;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaTaskLogger), typeof(DefaultAlgoliaTaskLogger), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Default implementation of <see cref="IAlgoliaTaskLogger"/>.

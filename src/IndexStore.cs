@@ -1,10 +1,10 @@
-﻿using Kentico.Xperience.AlgoliaSearch.Models;
+﻿using Kentico.Xperience.Algolia.Models;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kentico.Xperience.AlgoliaSearch
+namespace Kentico.Xperience.Algolia
 {
     /// <summary>
     /// Represents a store of Algolia indexes.

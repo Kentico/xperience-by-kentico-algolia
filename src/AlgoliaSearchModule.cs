@@ -5,17 +5,17 @@ using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.DocumentEngine.Internal;
 
-using Kentico.Xperience.AlgoliaSearch;
-using Kentico.Xperience.AlgoliaSearch.Extensions;
-using Kentico.Xperience.AlgoliaSearch.Services;
+using Kentico.Xperience.Algolia;
+using Kentico.Xperience.Algolia.Extensions;
+using Kentico.Xperience.Algolia.Services;
 
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 [assembly: AssemblyDiscoverable]
-[assembly: InternalsVisibleTo("Kentico.Xperience.AlgoliaSearch.Tests")]
+[assembly: InternalsVisibleTo("Kentico.Xperience.Algolia.Tests")]
 [assembly: RegisterModule(typeof(AlgoliaSearchModule))]
-namespace Kentico.Xperience.AlgoliaSearch
+namespace Kentico.Xperience.Algolia
 {
     /// <summary>
     /// Initializes page event handlers, and ensures the thread queue worker for processing Algolia tasks.

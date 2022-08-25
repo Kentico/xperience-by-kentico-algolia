@@ -1,6 +1,6 @@
 ﻿using Algolia.Search.Clients;
 
-using Kentico.Xperience.AlgoliaSearch.Models;
+using Kentico.Xperience.Algolia.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 using System;
 
-namespace Kentico.Xperience.AlgoliaSearch.Extensions
+namespace Kentico.Xperience.Algolia.Extensions
 {
     /// <summary>
     /// Application startup extension methods.

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Localization;
 
 using System;
 
-namespace Kentico.Xperience.AlgoliaSearch.Models.Facets
+namespace Kentico.Xperience.Algolia.Models.Facets
 {
     /// <summary>
     /// Defines methods for creating Algolia faceting interfaces and filtering queries based

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Kentico.Xperience.AlgoliaSearch.Models
+namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Represents the configuration of an Algolia index.

@@ -3,7 +3,7 @@ using Algolia.Search.Models.Settings;
 
 using System;
 
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Initializes <see cref="ISearchIndex" /> instances.

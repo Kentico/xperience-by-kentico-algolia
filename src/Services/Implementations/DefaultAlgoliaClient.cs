@@ -6,9 +6,9 @@ using CMS.FormEngine;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
-using Kentico.Xperience.AlgoliaSearch.Attributes;
-using Kentico.Xperience.AlgoliaSearch.Models;
-using Kentico.Xperience.AlgoliaSearch.Services;
+using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
-namespace Kentico.Xperience.AlgoliaSearch.Services
+namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
     /// Default implementation of <see cref="IAlgoliaClient"/>.

@@ -1,6 +1,6 @@
-﻿using Kentico.Xperience.AlgoliaSearch.Services;
+﻿using Kentico.Xperience.Algolia.Services;
 
-namespace Kentico.Xperience.AlgoliaSearch.Models
+namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Algolia integration options.

@@ -1,13 +1,13 @@
 ﻿using CMS.Core;
 using CMS.DocumentEngine;
 
-using Kentico.Xperience.AlgoliaSearch.Attributes;
+using Kentico.Xperience.Algolia.Attributes;
 
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Kentico.Xperience.AlgoliaSearch.Extensions
+namespace Kentico.Xperience.Algolia.Extensions
 {
     /// <summary>
     /// Algolia extension methods for the <see cref="TreeNode"/> class.
