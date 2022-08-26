@@ -1,4 +1,6 @@
-﻿using Kentico.Xperience.Algolia.Models;
+﻿using Algolia.Search.Models.Common;
+
+using Kentico.Xperience.Algolia.Models;
 
 using Newtonsoft.Json.Linq;
 
@@ -21,6 +23,13 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ArgumentNullException" />
         /// <returns>The number of records deleted.</returns>
         Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName);
+
+
+        /// <summary>
+        /// Gets the indices of the Algolia application with basic statistics.
+        /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/></remarks>
+        Task<List<IndicesResponse>> GetStatistics();
 
 
         /// <summary>

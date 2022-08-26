@@ -1,4 +1,6 @@
-﻿using CMS;
+﻿using Algolia.Search.Clients;
+using Algolia.Search.Models.Common;
+using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
@@ -34,6 +36,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
+        private readonly ISearchClient searchClient;
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
             nameof(AlgoliaSearchModel.Url),
@@ -48,13 +51,15 @@ namespace Kentico.Xperience.Algolia.Services
             IConversionService conversionService,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever)
+            IMediaFileUrlRetriever mediaFileUrlRetriever,
+            ISearchClient searchClient)
         {
             this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
             this.conversionService = conversionService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
+            this.searchClient = searchClient;
         }
 
 
@@ -71,6 +76,18 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return DeleteRecordsInternal(objectIds, indexName);
+        }
+
+
+        public async Task<List<IndicesResponse>> GetStatistics()
+        {
+            if (searchClient == null)
+            {
+                return Enumerable.Empty<IndicesResponse>().ToList();
+            }
+
+            var response = await searchClient.ListIndicesAsync().ConfigureAwait(false);
+            return response.Items;
         }
 
 
