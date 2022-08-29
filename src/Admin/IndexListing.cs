@@ -2,7 +2,6 @@
 
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Admin;
-using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
 using System;
@@ -11,7 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: UIPage(typeof(AlgoliaApplication), "list", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
+using Action = Kentico.Xperience.Admin.Base.Action;
+
+[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
 namespace Kentico.Xperience.Algolia.Admin
 {
     internal class IndexListing : ListingPage
@@ -19,7 +20,7 @@ namespace Kentico.Xperience.Algolia.Admin
         private readonly IAlgoliaClient algoliaClient;
 
 
-        protected override string IdColumn => "IndexName";
+        protected override string IdColumn => String.Empty;
 
 
         protected override string ObjectType => String.Empty;
@@ -49,19 +50,43 @@ namespace Kentico.Xperience.Algolia.Admin
             }
 
             PageConfiguration.ColumnConfigurations
-                .AddColumn("IndexName", "Name", defaultSortDirection: SortTypeEnum.Asc, searchable: true)
-                .AddColumn("Entries", "Indexed items", defaultSortDirection: SortTypeEnum.Asc)
-                .AddColumn("BuildTime", "Build time (seconds)", defaultSortDirection: SortTypeEnum.Asc)
-                .AddColumn("LastUpdate", "Last update", defaultSortDirection: SortTypeEnum.Asc);
+                .AddColumn(nameof(IndicesResponse.Name), "Name", defaultSortDirection: SortTypeEnum.Asc, searchable: true)
+                .AddColumn(nameof(IndicesResponse.Entries), "Indexed items")
+                .AddColumn(nameof(IndicesResponse.LastBuildTimes), "Build time (seconds)")
+                .AddColumn(nameof(IndicesResponse.UpdatedAt), "Last update");
 
             return base.ConfigurePage();
+        }
+
+
+        [PageCommand]
+        public ICommandResponse<RowActionResult> RowClick(int id)
+        {
+            return ResponseFrom(new RowActionResult(false));
+        }
+
+
+        [PageCommand]
+        public ICommandResponse<RowActionResult> Rebuild(int id)
+        {
+            return ResponseFrom(new RowActionResult(false));
         }
 
 
         protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
         {
             var statistics = await algoliaClient.GetStatistics();
-            var rows = IndexStore.Instance.GetAll().Select(index => GetRow(index, statistics));
+
+            // Add statistics for indexes that are registered but not created in Algolia
+            AddMissingStatistics(statistics);
+
+            // Remove statistics for indexes that are not registered in this instance
+            var filteredStatistics = statistics.Where(stat =>
+                IndexStore.Instance.GetAll().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
+
+            var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
+            var orderedStatistics = SortStatistics(searchedStatistics, settings);
+            var rows = orderedStatistics.Select((stat, i) => GetRow(stat, i));
 
             return new LoadDataResult
             {
@@ -71,35 +96,95 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Row GetRow(AlgoliaIndex algoliaIndex, List<IndicesResponse> statistics)
+        private void AddMissingStatistics(List<IndicesResponse> statistics)
         {
-            var matchingStatistics = statistics.FirstOrDefault(i => i.Name.Equals(algoliaIndex.IndexName, StringComparison.OrdinalIgnoreCase));
-            var entries = matchingStatistics?.Entries.ToString() ?? "0";
-            var buildTime = matchingStatistics?.LastBuildTimes.ToString() ?? "0";
-            var lastUpdate = matchingStatistics?.UpdatedAt.ToString() ?? "N/A";
+            foreach (var indexName in IndexStore.Instance.GetAll().Select(i => i.IndexName))
+            {
+                if (!statistics.Any(stat => stat.Name.Equals(indexName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    statistics.Add(new IndicesResponse
+                    {
+                        Name = indexName,
+                        Entries = 0,
+                        LastBuildTimes = 0,
+                        UpdatedAt = DateTime.MinValue
+                    });
+                }
+            }
+        }
+
+
+        private IEnumerable<IndicesResponse> DoSearch(IEnumerable<IndicesResponse> statistics, string searchTerm)
+        {
+            if (String.IsNullOrEmpty(searchTerm))
+            {
+                return statistics;
+            }
+
+            return statistics.Where(stat => stat.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        private Row GetRow(IndicesResponse statistics, int rowNum)
+        {
             return new Row
             {
-                Identifier = 1,
+                Identifier = rowNum,
+                Action = new Action(ActionType.Command)
+                {
+                    Parameter = nameof(RowClick)
+                },
                 Cells = new List<Cell>
                     {
                         new StringCell
                         {
-                            Value = algoliaIndex.IndexName
+                            Value = statistics.Name
                         },
                         new StringCell
                         {
-                            Value = entries
+                            Value = statistics.Entries.ToString()
                         },
                         new StringCell
                         {
-                            Value = buildTime
+                            Value = statistics.LastBuildTimes.ToString()
                         },
                         new StringCell
                         {
-                            Value = lastUpdate
+                            Value = statistics.UpdatedAt.ToString()
+                        },
+                        new ActionCell
+                        {
+                            Actions = new List<Action>
+                            {
+                                new Action(ActionType.Command)
+                                {
+                                    Title = "Build index",
+                                    Label = "Build index",
+                                    Icon = Icons.RotateRight,
+                                    Parameter = nameof(Rebuild)
+                                }
+                            }
                         }
                     }
             };
+        }
+
+
+        private IOrderedEnumerable<IndicesResponse> SortStatistics(IEnumerable<IndicesResponse> statistics, LoadDataSettings settings)
+        {
+            if (String.IsNullOrEmpty(settings.SortBy))
+            {
+                return statistics.OrderBy(stat => 1);
+            }
+
+            switch (settings.SortType)
+            {
+                case SortTypeEnum.Desc:
+                    return statistics.OrderByDescending(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null));
+                default:
+                case SortTypeEnum.Asc:
+                    return statistics.OrderBy(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null));
+            }
         }
     }
 }
