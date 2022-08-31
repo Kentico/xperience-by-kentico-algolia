@@ -16,14 +16,17 @@ namespace Kentico.Xperience.Algolia.Models
     public sealed class AlgoliaFacetFilterViewModel : IAlgoliaFacetFilter
     {
         /// <inheritdoc/>
-        public AlgoliaFacetedAttribute[] FacetedAttributes { get; set; } = new AlgoliaFacetedAttribute[0];
+        public AlgoliaFacetedAttribute[] FacetedAttributes {
+            get;
+            private set;
+        }
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AlgoliaFacetFilterViewModel"/> class
         /// with an empty set of <see cref="FacetedAttributes"/>.
         /// </summary>
-        public AlgoliaFacetFilterViewModel()
+        public AlgoliaFacetFilterViewModel() : this(Array.Empty<AlgoliaFacetedAttribute>())
         {
         }
 

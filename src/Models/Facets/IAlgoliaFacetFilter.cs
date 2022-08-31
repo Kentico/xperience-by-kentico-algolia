@@ -18,7 +18,6 @@ namespace Kentico.Xperience.Algolia.Models
         AlgoliaFacetedAttribute[] FacetedAttributes
         {
             get;
-            set;
         }
 
 

@@ -12,7 +12,7 @@ namespace Kentico.Xperience.Algolia.Extensions
     /// <summary>
     /// Algolia extension methods for the <see cref="TreeNode"/> class.
     /// </summary>
-    public static class TreeNodeExtensions
+    internal static class TreeNodeExtensions
     {
         /// <summary>
         /// Returns true if the node is included in any registered Algolia index.
@@ -62,10 +62,9 @@ namespace Kentico.Xperience.Algolia.Extensions
                 if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {
                     var pathToMatch = TreePathUtils.EnsureSingleNodePath(includedPathAttribute.AliasPath);
-                    var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, false, false);
-                    var matchesPath = pathsOnPath.Any(path => path.Equals(pathToMatch, StringComparison.OrdinalIgnoreCase));
+                    var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, false, false).ToHashSet();
 
-                    return matchesPath && matchesPageType;
+                    return pathsOnPath.Contains(pathToMatch) && matchesPageType;
                 }
                 else
                 {
