@@ -22,7 +22,7 @@ namespace Kentico.Xperience.Algolia.Services
     internal class DefaultAlgoliaIndexService : IAlgoliaIndexService
     {
         private readonly ISearchClient searchClient;
-        private readonly Dictionary<string, IndexSettings> cachedSettings = new Dictionary<string, IndexSettings>();
+        private readonly Dictionary<string, IndexSettings> cachedSettings = new();
 
 
         /// <summary>
@@ -64,8 +64,7 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new InvalidOperationException($"Registered index with name '{indexName}' doesn't exist.");
             }
 
-            IndexSettings indexSettings;
-            if (!cachedSettings.TryGetValue(indexName, out indexSettings))
+            if (!cachedSettings.TryGetValue(indexName, out IndexSettings indexSettings))
             {
                 indexSettings = GetIndexSettings(algoliaIndex.Type);
                 cachedSettings.Add(indexName, indexSettings);

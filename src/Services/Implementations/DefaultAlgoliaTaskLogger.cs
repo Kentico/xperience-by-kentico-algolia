@@ -68,12 +68,7 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                LogTask(new AlgoliaQueueItem()
-                {
-                    Node = node,
-                    TaskType = GetTaskType(node, eventName),
-                    IndexName = indexName
-                });
+                LogTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
             }
         }
 

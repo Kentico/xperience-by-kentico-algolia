@@ -1,4 +1,6 @@
-﻿using CMS.DocumentEngine;
+﻿using System;
+
+using CMS.DocumentEngine;
 
 namespace Kentico.Xperience.Algolia.Models
 {
@@ -14,7 +16,7 @@ namespace Kentico.Xperience.Algolia.Models
         public TreeNode Node
         {
             get;
-            set;
+            private set;
         }
 
 
@@ -24,7 +26,7 @@ namespace Kentico.Xperience.Algolia.Models
         public AlgoliaTaskType TaskType
         {
             get;
-            set;
+            private set;
         }
 
 
@@ -34,34 +36,27 @@ namespace Kentico.Xperience.Algolia.Models
         public string IndexName
         {
             get;
-            set;
+            private set;
         }
 
 
         /// <summary>
-        /// Represents the type of the <see cref="AlgoliaQueueItem"/>.
+        /// Initializes a new instance of the <see cref="AlgoliaQueueItem"/> class.
         /// </summary>
-        public enum AlgoliaTaskType
+        /// <param name="node">The <see cref="TreeNode"/> that was changed.</param>
+        /// <param name="taskType">The type of the Algolia task.</param>
+        /// <param name="indexName">The code name of the Algolia index to be updated.</param>
+        /// <exception cref="ArgumentNullException" />
+        public AlgoliaQueueItem(TreeNode node, AlgoliaTaskType taskType, string indexName)
         {
-            /// <summary>
-            /// Unsupported task type.
-            /// </summary>
-            UNKNOWN,
+            if (String.IsNullOrEmpty(indexName))
+            {
+                throw new ArgumentNullException(nameof(indexName));
+            }
 
-            /// <summary>
-            /// A task for a page which was published for the first time.
-            /// </summary>
-            CREATE,
-
-            /// <summary>
-            /// A task for a page which was previously published.
-            /// </summary>
-            UPDATE,
-
-            /// <summary>
-            /// A task for a page which should be removed from the index.
-            /// </summary>
-            DELETE
+            Node = node ?? throw new ArgumentNullException(nameof(node));
+            TaskType = taskType;
+            IndexName = indexName;
         }
     }
 }
