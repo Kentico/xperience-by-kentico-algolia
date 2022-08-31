@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
+using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia
@@ -37,6 +39,15 @@ namespace Kentico.Xperience.Algolia
             if (registeredIndexes.Any(i => i.IndexName.Equals(index.IndexName, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
+            }
+
+            var facetableProperties = index.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            if (facetableProperties.Any(prop => {
+                var attr = prop.GetCustomAttributes<FacetableAttribute>(false).FirstOrDefault();
+                return attr.FilterOnly && attr.Searchable;
+            }))
+            {
+                throw new InvalidOperationException($"Facetable attributes cannot be both {nameof(FacetableAttribute.Searchable)} and {nameof(FacetableAttribute.FilterOnly)}.");
             }
 
             registeredIndexes.Add(index);

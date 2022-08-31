@@ -35,27 +35,6 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public IndexSettings GetIndexSettings(Type searchModel)
-        {
-            if (searchModel == null)
-            {
-                throw new ArgumentNullException(nameof(searchModel));
-            }
-
-            var searchableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
-            var retrievablProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
-            var facetableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
-
-            return new IndexSettings()
-            {
-                SearchableAttributes = OrderSearchableProperties(searchableProperties),
-                AttributesToRetrieve = retrievablProperties.Select(p => p.Name).ToList(),
-                AttributesForFaceting = facetableProperties.Select(GetFilterablePropertyName).ToList()
-            };
-        }
-
-
-        /// <inheritdoc />
         public ISearchIndex InitializeIndex(string indexName)
         {
             var algoliaIndex = IndexStore.Instance.Get(indexName);
@@ -80,11 +59,6 @@ namespace Kentico.Xperience.Algolia.Services
         private string GetFilterablePropertyName(PropertyInfo property)
         {
             var attr = property.GetCustomAttributes<FacetableAttribute>(false).FirstOrDefault();
-            if (attr.FilterOnly && attr.Searchable)
-            {
-                throw new InvalidOperationException("Facetable attributes cannot be both searchable and filterOnly.");
-            }
-
             if (attr.FilterOnly)
             {
                 return $"filterOnly({property.Name})";
@@ -95,6 +69,32 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return property.Name;
+        }
+
+
+        /// <summary>
+        /// Gets the <see cref="IndexSettings"/> of the Algolia index.
+        /// </summary>
+        /// <param name="searchModel">The index search model class.</param>
+        /// <returns>The index settings.</returns>
+        /// <exception cref="ArgumentNullException" />
+        private IndexSettings GetIndexSettings(Type searchModel)
+        {
+            if (searchModel == null)
+            {
+                throw new ArgumentNullException(nameof(searchModel));
+            }
+
+            var searchableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
+            var retrievableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
+            var facetableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+
+            return new IndexSettings()
+            {
+                SearchableAttributes = OrderSearchableProperties(searchableProperties),
+                AttributesToRetrieve = retrievableProperties.Select(p => p.Name).ToList(),
+                AttributesForFaceting = facetableProperties.Select(GetFilterablePropertyName).ToList()
+            };
         }
 
 

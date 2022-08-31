@@ -46,13 +46,5 @@ namespace Kentico.Xperience.Algolia.Attributes
             get;
             set;
         }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FacetableAttribute"/> class.
-        /// </summary>
-        public FacetableAttribute()
-        {
-        }
      }
 }
