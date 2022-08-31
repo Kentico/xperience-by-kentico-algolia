@@ -1,4 +1,4 @@
-﻿namespace Kentico.Xperience.Algolia.Models.Facets
+﻿namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Represents an Algolia faceted attribute.

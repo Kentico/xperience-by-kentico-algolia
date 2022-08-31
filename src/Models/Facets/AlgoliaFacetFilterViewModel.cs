@@ -7,7 +7,7 @@ using Kentico.Xperience.Algolia.Attributes;
 
 using Microsoft.Extensions.Localization;
 
-namespace Kentico.Xperience.Algolia.Models.Facets
+namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Contains the faceted attributes of an Algolia index and the filter state for

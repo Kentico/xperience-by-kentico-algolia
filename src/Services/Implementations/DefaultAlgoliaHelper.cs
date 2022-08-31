@@ -5,7 +5,7 @@ using System.Linq;
 using CMS;
 using CMS.Core;
 
-using Kentico.Xperience.Algolia.Models.Facets;
+using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaHelper), typeof(DefaultAlgoliaHelper), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]

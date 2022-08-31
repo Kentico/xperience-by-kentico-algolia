@@ -13,7 +13,6 @@ using CMS.Core;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Models.Facets;
 using Kentico.Xperience.Algolia.Services;
 
 using Microsoft.Extensions.Options;

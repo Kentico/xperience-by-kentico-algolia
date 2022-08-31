@@ -7,7 +7,6 @@ using Algolia.Search.Models.Search;
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Models.Facets;
 
 namespace Kentico.Xperience.Algolia.Services
 {

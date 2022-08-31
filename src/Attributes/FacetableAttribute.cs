@@ -2,7 +2,7 @@
 
 using Algolia.Search.Clients;
 
-using Kentico.Xperience.Algolia.Models.Facets;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Attributes
 {
