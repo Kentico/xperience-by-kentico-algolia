@@ -37,11 +37,17 @@ namespace Kentico.Xperience.Algolia
         /// Adds an <see cref="AlgoliaQueueItem"/> to the worker queue to be processed.
         /// </summary>
         /// <param name="queueItem">The item to be added to the queue.</param>
-        public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
+        /// <exception cref="InvalidOperationException" />
+        public void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
         {
             if (queueItem == null || queueItem.Node == null || String.IsNullOrEmpty(queueItem.IndexName))
             {
                 return;
+            }
+
+            if (IndexStore.Instance.Get(queueItem.IndexName) == null)
+            {
+                throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
             }
 
             Current.Enqueue(queueItem, false);
@@ -52,7 +58,8 @@ namespace Kentico.Xperience.Algolia
         /// Adds mulitple <see cref="AlgoliaQueueItem"/>s to the worker queue to be processed.
         /// </summary>
         /// <param name="queueItems"></param>
-        public static void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
+        /// <exception cref="InvalidOperationException" />
+        public void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
         {
             foreach(var queueItem in queueItems)
             {

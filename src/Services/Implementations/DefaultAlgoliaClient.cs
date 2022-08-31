@@ -87,12 +87,6 @@ namespace Kentico.Xperience.Algolia.Services
                 try
                 {
                     var algoliaIndex = IndexStore.Instance.Get(group.Key);
-                    if (algoliaIndex == null)
-                    {
-                        eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), $"Attempted to process tasks for index '{group.Key},' but the index is not registered.");
-                        continue;
-                    }
-
                     var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
                     var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
                     var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type, queueItem.TaskType));

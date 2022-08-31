@@ -21,17 +21,40 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
+        private readonly IEventLogService eventLogService;
+
+
+        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService) {
+            this.eventLogService = eventLogService;
+        }
+
+
         /// <inheritdoc />
         public void LogTask(AlgoliaQueueItem task)
         {
-            AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(task);
+            try
+            {
+                new AlgoliaQueueWorker().EnqueueAlgoliaQueueItem(task);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTask), ex);
+            }
+            
         }
 
 
         /// <inheritdoc />
         public void LogTasks(IEnumerable<AlgoliaQueueItem> tasks)
         {
-            AlgoliaQueueWorker.EnqueueAlgoliaQueueItems(tasks);
+            try
+            {
+                new AlgoliaQueueWorker().EnqueueAlgoliaQueueItems(tasks);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), ex);
+            }
         }
 
 
