@@ -1,4 +1,7 @@
-﻿using CMS;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+
+using CMS;
 using CMS.Base;
 using CMS.Core;
 using CMS.DataEngine;
@@ -8,9 +11,6 @@ using CMS.DocumentEngine.Internal;
 using Kentico.Xperience.Algolia;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Services;
-
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 [assembly: AssemblyDiscoverable]
 [assembly: InternalsVisibleTo("Kentico.Xperience.Algolia.Tests")]

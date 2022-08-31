@@ -1,4 +1,9 @@
-﻿using Algolia.Search.Clients;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Algolia.Search.Clients;
 using Algolia.Search.Models.Insights;
 using Algolia.Search.Models.Search;
 
@@ -12,11 +17,6 @@ using Kentico.Xperience.Algolia.Models.Facets;
 using Kentico.Xperience.Algolia.Services;
 
 using Microsoft.Extensions.Options;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaInsightsService), typeof(DefaultAlgoliaInsightsService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services

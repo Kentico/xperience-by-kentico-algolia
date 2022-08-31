@@ -1,10 +1,10 @@
-﻿using Kentico.Xperience.Algolia.Models;
-
-using Newtonsoft.Json.Linq;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
+using Kentico.Xperience.Algolia.Models;
+
+using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Services
 {

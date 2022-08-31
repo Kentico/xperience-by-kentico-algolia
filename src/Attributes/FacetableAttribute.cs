@@ -1,8 +1,8 @@
-﻿using Algolia.Search.Clients;
+﻿using System;
+
+using Algolia.Search.Clients;
 
 using Kentico.Xperience.Algolia.Models.Facets;
-
-using System;
 
 namespace Kentico.Xperience.Algolia.Attributes
 {

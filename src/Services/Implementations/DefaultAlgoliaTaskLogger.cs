@@ -1,4 +1,8 @@
-﻿using CMS;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.DocumentEngine.Internal;
@@ -6,10 +10,6 @@ using CMS.DocumentEngine.Internal;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
 

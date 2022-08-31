@@ -1,8 +1,8 @@
-﻿using Algolia.Search.Models.Search;
+﻿using System;
+
+using Algolia.Search.Models.Search;
 
 using Microsoft.Extensions.Localization;
-
-using System;
 
 namespace Kentico.Xperience.Algolia.Models.Facets
 {

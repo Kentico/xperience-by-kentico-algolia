@@ -1,7 +1,7 @@
+using System;
+
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Settings;
-
-using System;
 
 namespace Kentico.Xperience.Algolia.Services
 {

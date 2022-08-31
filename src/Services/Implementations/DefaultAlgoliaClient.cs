@@ -1,4 +1,10 @@
-﻿using CMS;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+
+using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
@@ -12,12 +18,6 @@ using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
 

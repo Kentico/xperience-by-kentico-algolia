@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Settings;
 
@@ -7,11 +12,6 @@ using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaIndexService), typeof(DefaultAlgoliaIndexService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services

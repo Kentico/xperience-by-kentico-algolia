@@ -1,13 +1,13 @@
-﻿using Algolia.Search.Models.Insights;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using Algolia.Search.Models.Insights;
 using Algolia.Search.Models.Search;
 
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Models.Facets;
-
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Kentico.Xperience.Algolia.Services
 {

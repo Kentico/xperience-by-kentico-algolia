@@ -1,8 +1,8 @@
-﻿using Algolia.Search.Models.Search;
+﻿using System.Collections.Generic;
+
+using Algolia.Search.Models.Search;
 
 using Kentico.Xperience.Algolia.Models.Facets;
-
-using System.Collections.Generic;
 
 namespace Kentico.Xperience.Algolia.Services
 {

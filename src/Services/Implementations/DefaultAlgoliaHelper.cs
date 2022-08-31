@@ -1,12 +1,12 @@
-﻿using CMS;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using CMS;
 using CMS.Core;
 
 using Kentico.Xperience.Algolia.Models.Facets;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaHelper), typeof(DefaultAlgoliaHelper), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services

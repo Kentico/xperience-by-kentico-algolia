@@ -1,11 +1,11 @@
-﻿using CMS.Base;
+﻿using System;
+using System.Collections.Generic;
+
+using CMS.Base;
 using CMS.Core;
 
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
 
 namespace Kentico.Xperience.Algolia
 {

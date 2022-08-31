@@ -1,11 +1,11 @@
-﻿using CMS.Core;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+
+using CMS.Core;
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.Algolia.Attributes;
-
-using System;
-using System.Linq;
-using System.Reflection;
 
 namespace Kentico.Xperience.Algolia.Extensions
 {
