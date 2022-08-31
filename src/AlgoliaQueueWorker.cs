@@ -45,6 +45,11 @@ namespace Kentico.Xperience.Algolia
                 return;
             }
 
+            if (queueItem.TaskType == AlgoliaTaskType.UNKNOWN)
+            {
+                return;
+            }
+
             if (IndexStore.Instance.Get(queueItem.IndexName) == null)
             {
                 throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
