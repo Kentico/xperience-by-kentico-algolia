@@ -1,10 +1,12 @@
 ﻿using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
+
 using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.FormEngine;
+using CMS.Helpers;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
@@ -36,6 +38,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
+        private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
@@ -52,6 +55,7 @@ namespace Kentico.Xperience.Algolia.Services
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
             IMediaFileUrlRetriever mediaFileUrlRetriever,
+            IProgressiveCache progressiveCache,
             ISearchClient searchClient)
         {
             this.eventLogService = eventLogService;
@@ -59,6 +63,7 @@ namespace Kentico.Xperience.Algolia.Services
             this.conversionService = conversionService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
+            this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
         }
 
@@ -81,13 +86,10 @@ namespace Kentico.Xperience.Algolia.Services
 
         public async Task<List<IndicesResponse>> GetStatistics()
         {
-            if (searchClient == null)
-            {
-                return Enumerable.Empty<IndicesResponse>().ToList();
-            }
-
-            var response = await searchClient.ListIndicesAsync().ConfigureAwait(false);
-            return response.Items;
+            return await progressiveCache.LoadAsync(async (cs) => {
+                var response = await searchClient.ListIndicesAsync().ConfigureAwait(false);
+                return response.Items;
+            }, new CacheSettings(20, "Algolia|ListIndices")).ConfigureAwait(false);
         }
 
 

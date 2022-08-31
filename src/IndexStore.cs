@@ -39,6 +39,7 @@ namespace Kentico.Xperience.Algolia
                 throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
             }
 
+            index.Identifier = registeredIndexes.Count + 1;
             registeredIndexes.Add(index);
 
             return this;
@@ -67,6 +68,12 @@ namespace Kentico.Xperience.Algolia
         public IEnumerable<AlgoliaIndex> GetAll()
         {
             return registeredIndexes;
+        }
+
+
+        internal AlgoliaIndex Get(int id)
+        {
+            return registeredIndexes.FirstOrDefault(i => i.Identifier == id);
         }
     }
 }

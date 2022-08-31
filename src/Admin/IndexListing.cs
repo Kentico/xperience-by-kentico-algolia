@@ -15,20 +15,26 @@ using Action = Kentico.Xperience.Admin.Base.Action;
 [assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
 namespace Kentico.Xperience.Algolia.Admin
 {
-    internal class IndexListing : ListingPage
+    internal class IndexListing : ListingPageBase<InfoObjectListingConfiguration>
     {
         private readonly IAlgoliaClient algoliaClient;
+        private readonly IPageUrlGenerator pageUrlGenerator;
 
 
-        protected override string IdColumn => String.Empty;
+        public override InfoObjectListingConfiguration PageConfiguration { get; set; } = new InfoObjectListingConfiguration()
+        {
+            ColumnConfigurations = new List<ColumnConfiguration>(),
+            TableActions = new List<ActionConfiguration>(),
+            HeaderActions = new List<ActionConfiguration>(),
+            PageSizes = new List<int> { 10, 25 },
+            QueryModifiers = new List<QueryModifier>()
+        };
 
 
-        protected override string ObjectType => String.Empty;
-
-
-        public IndexListing(IAlgoliaClient algoliaClient)
+        public IndexListing(IAlgoliaClient algoliaClient, IPageUrlGenerator pageUrlGenerator)
         {
             this.algoliaClient = algoliaClient;
+            this.pageUrlGenerator = pageUrlGenerator;
         }
 
 
@@ -55,21 +61,34 @@ namespace Kentico.Xperience.Algolia.Admin
                 .AddColumn(nameof(IndicesResponse.LastBuildTimes), "Build time (seconds)")
                 .AddColumn(nameof(IndicesResponse.UpdatedAt), "Last update");
 
+            PageConfiguration.TableActions.AddCommand("Rebuild", nameof(Rebuild), Icons.RotateRight);
+
             return base.ConfigurePage();
         }
 
 
         [PageCommand]
-        public ICommandResponse<RowActionResult> RowClick(int id)
+        public Task<INavigateResponse> RowClick(int id)
         {
-            return ResponseFrom(new RowActionResult(false));
+            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(IndexedContent), id.ToString())));
         }
 
 
         [PageCommand]
-        public ICommandResponse<RowActionResult> Rebuild(int id)
+        public async Task<ICommandResponse<RowActionResult>> Rebuild(int id)
         {
-            return ResponseFrom(new RowActionResult(false));
+            var result = new RowActionResult(false);
+            var index = IndexStore.Instance.Get(id);
+            if (index == null)
+            {
+                return ResponseFrom(result)
+                    .AddErrorMessage($"Error loading Algolia index with identifier {id}.");
+            }
+
+            await algoliaClient.Rebuild(index.IndexName);
+
+            return ResponseFrom(result)
+                .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
         }
 
 
@@ -86,7 +105,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
             var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
             var orderedStatistics = SortStatistics(searchedStatistics, settings);
-            var rows = orderedStatistics.Select((stat, i) => GetRow(stat, i));
+            var rows = orderedStatistics.Select(stat => GetRow(stat));
 
             return new LoadDataResult
             {
@@ -125,11 +144,17 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Row GetRow(IndicesResponse statistics, int rowNum)
+        private Row GetRow(IndicesResponse statistics)
         {
+            var algoliaIdex = IndexStore.Instance.Get(statistics.Name);
+            if (algoliaIdex == null)
+            {
+                throw new InvalidOperationException($"Unable to retrieve Algolia index with name '{statistics.Name}.'");
+            }
+
             return new Row
             {
-                Identifier = rowNum,
+                Identifier = algoliaIdex.Identifier,
                 Action = new Action(ActionType.Command)
                 {
                     Parameter = nameof(RowClick)
@@ -158,8 +183,8 @@ namespace Kentico.Xperience.Algolia.Admin
                             {
                                 new Action(ActionType.Command)
                                 {
-                                    Title = "Build index",
-                                    Label = "Build index",
+                                    Title = "Rebuild",
+                                    Label = "Rebulid",
                                     Icon = Icons.RotateRight,
                                     Parameter = nameof(Rebuild)
                                 }

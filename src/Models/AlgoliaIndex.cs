@@ -26,6 +26,16 @@ namespace Kentico.Xperience.Algolia.Models
 
 
         /// <summary>
+        /// An arbitrary ID used to identify the Algolia index in the admin UI.
+        /// </summary>
+        internal int Identifier
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Initializes a new <see cref="AlgoliaIndex"/>.
         /// </summary>
         /// <param name="type">The type of the class which extends <see cref="AlgoliaSearchModel"/>.</param>
