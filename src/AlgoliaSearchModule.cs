@@ -20,7 +20,7 @@ namespace Kentico.Xperience.Algolia
     /// <summary>
     /// Initializes page event handlers, and ensures the thread queue worker for processing Algolia tasks.
     /// </summary>
-    public class AlgoliaSearchModule : Module
+    internal class AlgoliaSearchModule : Module
     {
         private IAlgoliaHelper algoliaHelper;
         private IAlgoliaTaskLogger algoliaTaskLogger;

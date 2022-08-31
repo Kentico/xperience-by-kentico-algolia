@@ -9,7 +9,7 @@ namespace Kentico.Xperience.Algolia
     /// <summary>
     /// Represents a store of Algolia indexes.
     /// </summary>
-    public class IndexStore
+    public sealed class IndexStore
     {
         private static readonly Lazy<IndexStore> mInstance = new();
         private readonly List<AlgoliaIndex> registeredIndexes = new();

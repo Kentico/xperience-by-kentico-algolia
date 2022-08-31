@@ -13,7 +13,7 @@ namespace Kentico.Xperience.Algolia.Models
     /// Contains the faceted attributes of an Algolia index and the filter state for
     /// a faceted search interface.
     /// </summary>
-    public class AlgoliaFacetFilterViewModel : IAlgoliaFacetFilter
+    public sealed class AlgoliaFacetFilterViewModel : IAlgoliaFacetFilter
     {
         /// <inheritdoc/>
         public AlgoliaFacetedAttribute[] FacetedAttributes { get; set; } = new AlgoliaFacetedAttribute[0];

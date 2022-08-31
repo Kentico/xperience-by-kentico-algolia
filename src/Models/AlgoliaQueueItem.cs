@@ -6,7 +6,7 @@ namespace Kentico.Xperience.Algolia.Models
     /// A queued item to be processed by <see cref="AlgoliaQueueWorker"/> which
     /// represents a recent change made to an indexed <see cref="TreeNode"/>.
     /// </summary>
-    public class AlgoliaQueueItem
+    public sealed class AlgoliaQueueItem
     {
         /// <summary>
         /// The <see cref="TreeNode"/> that was changed.

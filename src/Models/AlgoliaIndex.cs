@@ -5,7 +5,7 @@ namespace Kentico.Xperience.Algolia.Models
     /// <summary>
     /// Represents the configuration of an Algolia index.
     /// </summary>
-    public class AlgoliaIndex
+    public sealed class AlgoliaIndex
     {
         /// <summary>
         /// The type of the class which extends <see cref="AlgoliaSearchModel"/>.

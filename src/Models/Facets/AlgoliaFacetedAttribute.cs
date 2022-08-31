@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents an Algolia faceted attribute.
     /// </summary>
-    public class AlgoliaFacetedAttribute
+    public sealed class AlgoliaFacetedAttribute
     {
         /// <summary>
         /// The name of the faceted attribute.

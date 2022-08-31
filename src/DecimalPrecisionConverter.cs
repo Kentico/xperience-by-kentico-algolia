@@ -7,7 +7,7 @@ namespace Kentico.Xperience.Algolia
     /// <summary>
     /// Truncates decimal values to two places.
     /// </summary>
-    public class DecimalPrecisionConverter : JsonConverter
+    internal class DecimalPrecisionConverter : JsonConverter
     {
         /// <inheritdoc/>
         public override bool CanRead
