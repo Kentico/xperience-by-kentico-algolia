@@ -88,6 +88,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogSearchResultClicked(string eventName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || Position <= 0)
@@ -108,6 +109,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogSearchResultConversion(string conversionName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName))
@@ -128,6 +130,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogPageViewed(int documentId, string eventName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || documentId <= 0)
@@ -148,6 +151,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogPageConversion(int documentId, string conversionName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName) || documentId <= 0)
@@ -168,6 +172,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetsViewed(IEnumerable<AlgoliaFacetedAttribute> facets, string eventName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || facets == null)
@@ -197,6 +202,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetClicked(string facet, string eventName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(eventName) || String.IsNullOrEmpty(indexName))
@@ -217,6 +223,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName)
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(conversionName) || String.IsNullOrEmpty(indexName))
@@ -237,6 +244,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel
         {
             for (var i = 0; i < searchResponse.Hits.Count; i++)

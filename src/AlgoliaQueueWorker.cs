@@ -18,6 +18,7 @@ namespace Kentico.Xperience.Algolia
         private readonly IAlgoliaClient algoliaClient;
 
 
+        /// <inheritdoc />
         protected override int DefaultInterval => 10000;
 
 
@@ -60,18 +61,21 @@ namespace Kentico.Xperience.Algolia
         }
 
 
+        /// <inheritdoc />
         protected override void Finish()
         {
             RunProcess();
         }
 
 
+        /// <inheritdoc />
         protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
         {
             return algoliaClient.ProcessAlgoliaTasks(items).Result;
         }
 
 
+        /// <inheritdoc />
         protected override void ProcessItem(AlgoliaQueueItem item)
         {
             ProcessItems(new AlgoliaQueueItem[] { item });

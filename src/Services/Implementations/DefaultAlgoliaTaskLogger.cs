@@ -21,18 +21,21 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
+        /// <inheritdoc />
         public void LogTask(AlgoliaQueueItem task)
         {
             AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(task);
         }
 
 
+        /// <inheritdoc />
         public void LogTasks(IEnumerable<AlgoliaQueueItem> tasks)
         {
             AlgoliaQueueWorker.EnqueueAlgoliaQueueItems(tasks);
         }
 
 
+        /// <inheritdoc />
         public void HandleEvent(TreeNode node, string eventName)
         {
             foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))

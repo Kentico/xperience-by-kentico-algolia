@@ -31,6 +31,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public AlgoliaFacetedAttribute[] GetFacetedAttributes(Dictionary<string, Dictionary<string, long>> facetsFromResponse, IAlgoliaFacetFilter filter = null, bool displayEmptyFacets = true)
         {
             // Get facets in filter that are checked to persist checked state
@@ -104,6 +105,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public bool IsIndexingEnabled()
         {
             return !conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);

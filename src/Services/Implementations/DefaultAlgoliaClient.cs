@@ -58,6 +58,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
@@ -74,6 +75,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items)
         {
             var successfulOperations = 0;
@@ -109,6 +111,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public Task Rebuild(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
@@ -126,6 +129,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName)
         {
             if (String.IsNullOrEmpty(indexName))

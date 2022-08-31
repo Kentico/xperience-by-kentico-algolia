@@ -34,6 +34,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public IndexSettings GetIndexSettings(Type searchModel)
         {
             if (searchModel == null)
@@ -54,6 +55,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc />
         public ISearchIndex InitializeIndex(string indexName)
         {
             var algoliaIndex = IndexStore.Instance.Get(indexName);
