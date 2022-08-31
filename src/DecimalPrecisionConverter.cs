@@ -19,7 +19,7 @@ namespace Kentico.Xperience.Algolia
         /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
-            return (objectType == typeof(decimal));
+            return objectType == typeof(decimal);
         }
 
 
@@ -33,7 +33,7 @@ namespace Kentico.Xperience.Algolia
         /// <inheritdoc/>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

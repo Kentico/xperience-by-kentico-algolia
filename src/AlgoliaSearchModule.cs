@@ -78,11 +78,13 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private void LogBulkDelete(object sender, BulkDeleteEventArgs e)
         {
-            var cultureInfos = new ObjectQuery<DocumentCultureDataInfo>().Where(e.WhereCondition).TypedResult;
+            var deletedNodeIds = new ObjectQuery<DocumentCultureDataInfo>()
+                .Column(nameof(DocumentCultureDataInfo.DocumentNodeID))
+                .Where(e.WhereCondition)
+                .GetListResult<int>();
             var nodes = new DocumentQuery()
-                .WhereIn(nameof(TreeNode.DocumentID), cultureInfos.Select(i => i.DocumentNodeID).ToList())
-                .PublishedVersion()
-                .TypedResult;
+                .WhereIn(nameof(TreeNode.DocumentID), deletedNodeIds)
+                .PublishedVersion();
             foreach (var node in nodes)
             {
                 if (!EventShouldContinue(node))
@@ -105,7 +107,6 @@ namespace Kentico.Xperience.Algolia
                 .TopN(1)
                 .WhereEquals(nameof(TreeNode.DocumentID), cultureInfo.DocumentID)
                 .PublishedVersion()
-                .TypedResult
                 .FirstOrDefault();
             if (!EventShouldContinue(node))
             {

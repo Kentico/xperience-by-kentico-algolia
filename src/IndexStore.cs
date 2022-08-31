@@ -31,7 +31,7 @@ namespace Kentico.Xperience.Algolia
         {
             if (index == null)
             {
-                throw new InvalidOperationException(nameof(index));
+                throw new ArgumentNullException(nameof(index));
             }
 
             if (registeredIndexes.Any(i => i.IndexName.Equals(index.IndexName, StringComparison.OrdinalIgnoreCase)))
@@ -50,6 +50,8 @@ namespace Kentico.Xperience.Algolia
         /// or <c>null</c>.
         /// </summary>
         /// <param name="indexName">The name of the index to retrieve.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
         public AlgoliaIndex Get(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
@@ -57,7 +59,7 @@ namespace Kentico.Xperience.Algolia
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            return registeredIndexes.FirstOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase));
+            return registeredIndexes.SingleOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase));
         }
 
 
