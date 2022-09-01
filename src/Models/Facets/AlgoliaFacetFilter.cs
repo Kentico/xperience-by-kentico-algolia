@@ -14,30 +14,18 @@ namespace Kentico.Xperience.Algolia.Models
     public sealed class AlgoliaFacetFilter : IAlgoliaFacetFilter
     {
         /// <inheritdoc/>
-        public AlgoliaFacetedAttribute[] FacetedAttributes {
+        public AlgoliaFacetedAttribute[] FacetedAttributes
+        {
             get;
             set;
-        }
+        } = Array.Empty<AlgoliaFacetedAttribute>();
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AlgoliaFacetFilter"/> class
-        /// with an empty set of <see cref="FacetedAttributes"/>.
+        /// Initializes a new instance of the <see cref="AlgoliaFacetFilter"/> class.
         /// </summary>
-        public AlgoliaFacetFilter() : this(Array.Empty<AlgoliaFacetedAttribute>())
+        public AlgoliaFacetFilter()
         {
-        }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AlgoliaFacetFilter"/> class
-        /// with the <see cref="FacetedAttributes"/> set to the provided <paramref name="facets"/>.
-        /// </summary>
-        /// <param name="facets">A collection of an Algolia index's faceted attributes and the
-        /// available facets.</param>
-        public AlgoliaFacetFilter(AlgoliaFacetedAttribute[] facets)
-        {
-            FacetedAttributes = facets;
         }
 
 
