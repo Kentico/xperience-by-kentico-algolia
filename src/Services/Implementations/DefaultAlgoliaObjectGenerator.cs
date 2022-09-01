@@ -6,6 +6,7 @@ using System.Reflection;
 using CMS;
 using CMS.Core;
 using CMS.DataEngine;
+using CMS.DataEngine.Internal;
 using CMS.DocumentEngine;
 using CMS.FormEngine;
 using CMS.Helpers;
@@ -109,7 +110,7 @@ namespace Kentico.Xperience.Algolia.Services
                 return Enumerable.Empty<string>();
             }
 
-            var assets = JsonConvert.DeserializeObject<IEnumerable<AssetRelatedItem>>(strValue);
+            var assets = JsonDataTypeConverter.ConvertToModels<AssetRelatedItem>(strValue);
             var mediaFiles = mediaFileInfoProvider.Get().ForAssets(assets);
 
             return mediaFiles.Select(file => mediaFileUrlRetriever.Retrieve(file).RelativePath);
@@ -214,8 +215,7 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
             }
 
-            var searchModel = Activator.CreateInstance(searchModelType);
-            var properties = searchModel.GetType().GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
+            var properties = searchModelType.GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
             foreach (var prop in properties)
             {
                 object nodeValue = GetNodeValue(node, prop, searchModelType);
