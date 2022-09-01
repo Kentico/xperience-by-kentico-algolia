@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
@@ -88,8 +89,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogSearchResultClicked(string eventName, string indexName)
+        public async Task<InsightsResponse> LogSearchResultClicked(string eventName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || Position <= 0)
             {
                 return null;
@@ -109,8 +111,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogSearchResultConversion(string conversionName, string indexName)
+        public async Task<InsightsResponse> LogSearchResultConversion(string conversionName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName))
             {
                 return null;
@@ -130,8 +133,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogPageViewed(int documentId, string eventName, string indexName)
+        public async Task<InsightsResponse> LogPageViewed(int documentId, string eventName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || documentId <= 0)
             {
                 return null;
@@ -151,8 +155,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogPageConversion(int documentId, string conversionName, string indexName)
+        public async Task<InsightsResponse> LogPageConversion(int documentId, string conversionName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName) || documentId <= 0)
             {
                 return null;
@@ -172,8 +177,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogFacetsViewed(IEnumerable<AlgoliaFacetedAttribute> facets, string eventName, string indexName)
+        public async Task<InsightsResponse> LogFacetsViewed(IEnumerable<AlgoliaFacetedAttribute> facets, string eventName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || facets == null)
             {
                 return null;
@@ -202,8 +208,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogFacetClicked(string facet, string eventName, string indexName)
+        public async Task<InsightsResponse> LogFacetClicked(string facet, string eventName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(eventName) || String.IsNullOrEmpty(indexName))
             {
                 return null;
@@ -223,8 +230,9 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName)
+        public async Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(conversionName) || String.IsNullOrEmpty(indexName))
             {
                 return null;

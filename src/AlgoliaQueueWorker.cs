@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using CMS.Base;
 using CMS.Core;
@@ -83,7 +84,7 @@ namespace Kentico.Xperience.Algolia
         /// <inheritdoc />
         protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
         {
-            return algoliaClient.ProcessAlgoliaTasks(items).Result;
+            return algoliaClient.ProcessAlgoliaTasks(items, CancellationToken.None).Result;
         }
 
 
