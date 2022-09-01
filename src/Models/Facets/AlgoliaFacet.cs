@@ -1,9 +1,9 @@
-﻿namespace Kentico.Xperience.Algolia.Models.Facets
+﻿namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Represents an Algolia faceted attribute's value.
     /// </summary>
-    public class AlgoliaFacet
+    public sealed class AlgoliaFacet
     {
         /// <summary>
         /// The name of the faceted attribute.

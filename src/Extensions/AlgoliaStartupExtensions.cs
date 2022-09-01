@@ -1,12 +1,12 @@
-﻿using Algolia.Search.Clients;
+﻿using System;
+
+using Algolia.Search.Clients;
 
 using Kentico.Xperience.Algolia.Models;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-
-using System;
 
 namespace Kentico.Xperience.Algolia.Extensions
 {

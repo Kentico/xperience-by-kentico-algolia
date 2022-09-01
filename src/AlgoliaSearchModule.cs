@@ -1,4 +1,7 @@
-﻿using CMS;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+
+using CMS;
 using CMS.Base;
 using CMS.Core;
 using CMS.DataEngine;
@@ -9,9 +12,6 @@ using Kentico.Xperience.Algolia;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Services;
 
-using System.Linq;
-using System.Runtime.CompilerServices;
-
 [assembly: AssemblyDiscoverable]
 [assembly: InternalsVisibleTo("Kentico.Xperience.Algolia.Tests")]
 [assembly: RegisterModule(typeof(AlgoliaSearchModule))]
@@ -20,10 +20,12 @@ namespace Kentico.Xperience.Algolia
     /// <summary>
     /// Initializes page event handlers, and ensures the thread queue worker for processing Algolia tasks.
     /// </summary>
-    public class AlgoliaSearchModule : Module
+    internal class AlgoliaSearchModule : Module
     {
-        private IAlgoliaHelper algoliaHelper;
         private IAlgoliaTaskLogger algoliaTaskLogger;
+        private IAppSettingsService appSettingsService;
+        private IConversionService conversionService;
+        private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
 
 
         /// <inheritdoc/>
@@ -37,8 +39,9 @@ namespace Kentico.Xperience.Algolia
         {
             base.OnInit();
 
-            algoliaHelper = Service.Resolve<IAlgoliaHelper>();
             algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
+            appSettingsService = Service.Resolve<IAppSettingsService>();
+            conversionService = Service.Resolve<IConversionService>();
 
             WorkflowEvents.Publish.After += LogPublish;
             WorkflowEvents.Archive.After += LogArchive;
@@ -54,7 +57,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private bool EventShouldContinue(TreeNode node)
         {
-            return algoliaHelper.IsIndexingEnabled() &&
+            return !conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false) &&
                 node.IsAlgoliaIndexed();
         }
 
@@ -78,11 +81,13 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private void LogBulkDelete(object sender, BulkDeleteEventArgs e)
         {
-            var cultureInfos = new ObjectQuery<DocumentCultureDataInfo>().Where(e.WhereCondition).TypedResult;
+            var deletedNodeIds = new ObjectQuery<DocumentCultureDataInfo>()
+                .Column(nameof(DocumentCultureDataInfo.DocumentNodeID))
+                .Where(e.WhereCondition)
+                .GetListResult<int>();
             var nodes = new DocumentQuery()
-                .WhereIn(nameof(TreeNode.DocumentID), cultureInfos.Select(i => i.DocumentNodeID).ToList())
-                .PublishedVersion()
-                .TypedResult;
+                .WhereIn(nameof(TreeNode.DocumentID), deletedNodeIds)
+                .PublishedVersion();
             foreach (var node in nodes)
             {
                 if (!EventShouldContinue(node))
@@ -105,7 +110,6 @@ namespace Kentico.Xperience.Algolia
                 .TopN(1)
                 .WhereEquals(nameof(TreeNode.DocumentID), cultureInfo.DocumentID)
                 .PublishedVersion()
-                .TypedResult
                 .FirstOrDefault();
             if (!EventShouldContinue(node))
             {

@@ -1,12 +1,20 @@
-﻿using Algolia.Search.Models.Common;
+using Algolia.Search.Models.Common;
 
 using Kentico.Xperience.Algolia.Models;
 
 using Newtonsoft.Json.Linq;
 
 using System;
+=======
+﻿using System;
+>>>>>>> code-review
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+
+using Kentico.Xperience.Algolia.Models;
+
+using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -20,9 +28,12 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <param name="objectIds">The Algolia internal IDs of the records to delete.</param>
         /// <param name="indexName">The index containing the objects to delete.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <exception cref="ArgumentNullException" />
+        /// <exception cref="OperationCanceledException" />
+        /// <exception cref="ObjectDisposedException" />
         /// <returns>The number of records deleted.</returns>
-        Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName);
+        Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken);
 
 
         /// <summary>
@@ -38,8 +49,9 @@ namespace Kentico.Xperience.Algolia.Services
         /// so all queue items are forwarded to the API.
         /// </summary>
         /// <param name="items">The items to process.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <returns>The number of items processed.</returns>
-        Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items);
+        Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items, CancellationToken cancellationToken);
 
 
         /// <summary>
@@ -48,9 +60,12 @@ namespace Kentico.Xperience.Algolia.Services
         /// <remarks>Logs an error if there are issues loading the node data.</remarks>
         /// <param name="dataObjects">The objects to upsert into Algolia.</param>
         /// <param name="indexName">The index to upsert the data to.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <exception cref="ArgumentNullException" />
+        /// <exception cref="OperationCanceledException" />
+        /// <exception cref="ObjectDisposedException" />
         /// <returns>The number of objects processed.</returns>
-        Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName);
+        Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken);
 
 
         /// <summary>
@@ -58,8 +73,11 @@ namespace Kentico.Xperience.Algolia.Services
         /// pages in the content tree included in the index.
         /// </summary>
         /// <param name="indexName">The index to rebuild.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <exception cref="InvalidOperationException" />
         /// <exception cref="ArgumentNullException" />
-        Task Rebuild(string indexName);
+        /// <exception cref="OperationCanceledException" />
+        /// <exception cref="ObjectDisposedException" />
+        Task Rebuild(string indexName, CancellationToken cancellationToken);
     }
 }

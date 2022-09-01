@@ -32,13 +32,5 @@ namespace Kentico.Xperience.Algolia.Attributes
             get;
             set;
         }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SearchableAttribute"/> class.
-        /// </summary>
-        public SearchableAttribute()
-        {
-        }
     }
 }

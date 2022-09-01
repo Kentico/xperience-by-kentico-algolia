@@ -1,11 +1,12 @@
-﻿using CMS.Base;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+
+using CMS.Base;
 using CMS.Core;
 
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
 
 namespace Kentico.Xperience.Algolia
 {
@@ -18,6 +19,7 @@ namespace Kentico.Xperience.Algolia
         private readonly IAlgoliaClient algoliaClient;
 
 
+        /// <inheritdoc />
         protected override int DefaultInterval => 10000;
 
 
@@ -36,11 +38,22 @@ namespace Kentico.Xperience.Algolia
         /// Adds an <see cref="AlgoliaQueueItem"/> to the worker queue to be processed.
         /// </summary>
         /// <param name="queueItem">The item to be added to the queue.</param>
-        public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
+        /// <exception cref="InvalidOperationException" />
+        public void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
         {
             if (queueItem == null || queueItem.Node == null || String.IsNullOrEmpty(queueItem.IndexName))
             {
                 return;
+            }
+
+            if (queueItem.TaskType == AlgoliaTaskType.UNKNOWN)
+            {
+                return;
+            }
+
+            if (IndexStore.Instance.Get(queueItem.IndexName) == null)
+            {
+                throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
             }
 
             Current.Enqueue(queueItem, false);
@@ -51,7 +64,8 @@ namespace Kentico.Xperience.Algolia
         /// Adds mulitple <see cref="AlgoliaQueueItem"/>s to the worker queue to be processed.
         /// </summary>
         /// <param name="queueItems"></param>
-        public static void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
+        /// <exception cref="InvalidOperationException" />
+        public void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
         {
             foreach(var queueItem in queueItems)
             {
@@ -60,18 +74,21 @@ namespace Kentico.Xperience.Algolia
         }
 
 
+        /// <inheritdoc />
         protected override void Finish()
         {
             RunProcess();
         }
 
 
+        /// <inheritdoc />
         protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
         {
-            return algoliaClient.ProcessAlgoliaTasks(items).Result;
+            return algoliaClient.ProcessAlgoliaTasks(items, CancellationToken.None).Result;
         }
 
 
+        /// <inheritdoc />
         protected override void ProcessItem(AlgoliaQueueItem item)
         {
             ProcessItems(new AlgoliaQueueItem[] { item });

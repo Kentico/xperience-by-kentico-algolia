@@ -1,15 +1,17 @@
-﻿using Kentico.Xperience.Algolia.Models;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
+using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>
     /// Represents a store of Algolia indexes.
     /// </summary>
-    public class IndexStore
+    public sealed class IndexStore
     {
         private static readonly Lazy<IndexStore> mInstance = new();
         private readonly List<AlgoliaIndex> registeredIndexes = new();
@@ -31,12 +33,21 @@ namespace Kentico.Xperience.Algolia
         {
             if (index == null)
             {
-                throw new InvalidOperationException(nameof(index));
+                throw new ArgumentNullException(nameof(index));
             }
 
             if (registeredIndexes.Any(i => i.IndexName.Equals(index.IndexName, StringComparison.OrdinalIgnoreCase)))
             {
                 throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
+            }
+
+            var facetableProperties = index.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            if (facetableProperties.Any(prop => {
+                var attr = prop.GetCustomAttributes<FacetableAttribute>(false).FirstOrDefault();
+                return attr.FilterOnly && attr.Searchable;
+            }))
+            {
+                throw new InvalidOperationException($"Facetable attributes cannot be both {nameof(FacetableAttribute.Searchable)} and {nameof(FacetableAttribute.FilterOnly)}.");
             }
 
             index.Identifier = registeredIndexes.Count + 1;
@@ -51,6 +62,8 @@ namespace Kentico.Xperience.Algolia
         /// or <c>null</c>.
         /// </summary>
         /// <param name="indexName">The name of the index to retrieve.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
         public AlgoliaIndex Get(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
@@ -58,7 +71,7 @@ namespace Kentico.Xperience.Algolia
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            return registeredIndexes.FirstOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase));
+            return registeredIndexes.SingleOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase));
         }
 
 
