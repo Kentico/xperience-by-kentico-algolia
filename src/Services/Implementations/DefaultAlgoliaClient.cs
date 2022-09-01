@@ -11,11 +11,8 @@ using Algolia.Search.Models.Common;
 using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
-using CMS.FormEngine;
 using CMS.Helpers;
-using CMS.MediaLibrary;
 
-using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
@@ -32,32 +29,21 @@ namespace Kentico.Xperience.Algolia.Services
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
-        private readonly IConversionService conversionService;
         private readonly IEventLogService eventLogService;
-        private readonly IMediaFileInfoProvider mediaFileInfoProvider;
-        private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
-        private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
-            nameof(AlgoliaSearchModel.ObjectID),
-            nameof(AlgoliaSearchModel.Url),
-            nameof(AlgoliaSearchModel.ClassName)
-        };
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
-            IConversionService conversionService,
+            IAlgoliaObjectGenerator algoliaObjectGenerator,
             IEventLogService eventLogService,
-            IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever,
             IProgressiveCache progressiveCache,
             ISearchClient searchClient)
         {
             this.algoliaIndexService = algoliaIndexService;
-            this.conversionService = conversionService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.eventLogService = eventLogService;
             this.progressiveCache = progressiveCache;

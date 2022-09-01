@@ -1,14 +1,14 @@
-﻿using Algolia.Search.Models.Common;
-
-using Kentico.Xperience.Admin.Base;
-using Kentico.Xperience.Algolia.Admin;
-using Kentico.Xperience.Algolia.Services;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Algolia.Search.Models.Common;
+
+using Kentico.Xperience.Admin.Base;
+using Kentico.Xperience.Algolia.Admin;
+using Kentico.Xperience.Algolia.Services;
 
 using Action = Kentico.Xperience.Admin.Base.Action;
 
@@ -85,7 +85,7 @@ namespace Kentico.Xperience.Algolia.Admin
                     .AddErrorMessage($"Error loading Algolia index with identifier {id}.");
             }
 
-            await algoliaClient.Rebuild(index.IndexName);
+            await algoliaClient.Rebuild(index.IndexName, CancellationToken.None);
 
             return ResponseFrom(result)
                 .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");

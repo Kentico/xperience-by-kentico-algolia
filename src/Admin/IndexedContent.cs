@@ -1,16 +1,16 @@
-﻿using CMS.DataEngine;
-using CMS.DocumentEngine;
-
-using Kentico.Xperience.Admin.Base;
-using Kentico.Xperience.Algolia.Admin;
-using Kentico.Xperience.Algolia.Attributes;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+using CMS.DataEngine;
+using CMS.DocumentEngine;
+
+using Kentico.Xperience.Admin.Base;
+using Kentico.Xperience.Algolia.Admin;
+using Kentico.Xperience.Algolia.Attributes;
 
 [assembly: UIPage(typeof(IndexListing), PageParameterConstants.PARAMETERIZED_SLUG, typeof(IndexedContent), "Indexed content", TemplateNames.LISTING, 1)]
 namespace Kentico.Xperience.Algolia.Admin

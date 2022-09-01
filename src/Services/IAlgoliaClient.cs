@@ -1,16 +1,9 @@
-using Algolia.Search.Models.Common;
-
-using Kentico.Xperience.Algolia.Models;
-
-using Newtonsoft.Json.Linq;
-
 using System;
-=======
-﻿using System;
->>>>>>> code-review
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Algolia.Search.Models.Common;
 
 using Kentico.Xperience.Algolia.Models;
 
@@ -39,7 +32,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <summary>
         /// Gets the indices of the Algolia application with basic statistics.
         /// </summary>
-        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/></remarks>
+        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/>.</remarks>
         Task<List<IndicesResponse>> GetStatistics();
 
 
