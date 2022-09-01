@@ -22,8 +22,10 @@ namespace Kentico.Xperience.Algolia
     /// </summary>
     internal class AlgoliaSearchModule : Module
     {
-        private IAlgoliaHelper algoliaHelper;
         private IAlgoliaTaskLogger algoliaTaskLogger;
+        private IAppSettingsService appSettingsService;
+        private IConversionService conversionService;
+        private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
 
 
         /// <inheritdoc/>
@@ -37,8 +39,9 @@ namespace Kentico.Xperience.Algolia
         {
             base.OnInit();
 
-            algoliaHelper = Service.Resolve<IAlgoliaHelper>();
             algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
+            appSettingsService = Service.Resolve<IAppSettingsService>();
+            conversionService = Service.Resolve<IConversionService>();
 
             WorkflowEvents.Publish.After += LogPublish;
             WorkflowEvents.Archive.After += LogArchive;
@@ -54,7 +57,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private bool EventShouldContinue(TreeNode node)
         {
-            return algoliaHelper.IsIndexingEnabled() &&
+            return !conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false) &&
                 node.IsAlgoliaIndexed();
         }
 
