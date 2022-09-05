@@ -10,15 +10,23 @@ using CMS.DocumentEngine;
 
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Admin
 {
+    /// <summary>
+    /// An admin UI dialog page which displays the page types included in an indexed path.
+    /// </summary>
     [UIPageLocation(PageLocationEnum.Dialog)]
     internal class PathDetail : Page<PathDetailPageProps>
     {
         private string mAliasPath;
 
 
+        /// <summary>
+        /// The internal <see cref="AlgoliaIndex.Identifier"/> of the index that contains the
+        /// indexed path definition.
+        /// </summary>
         [PageParameter(typeof(IntPageModelBinder), typeof(IndexedContent))]
         public int IndexIdentifier
         {
@@ -27,6 +35,9 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// The indexed path to display the details of.
+        /// </summary>
         [PageParameter(typeof(StringPageModelBinder))]
         public string AliasPath
         {
@@ -41,6 +52,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <inheritdoc/>
         public override Task<PathDetailPageProps> ConfigureTemplateProperties(PathDetailPageProps properties)
         {
             properties.AliasPath = AliasPath;
@@ -58,6 +70,11 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// Returns the data to display in the page type table and the number of total items.
+        /// </summary>
+        /// <param name="args">Command arguments provided by client.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         [PageCommand]
         public Task<ICommandResponse<LoadDataResult>> LoadData(LoadDataCommandArguments args, CancellationToken cancellationToken)
         {

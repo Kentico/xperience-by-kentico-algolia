@@ -8,14 +8,21 @@ using CMS.DocumentEngine;
 
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Admin
 {
+    /// <summary>
+    /// An admin UI page which displays the indexed paths and properties of an Algolia index.
+    /// </summary>
     internal class IndexedContent : Page<IndexedContentPageProps>
     {
         private readonly IPageUrlGenerator pageUrlGenerator;
 
 
+        /// <summary>
+        /// The internal <see cref="AlgoliaIndex.Identifier"/> of the index.
+        /// </summary>
         [PageParameter(typeof(IntPageModelBinder))]
         public int IndexIdentifier
         {
@@ -24,12 +31,19 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexedContent"/> class.
+        /// </summary>
         public IndexedContent(IPageUrlGenerator pageUrlGenerator)
         {
             this.pageUrlGenerator = pageUrlGenerator;
         }
 
 
+        /// <summary>
+        /// A page command which displays details of a particular indexed path.
+        /// </summary>
+        /// <param name="args">The table cell which was clicked which contains an indexed alias path.</param>
         [PageCommand]
         public Task<INavigateResponse> ShowPathDetail(PathDetailArguments args)
         {
@@ -39,6 +53,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <inheritdoc/>
         public override Task<IndexedContentPageProps> ConfigureTemplateProperties(IndexedContentPageProps properties)
         {
             var index = IndexStore.Instance.Get(IndexIdentifier);
@@ -247,14 +262,26 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// The arguments emitted by the template for use in the <see cref="ShowPathDetail"/> command.
+        /// </summary>
         internal class PathDetailArguments
         {
+            /// <summary>
+            /// The data of the cell that was clicked in the indexed path table.
+            /// </summary>
             public CellData Cell { get; set; }
         }
 
 
+        /// <summary>
+        /// The data of the cell that was clicked in the indexed path table.
+        /// </summary>
         internal class CellData
         {
+            /// <summary>
+            /// The value of the clicked cell.
+            /// </summary>
             public string Value { get; set; }
         }
     }

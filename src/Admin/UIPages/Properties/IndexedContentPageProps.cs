@@ -4,8 +4,14 @@ using Kentico.Xperience.Admin.Base;
 
 namespace Kentico.Xperience.Algolia.Admin
 {
+    /// <summary>
+    /// Template properties for the <see cref="IndexedContent"/> UI page.
+    /// </summary>
     internal class IndexedContentPageProps : TemplateClientProperties
     {
+        /// <summary>
+        /// Columns to display in the indexed path table.
+        /// </summary>
         public IEnumerable<Column> PathColumns
         {
             get;
@@ -13,12 +19,18 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// Rows to display in the indexed path table.
+        /// </summary>
         public IEnumerable<Row> PathRows {
             get;
             set;
         }
 
 
+        /// <summary>
+        /// Columns to display in the indexed properties table.
+        /// </summary>
         public IEnumerable<Column> PropertyColumns
         {
             get;
@@ -26,6 +38,9 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
+        /// <summary>
+        /// Rows to display in the indexed properties table.
+        /// </summary>
         public IEnumerable<Row> PropertyRows
         {
             get;
