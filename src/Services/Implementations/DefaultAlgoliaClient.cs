@@ -8,18 +8,15 @@ using System.Threading.Tasks;
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
 
-using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json.Linq;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -69,8 +66,9 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        public async Task<List<IndicesResponse>> GetStatistics()
+        public async Task<List<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return await progressiveCache.LoadAsync(async (cs) => {
                 var response = await searchClient.ListIndicesAsync().ConfigureAwait(false);
                 return response.Items;

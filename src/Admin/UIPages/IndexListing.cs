@@ -7,12 +7,10 @@ using System.Threading.Tasks;
 using Algolia.Search.Models.Common;
 
 using Kentico.Xperience.Admin.Base;
-using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Services;
 
 using Action = Kentico.Xperience.Admin.Base.Action;
 
-[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
 namespace Kentico.Xperience.Algolia.Admin
 {
     internal class IndexListing : ListingPageBase<InfoObjectListingConfiguration>
@@ -94,7 +92,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
         protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
         {
-            var statistics = await algoliaClient.GetStatistics();
+            var statistics = await algoliaClient.GetStatistics(CancellationToken.None);
 
             // Add statistics for indexes that are registered but not created in Algolia
             AddMissingStatistics(statistics);
@@ -135,7 +133,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
         private IEnumerable<IndicesResponse> DoSearch(IEnumerable<IndicesResponse> statistics, string searchTerm)
         {
-            if (String.IsNullOrEmpty(searchTerm))
+            if (string.IsNullOrEmpty(searchTerm))
             {
                 return statistics;
             }
@@ -197,7 +195,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
         private IOrderedEnumerable<IndicesResponse> SortStatistics(IEnumerable<IndicesResponse> statistics, LoadDataSettings settings)
         {
-            if (String.IsNullOrEmpty(settings.SortBy))
+            if (string.IsNullOrEmpty(settings.SortBy))
             {
                 return statistics.OrderBy(stat => 1);
             }

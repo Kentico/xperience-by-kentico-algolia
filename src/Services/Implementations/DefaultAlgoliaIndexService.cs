@@ -6,14 +6,10 @@ using System.Reflection;
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Settings;
 
-using CMS;
-using CMS.Core;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Attributes;
-using Kentico.Xperience.Algolia.Services;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaIndexService), typeof(DefaultAlgoliaIndexService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>

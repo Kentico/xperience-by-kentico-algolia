@@ -2,6 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
+		<AdminOrgName>algolia</AdminOrgName>
 		<RootNamespace>Kentico.Xperience.Algolia</RootNamespace>
 		<LangVersion>Latest</LangVersion>
 	</PropertyGroup>
@@ -23,7 +24,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<AdminClientPath Include="Admin\Client\dist\**">
+			<ProjectName>web-admin</ProjectName>
+		</AdminClientPath>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="..\img\icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="Admin\Client\node_modules\**" />
+		<EmbeddedResource Remove="Admin\Client\node_modules\**" />
+		<None Remove="Admin\Client\node_modules\**" />
 	</ItemGroup>
 
 	<PropertyGroup Condition=" $(Configuration) == 'Release' ">
@@ -36,8 +49,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Algolia.Search" Version="6.11.0" />
-		<PackageReference Include="Kentico.Xperience.Admin" Version="22.1.2" />
-		<PackageReference Include="Kentico.Xperience.WebApp" Version="22.1.2" />
+		<PackageReference Include="Kentico.Xperience.Admin" Version="22.1.3" />
+		<PackageReference Include="Kentico.Xperience.WebApp" Version="22.1.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DataEngine.Internal;
@@ -15,12 +14,10 @@ using CMS.MediaLibrary;
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaObjectGenerator), typeof(DefaultAlgoliaObjectGenerator), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>

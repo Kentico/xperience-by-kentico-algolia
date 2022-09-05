@@ -33,7 +33,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// Gets the indices of the Algolia application with basic statistics.
         /// </summary>
         /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/>.</remarks>
-        Task<List<IndicesResponse>> GetStatistics();
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <exception cref="OperationCanceledException" />
+        /// <exception cref="ObjectDisposedException" />
+        Task<List<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
 
 
         /// <summary>

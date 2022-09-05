@@ -8,17 +8,14 @@ using Algolia.Search.Clients;
 using Algolia.Search.Models.Insights;
 using Algolia.Search.Models.Search;
 
-using CMS;
 using CMS.ContactManagement;
 using CMS.Core;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Microsoft.Extensions.Options;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaInsightsService), typeof(DefaultAlgoliaInsightsService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -267,7 +264,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// populated to log search result click events.
         /// </summary>
         /// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
-        /// <param name="hit">The Aloglia hit to retrieve the URL for.</param>
+        /// <param name="hit">The Algolia hit to retrieve the URL for.</param>
         /// <param name="position">The position the <paramref name="hit"/> appeared in the
         /// search results.</param>
         /// <param name="queryId">The unique identifier of the Algolia query.</param>
