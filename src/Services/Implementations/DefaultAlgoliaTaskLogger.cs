@@ -32,7 +32,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             try
             {
-                new AlgoliaQueueWorker().EnqueueAlgoliaQueueItem(task);
+                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
             }
             catch (InvalidOperationException ex)
             {
@@ -47,7 +47,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             try
             {
-                new AlgoliaQueueWorker().EnqueueAlgoliaQueueItems(tasks);
+                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItems(tasks);
             }
             catch (InvalidOperationException ex)
             {
