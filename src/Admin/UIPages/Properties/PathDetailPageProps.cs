@@ -4,32 +4,33 @@ using Kentico.Xperience.Admin.Base;
 
 namespace Kentico.Xperience.Algolia.Admin
 {
-    internal class IndexedContentPageProps : TemplateClientProperties
+    internal class PathDetailPageProps : TemplateClientProperties
     {
-        public IEnumerable<Column> PathColumns
+        public string AliasPath
         {
             get;
             set;
         }
 
 
-        public IEnumerable<Row> PathRows {
-            get;
-            set;
-        }
-
-
-        public IEnumerable<Column> PropertyColumns
+        public IEnumerable<Column> Columns
         {
             get;
             set;
         }
 
 
-        public IEnumerable<Row> PropertyRows
+        public int PageSize
         {
             get;
             set;
-        }
+        } = 10;
+
+
+        public int CurrentPage
+        {
+            get;
+            set;
+        } = 1;
     }
 }

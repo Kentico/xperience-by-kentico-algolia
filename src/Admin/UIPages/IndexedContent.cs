@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -34,7 +33,9 @@ namespace Kentico.Xperience.Algolia.Admin
         [PageCommand]
         public Task<INavigateResponse> ShowPathDetail(PathDetailArguments args)
         {
-            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(PathDetail), IndexIdentifier.ToString(), "Test")));
+            var aliasPath = Uri.EscapeDataString(args.Cell.Value);
+
+            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(PathDetail), IndexIdentifier.ToString(), aliasPath)));
         }
 
 
@@ -47,8 +48,44 @@ namespace Kentico.Xperience.Algolia.Admin
             }
 
             var includedPathAttributes = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            properties.PathRows.AddRange(includedPathAttributes.Select((attr, i) => GetPath(attr, i)));
-            properties.PathColumns.AddRange(new Column[] {
+            properties.PathRows = includedPathAttributes.Select((attr, i) => GetPath(attr, i));
+            properties.PathColumns = GetPathColumns();
+
+            var searchModelProperties = index.Type.GetProperties();
+            properties.PropertyRows = searchModelProperties.Select(prop => GetProperty(prop));
+            properties.PropertyColumns = GetPropertyColumns();
+
+            return Task.FromResult(properties);
+        }
+
+
+        private Row GetPath(IncludedPathAttribute attribute, int rowNum)
+        {
+            return new Row
+            {
+                Identifier = rowNum,
+                Cells = new Cell[] {
+                    new StringCell
+                    {
+                        Value = attribute.AliasPath
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.TAG_COMPONENT,
+                        ComponentProps = new TagTableCellComponentProps
+                        {
+                            Label = GetPageTypeLabel(attribute),
+                            Color = GetPageTypeColor(attribute)
+                        }
+                    }
+                }
+            };
+        }
+
+
+        private Column[] GetPathColumns()
+        {
+            return new Column[] {
                 new Column
                 {
                     Caption = "Path",
@@ -59,11 +96,77 @@ namespace Kentico.Xperience.Algolia.Admin
                     Caption = "Page types",
                     ContentType = ColumnContentType.Component
                 }
-            });
+            };
+        }
 
-            var searchModelProperties = index.Type.GetProperties();
-            properties.PropertyRows.AddRange(searchModelProperties.Select(prop => GetProperty(prop)));
-            properties.PropertyColumns.AddRange(new Column[] {
+
+        private Row GetProperty(PropertyInfo property)
+        {
+            var isSearchable = Attribute.IsDefined(property, typeof(SearchableAttribute));
+            var isRetrievable = Attribute.IsDefined(property, typeof(RetrievableAttribute));
+            var isFacetable = Attribute.IsDefined(property, typeof(FacetableAttribute));
+            var hasSources = Attribute.IsDefined(property, typeof(SourceAttribute));
+            var hasUrls = Attribute.IsDefined(property, typeof(MediaUrlsAttribute));
+            return new Row
+            {
+                Cells = new Cell[] {
+                    new StringCell
+                    {
+                        Value = property.Name
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
+                        ComponentProps = new SimpleStatusNamedComponentCellProps
+                        {
+                            IconName = GetIconName(isSearchable),
+                            IconColor = GetIconColor(isSearchable)
+                        }
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
+                        ComponentProps = new SimpleStatusNamedComponentCellProps
+                        {
+                            IconName = GetIconName(isRetrievable),
+                            IconColor = GetIconColor(isRetrievable)
+                        }
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
+                        ComponentProps = new SimpleStatusNamedComponentCellProps
+                        {
+                            IconName = GetIconName(isFacetable),
+                            IconColor = GetIconColor(isFacetable)
+                        }
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
+                        ComponentProps = new SimpleStatusNamedComponentCellProps
+                        {
+                            IconName = GetIconName(hasSources),
+                            IconColor = GetIconColor(hasSources)
+                        }
+                    },
+                    new NamedComponentCell
+                    {
+                        Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
+                        ComponentProps = new SimpleStatusNamedComponentCellProps
+                        {
+                            IconName = GetIconName(hasUrls),
+                            IconColor = GetIconColor(hasUrls)
+                        }
+                    }
+                }
+            };
+        }
+
+
+        private Column[] GetPropertyColumns()
+        {
+            return new Column[] {
                 new Column
                 {
                     Caption = "Property",
@@ -94,104 +197,13 @@ namespace Kentico.Xperience.Algolia.Admin
                     Caption = "URL",
                     ContentType = ColumnContentType.Component
                 }
-            });
-
-            return Task.FromResult(properties);
-        }
-
-        private Row GetPath(IncludedPathAttribute attribute, int rowNum)
-        {
-            return new Row
-            {
-                Identifier = rowNum,
-                Cells = new List<Cell>
-                    {
-                        new StringCell
-                        {
-                            Value = attribute.AliasPath
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.TAG_COMPONENT,
-                            ComponentProps = new TagTableCellComponentProps
-                            {
-                                Label = GetPageTypeLabel(attribute),
-                                Color = GetPageTypeColor(attribute)
-                            }
-                        },
-                    }
-            };
-        }
-
-
-        private Row GetProperty(PropertyInfo property)
-        {
-            var isSearchable = Attribute.IsDefined(property, typeof(SearchableAttribute));
-            var isRetrievable = Attribute.IsDefined(property, typeof(RetrievableAttribute));
-            var isFacetable = Attribute.IsDefined(property, typeof(FacetableAttribute));
-            var hasSources = Attribute.IsDefined(property, typeof(SourceAttribute));
-            var hasUrls = Attribute.IsDefined(property, typeof(MediaUrlsAttribute));
-            return new Row
-            {
-                Cells = new List<Cell>
-                    {
-                        new StringCell
-                        {
-                            Value = property.Name
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
-                            ComponentProps = new SimpleStatusNamedComponentCellProps
-                            {
-                                IconName = GetIconName(isSearchable),
-                                IconColor = GetIconColor(isSearchable)
-                            }
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
-                            ComponentProps = new SimpleStatusNamedComponentCellProps
-                            {
-                                IconName = GetIconName(isRetrievable),
-                                IconColor = GetIconColor(isRetrievable)
-                            }
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
-                            ComponentProps = new SimpleStatusNamedComponentCellProps
-                            {
-                                IconName = GetIconName(isFacetable),
-                                IconColor = GetIconColor(isFacetable)
-                            }
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
-                            ComponentProps = new SimpleStatusNamedComponentCellProps
-                            {
-                                IconName = GetIconName(hasSources),
-                                IconColor = GetIconColor(hasSources)
-                            }
-                        },
-                        new NamedComponentCell
-                        {
-                            Name = NamedComponentCellComponentNames.SIMPLE_STATUS_COMPONENT,
-                            ComponentProps = new SimpleStatusNamedComponentCellProps
-                            {
-                                IconName = GetIconName(hasUrls),
-                                IconColor = GetIconColor(hasUrls)
-                            }
-                        }
-                    }
             };
         }
 
 
         private Color GetIconColor(bool status)
         {
-            return status ? Color.IconHighlighted : Color.IconDisabled;
+            return status ? Color.SuccessIcon : Color.IconLowEmphasis;
         }
 
 
@@ -209,10 +221,10 @@ namespace Kentico.Xperience.Algolia.Admin
             }
             else if (attribute.PageTypes.Count() == 1)
             {
-                return Color.BackgroundTagMajorelleBlue;
+                return Color.BackgroundTagUltramarineBlue;
             }
 
-            return Color.BackgroundTagUltramarineBlue;
+            return Color.BackgroundTagDefault;
         }
 
 
