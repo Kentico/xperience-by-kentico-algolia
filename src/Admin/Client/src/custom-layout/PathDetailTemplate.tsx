@@ -9,8 +9,6 @@ const ListingCommands = {
 interface PathDetailPageProps
 {
     readonly aliasPath: string;
-    readonly pageSize: number;
-    readonly currentPage: number;
     readonly columns: TableColumn[];
 }
 
@@ -24,7 +22,7 @@ interface LoadDataResult {
     readonly totalCount: number;
 }
 
-export const PathDetailTemplate = ({aliasPath, columns, pageSize, currentPage}: PathDetailPageProps) => {
+export const PathDetailTemplate = ({aliasPath, columns}: PathDetailPageProps) => {
     const tableRef = React.createRef<HTMLDivElement>();
 
     const [tableData, setTableData] = useState<LoadDataResult>({
@@ -34,7 +32,7 @@ export const PathDetailTemplate = ({aliasPath, columns, pageSize, currentPage}: 
 
     const [templateParameters, setTemplateParameters] = useState<TemplateParameters>({
         currentPage: 1,
-        pageSize: pageSize
+        pageSize: 10
     });
 
     const { execute: reloadData } = usePageCommand<LoadDataResult, TemplateParameters>(ListingCommands.LoadData, {
