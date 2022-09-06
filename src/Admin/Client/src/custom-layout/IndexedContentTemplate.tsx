@@ -1,5 +1,5 @@
 import React from "react";
-import { Headline, HeadlineSize, Spacing, Table, TableCell, TableColumn, TableRow } from "@kentico/xperience-admin-components";
+import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from "@kentico/xperience-admin-components";
 import { RoutingContentPlaceholder, usePageCommand } from "@kentico/xperience-admin-base";
 
 interface IndexedContentPageProps {
@@ -32,11 +32,17 @@ export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns,
 
     return (
         <RoutingContentPlaceholder>
-            <Headline size={HeadlineSize.M}>Indexed content</Headline>
-            <Headline size={HeadlineSize.S} spacingTop={Spacing.XL}>Indexed paths</Headline>
-            <Table columns={pathColumns} rows={pathRows} onRowClick={pathClicked}/>
-            <Headline size={HeadlineSize.S} spacingTop={Spacing.XL}>Indexed properties</Headline>
-            <Table columns={propertyColumns} rows={propertyRows} />
+            <Stack spacing={Spacing.XXL}>
+                <Headline size={HeadlineSize.M}>Indexed content</Headline>
+                <Box>
+                    <Headline size={HeadlineSize.S}>Indexed paths</Headline>
+                    <Table columns={pathColumns} rows={pathRows} onRowClick={pathClicked}/>
+                </Box>
+                <Box>
+                    <Headline size={HeadlineSize.S}>Indexed properties</Headline>
+                    <Table columns={propertyColumns} rows={propertyRows} />
+                </Box>
+            </Stack>
         </RoutingContentPlaceholder>
     );
 }

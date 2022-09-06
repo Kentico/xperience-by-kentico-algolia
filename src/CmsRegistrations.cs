@@ -22,9 +22,10 @@ using Kentico.Xperience.Algolia.Services;
 [assembly: UIApplication(typeof(AlgoliaApplication), "Algolia", "Algolia", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
 
 // Admin UI pages
-[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, 0)]
-[assembly: UIPage(typeof(IndexListing), PageParameterConstants.PARAMETERIZED_SLUG, typeof(IndexedContent), "Indexed content", "@algolia/web-admin/IndexedContent", 0)]
-[assembly: UIPage(typeof(IndexedContent), PageParameterConstants.PARAMETERIZED_SLUG, typeof(PathDetail), "Path detail", "@algolia/web-admin/PathDetail", 0)]
+[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
+[assembly: UIPage(typeof(IndexListing), PageParameterConstants.PARAMETERIZED_SLUG, typeof(ViewIndexSection), "View index", TemplateNames.SECTION_LAYOUT, UIPageOrder.NoOrder)]
+[assembly: UIPage(typeof(ViewIndexSection), "Content", typeof(IndexedContent), "Indexed content", "@algolia/web-admin/IndexedContent", UIPageOrder.First)]
+[assembly: UIPage(typeof(IndexedContent), PageParameterConstants.PARAMETERIZED_SLUG, typeof(PathDetail), "Path detail", "@algolia/web-admin/PathDetail", UIPageOrder.First)]
 
 // Default service implementations
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]

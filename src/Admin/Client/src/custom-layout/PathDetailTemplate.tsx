@@ -1,5 +1,5 @@
-import { RoutingContentPlaceholder, usePageCommand } from "@kentico/xperience-admin-base";
-import { Headline, HeadlineSize, Pagination, Spacing, Table, TableCell, TableColumn, TableRow } from "@kentico/xperience-admin-components";
+import { usePageCommand } from "@kentico/xperience-admin-base";
+import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from "@kentico/xperience-admin-components";
 import React, { useState } from "react";
 
 const ListingCommands = {
@@ -32,7 +32,7 @@ export const PathDetailTemplate = ({aliasPath, columns}: PathDetailPageProps) =>
 
     const [templateParameters, setTemplateParameters] = useState<TemplateParameters>({
         currentPage: 1,
-        pageSize: 10
+        pageSize: 5
     });
 
     const { execute: reloadData } = usePageCommand<LoadDataResult, TemplateParameters>(ListingCommands.LoadData, {
@@ -83,22 +83,24 @@ export const PathDetailTemplate = ({aliasPath, columns}: PathDetailPageProps) =>
     };
     
     return (
-        <RoutingContentPlaceholder>
+        <Stack spacing={Spacing.XL}>
             <Headline size={HeadlineSize.L}>Path detail</Headline>
-            <Headline size={HeadlineSize.S} spacingTop={Spacing.L}>Path</Headline>
-            <span>{aliasPath}</span>
-            <Headline size={HeadlineSize.S} spacingTop={Spacing.L}>Page types</Headline>
-            <Table ref={tableRef} columns={columns.filter(c => c.visible)} rows={prepareRows(tableData.rows)} />
+            <Box>
+                <Headline size={HeadlineSize.S}>Path</Headline>
+                <span>{aliasPath}</span>
+            </Box>
+            <Box>
+                <Headline size={HeadlineSize.S}>Page types</Headline>
+                <Table ref={tableRef} columns={columns.filter(c => c.visible)} rows={prepareRows(tableData.rows)} />
+            </Box>
             {tableData.totalCount > templateParameters.pageSize &&
-                <div>
-                    <div>
-                        <Pagination
-                            selectedPage={templateParameters.currentPage}
-                            totalPages={totalPages}
-                            onPageChange={pageHandler} />
-                    </div>
-                </div>
+                <Box>
+                    <Pagination
+                        selectedPage={templateParameters.currentPage}
+                        totalPages={totalPages}
+                        onPageChange={pageHandler} />
+                </Box>
             }
-        </RoutingContentPlaceholder>
+        </Stack>
     );
 }

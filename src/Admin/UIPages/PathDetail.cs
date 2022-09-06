@@ -17,6 +17,7 @@ namespace Kentico.Xperience.Algolia.Admin
     /// <summary>
     /// An admin UI dialog page which displays the page types included in an indexed path.
     /// </summary>
+    [UIBreadcrumbs(false)]
     [UIPageLocation(PageLocationEnum.Dialog)]
     internal class PathDetail : Page<PathDetailPageProps>
     {
@@ -27,7 +28,7 @@ namespace Kentico.Xperience.Algolia.Admin
         /// The internal <see cref="AlgoliaIndex.Identifier"/> of the index that contains the
         /// indexed path definition.
         /// </summary>
-        [PageParameter(typeof(IntPageModelBinder), typeof(IndexedContent))]
+        [PageParameter(typeof(IntPageModelBinder), typeof(ViewIndexSection))]
         public int IndexIdentifier
         {
             get;
