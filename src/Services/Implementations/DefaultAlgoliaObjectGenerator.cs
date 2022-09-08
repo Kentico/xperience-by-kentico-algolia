@@ -78,6 +78,14 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc/>
+        public IEnumerable<JObject> SplitData(JObject originalData, AlgoliaIndex algoliaIndex)
+        {
+            // No data splitting by default
+            return new JObject[] { originalData };
+        }
+
+
         /// <summary>
         /// Converts the assets from the <paramref name="node"/>'s value into absolute URLs.
         /// </summary>
@@ -157,10 +165,12 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="node">The <see cref="TreeNode"/> to load a value from.</param>
         /// <param name="property">The Algolia search model property.</param>
         /// <param name="searchModelType">The Algolia search model.</param>
-        private object GetNodeValue(TreeNode node, PropertyInfo property, Type searchModelType)
+        /// <param name="columnsToUpdate">A list of columns to retrieve values for. Columns not present
+        /// in this list will return <c>null</c>.</param>
+        private object GetNodeValue(TreeNode node, PropertyInfo property, Type searchModelType, IEnumerable<string> columnsToUpdate)
         {
+            object nodeValue = null;
             var usedColumn = property.Name;
-            var nodeValue = node.GetValue(property.Name);
             var searchModel = Activator.CreateInstance(searchModelType) as AlgoliaSearchModel;
             if (Attribute.IsDefined(property, typeof(SourceAttribute)))
             {
@@ -168,6 +178,11 @@ namespace Kentico.Xperience.Algolia.Services
                 var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
                 foreach (var source in sourceAttribute.Sources)
                 {
+                    if (!columnsToUpdate.Contains(source))
+                    {
+                        continue;
+                    }
+
                     nodeValue = node.GetValue(source);
                     if (nodeValue != null)
                     {
@@ -175,6 +190,15 @@ namespace Kentico.Xperience.Algolia.Services
                         break;
                     }
                 }
+            }
+            else
+            {
+                if (!columnsToUpdate.Contains(property.Name))
+                {
+                    return null;
+                }
+
+                nodeValue = node.GetValue(property.Name);
             }
 
             // Convert node value to URLs if necessary
@@ -215,10 +239,10 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
             }
 
-            var properties = searchModelType.GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
+            var properties = searchModelType.GetProperties();
             foreach (var prop in properties)
             {
-                object nodeValue = GetNodeValue(node, prop, searchModelType);
+                object nodeValue = GetNodeValue(node, prop, searchModelType, columnsToUpdate);
                 if (nodeValue == null)
                 {
                     continue;

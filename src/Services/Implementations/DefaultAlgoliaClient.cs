@@ -71,13 +71,19 @@ namespace Kentico.Xperience.Algolia.Services
                 try
                 {
                     var algoliaIndex = IndexStore.Instance.Get(group.Key);
-                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
                     var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
-                    var upsertData = updateTasks.Select(queueItem => algoliaObjectGenerator.GetTreeNodeData(queueItem.Node, algoliaIndex.Type, queueItem.TaskType));
-                    var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
+                    var upsertData = new List<JObject>();
+                    foreach (var queueItem in updateTasks)
+                    {
+                        var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
+                        upsertData.AddRange(data);
+                    }
+
+                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
+                    var deleteIds = GetIdsToDelete(algoliaIndex, deleteTasks);
 
                     successfulOperations += await UpsertRecords(upsertData, group.Key, cancellationToken);
-                    successfulOperations += await DeleteRecords(deleteData, group.Key, cancellationToken);
+                    successfulOperations += await DeleteRecords(deleteIds, group.Key, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -140,6 +146,38 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        private IEnumerable<JObject> GetDataToUpsert(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
+        {
+            if (algoliaIndex.DistinctOptions != null)
+            {
+                // If the data is split, force CREATE type to push all data to Algolia
+                var nodeData = algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE);
+                return algoliaObjectGenerator.SplitData(nodeData, algoliaIndex);
+            }
+
+            return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, taskType) };
+        }
+
+
+        private IEnumerable<string> GetIdsToDelete(AlgoliaIndex algoliaIndex, IEnumerable<AlgoliaQueueItem> deleteTasks)
+        {
+            if (algoliaIndex.DistinctOptions != null)
+            {
+                // Data has been split, get IDs of the smaller records
+                var ids = new List<string>();
+                foreach (var queueItem in deleteTasks)
+                {
+                    var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
+                    ids.AddRange(data.Select(obj => obj.Value<string>("objectID")));
+                }
+
+                return ids;
+            }
+
+            return deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
+        }
+
+
         private async Task RebuildInternal(AlgoliaIndex algoliaIndex)
         {
             var indexedNodes = new List<TreeNode>();
@@ -159,9 +197,10 @@ namespace Kentico.Xperience.Algolia.Services
                 indexedNodes.AddRange(query.TypedResult);
             }
 
-            var data = indexedNodes.Select(node => algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE));
+            var dataToUpsert = new List<JObject>();
+            indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(node, algoliaIndex, AlgoliaTaskType.CREATE)));
             var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
-            await searchIndex.ReplaceAllObjectsAsync(data).ConfigureAwait(false);
+            await searchIndex.ReplaceAllObjectsAsync(dataToUpsert).ConfigureAwait(false);
         }
 
 

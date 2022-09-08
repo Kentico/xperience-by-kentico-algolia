@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 using CMS;
 using CMS.Base;
@@ -43,10 +42,11 @@ namespace Kentico.Xperience.Algolia
             appSettingsService = Service.Resolve<IAppSettingsService>();
             conversionService = Service.Resolve<IConversionService>();
 
+            DocumentEvents.Delete.Before += LogDelete;
             WorkflowEvents.Publish.After += LogPublish;
             WorkflowEvents.Archive.After += LogArchive;
-            DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Before += LogBulkDelete;
-            DocumentCultureDataInfo.TYPEINFO.Events.Delete.Before += LogDelete;
+            //DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Before += LogBulkDelete;
+            //DocumentCultureDataInfo.TYPEINFO.Events.Delete.Before += LogDelete;
             RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
         }
 
@@ -77,6 +77,21 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <summary>
+        /// Called before a page is deleted. Logs an Algolia task to be processed later.
+        /// </summary>
+        private void LogDelete(object sender, DocumentEventArgs e)
+        {
+            if (!EventShouldContinue(e.Node))
+            {
+                return;
+            }
+
+            // TODO: Update event name everywhere if we use this
+            algoliaTaskLogger.HandleEvent(e.Node, DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name);
+        }
+
+
+        /*/// <summary>
         /// Called before pages are bulk deleted. Logs Algolia tasks to be processed later.
         /// </summary>
         private void LogBulkDelete(object sender, BulkDeleteEventArgs e)
@@ -106,6 +121,7 @@ namespace Kentico.Xperience.Algolia
         private void LogDelete(object sender, ObjectEventArgs e)
         {
             var cultureInfo = e.Object as DocumentCultureDataInfo;
+            var nodeData = DocumentNodeDataInfo.Provider.Get(cultureInfo.DocumentNodeID);
             var node = new DocumentQuery()
                 .TopN(1)
                 .WhereEquals(nameof(TreeNode.DocumentID), cultureInfo.DocumentID)
@@ -117,7 +133,7 @@ namespace Kentico.Xperience.Algolia
             }
 
             algoliaTaskLogger.HandleEvent(node, DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name);
-        }
+        }*/
 
 
         /// <summary>
