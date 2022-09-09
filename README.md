@@ -224,9 +224,21 @@ public IEnumerable<string> Thumbnail { get; set; }
 
 ## :scissors: Splitting large content
 
-Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of Algolia records, we recommend splitting large content into smaller fragments. This operation is performed automatically during indexing by [`IAlgoliaObjectGenerator.SplitData()`](/src/Services/IAlgoliaObjectGenerator.cs), but there is no data splitting by default. To implement your own functionality, create and register a custom implementation of `IAlgoliaObjectGenerator`.
+Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of Algolia records, we recommend splitting large content into smaller fragments. This operation is performed automatically during indexing by [`IAlgoliaObjectGenerator.SplitData()`](/src/Services/IAlgoliaObjectGenerator.cs), but there is no data splitting by default.
 
-It's __very important__ to set the "objectID" of each fragment, as seen in the below example. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs should _not_ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
+To enable data splitting for an Algolia index, add the `DistinctOptions` parameter during registration:
+
+```cs
+builder.Services.AddAlgolia(builder.Configuration,
+    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName, new DistinctOptions(nameof(SiteSearchModel.DocumentName), 1)));
+```
+
+The `DistinctOptions` constructor accepts two parameters:
+
+  - __distinctAttribute__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct). This is a property of the search model whose value will remain constant for all fragments. In most cases, this will be a property like `DocumentName` or `NodeAliasPath`.
+  - __distinctLevel__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/distinct). A value of zero disables de-duplication and grouping, while positive values determine how many fragments will be returned by a search.
+
+To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the below example. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs should _not_ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
 
 In the following example, we have large articles on our website which can be split into smaller fragments by splitting text on the `<p>` tag. Note that each fragment still contains all of the original data- only the "Content" property is modified.
 

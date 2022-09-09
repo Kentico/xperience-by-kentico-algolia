@@ -40,7 +40,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
                 throw new ArgumentNullException(nameof(distinctAttribute));
             }
 
-            if (distinctLevel <= 0)
+            if (distinctLevel < 0)
             {
                 throw new InvalidOperationException("Distinct level must be non-negative.");
             }
