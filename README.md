@@ -1,7 +1,7 @@
 ![build](https://github.com/Kentico/kentico-xperience-algolia/actions/workflows/build.yml/badge.svg)
 [![Nuget](https://img.shields.io/nuget/v/Kentico.Xperience.Algolia)](https://www.nuget.org/packages/Kentico.Xperience.Algolia)
 [![Kentico.Xperience.WebApp 22.1.1](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.1.1-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
-[![Algolia.Search 6.11.0](https://img.shields.io/badge/Algolia.Search-v6.11.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
+[![Algolia.Search 6.13.0](https://img.shields.io/badge/Algolia.Search-v6.13.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
 
 # Xperience by Kentico Algolia Search Integration
 

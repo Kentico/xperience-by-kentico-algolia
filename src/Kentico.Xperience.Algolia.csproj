@@ -35,7 +35,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Algolia.Search" Version="6.11.0" />
+		<PackageReference Include="Algolia.Search" Version="6.13.0" />
 		<PackageReference Include="Kentico.Xperience.WebApp" Version="22.1.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
