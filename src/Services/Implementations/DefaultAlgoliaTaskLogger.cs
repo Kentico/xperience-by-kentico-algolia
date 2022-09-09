@@ -5,7 +5,6 @@ using System.Linq;
 using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
-using CMS.DocumentEngine.Internal;
 
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
@@ -83,8 +82,7 @@ namespace Kentico.Xperience.Algolia.Services
                 return AlgoliaTaskType.UPDATE;
             }
 
-            if (eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
-                eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name, StringComparison.OrdinalIgnoreCase) ||
+            if (eventName.Equals(DocumentEvents.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
                 eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return AlgoliaTaskType.DELETE;
