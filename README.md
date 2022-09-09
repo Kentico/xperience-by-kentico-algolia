@@ -174,13 +174,13 @@ This attribute indicates that an Algolia attribute is a [facet or filter](https:
 
 ```cs
 [Facetable]
-public decimal? SKUPrice { get; set; }
+public string CoffeeProcessing { get; set; }
 
 [Facetable(FilterOnly = true)] // Filter
-public decimal? SKUPrice { get; set; }
+public string CoffeeProcessing { get; set; }
 
 [Facetable(Searchable = true)] // Searchable
-public decimal? SKUPrice { get; set; }
+public string CoffeeProcessing { get; set; }
 ```
 
 ### __Retrievable__ attribute
@@ -809,7 +809,7 @@ var results = await searchIndex.SearchAsync<AlgoliaSiteSearchModel>(query, new R
 
 InstantSearch.js is a vanilla javascript library developed by Algolia which utilizes highly-customizable widgets to easily develop a search interface with nearly no coding. In this example, we will use InstantSearch.js in the Dancing Goat sample site with very few changes, using the search model sample code [here](#determining-the-pages-to-index).
 
-1. Create a new empty Controller to display the search (e.g. __InstantsearchController__), and ensure it has a proper route in `Startup.cs`:
+1. Create a new empty Controller to display the search (e.g. __InstantsearchController__), and ensure it has a proper route in `Program.cs`:
 
 ```cs
 endpoints.MapControllerRoute(
