@@ -19,7 +19,7 @@ namespace Kentico.Xperience.Algolia.Admin
         {
             base.OnInit();
 
-            RegisterClientModule("algolia", "web-admin");
+            RegisterClientModule("kentico", "xperience-integrations-algolia");
         }
     }
 }

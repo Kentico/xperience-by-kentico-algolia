@@ -5,8 +5,8 @@ module.exports = (opts) => {
   
   const baseConfig = (webpackConfigEnv, argv) => {
     return baseWebpackConfig({
-      orgName: "algolia",
-      projectName: "web-admin",
+      orgName: "kentico",
+      projectName: "xperience-integrations-algolia",
       webpackConfigEnv: webpackConfigEnv,
       argv: argv
     });
