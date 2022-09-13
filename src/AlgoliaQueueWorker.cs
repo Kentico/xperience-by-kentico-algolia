@@ -88,7 +88,6 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        /// <inheritdoc />
         protected override void ProcessItem(AlgoliaQueueItem item)
         {
             ProcessItems(new AlgoliaQueueItem[] { item });

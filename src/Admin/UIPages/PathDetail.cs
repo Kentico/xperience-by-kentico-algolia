@@ -116,7 +116,7 @@ namespace Kentico.Xperience.Algolia.Admin
                 .Chunk(args.PageSize)
                 .ElementAtOrDefault(args.CurrentPage - 1);
 
-                return Task.FromResult(ResponseFrom(new LoadDataResult() { Rows = rows, TotalCount = includedPageTypes.Count() }));
+                return Task.FromResult(ResponseFrom(new LoadDataResult() { Rows = rows, TotalCount = includedPageTypes.Length }));
             }
             catch (Exception ex)
             {

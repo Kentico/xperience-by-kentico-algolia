@@ -1,36 +1,35 @@
-import React from "react";
-import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from "@kentico/xperience-admin-components";
-import { RoutingContentPlaceholder, usePageCommand } from "@kentico/xperience-admin-base";
+import React from 'react'
+import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
+import { RoutingContentPlaceholder, usePageCommand } from '@kentico/xperience-admin-base'
 
 interface IndexedContentPageProps {
-    readonly pathColumns: TableColumn[];
-    readonly pathRows: TableRow[];
-    readonly propertyColumns: TableColumn[];
-    readonly propertyRows: TableRow[];
+  readonly pathColumns: TableColumn[]
+  readonly pathRows: TableRow[]
+  readonly propertyColumns: TableColumn[]
+  readonly propertyRows: TableRow[]
 }
 
-interface PathDetailArguments
-{
-    readonly cell: TableCell;
+interface PathDetailArguments {
+  readonly cell: TableCell
 }
 
 const Commands = {
-    ShowPathDetail : 'ShowPathDetail'
+  ShowPathDetail: 'ShowPathDetail'
 }
 
-export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns, propertyRows }: IndexedContentPageProps) => {
-    const { execute: showPathDetail } = usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail);
+export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns, propertyRows }: IndexedContentPageProps): JSX.Element => {
+  const { execute: showPathDetail } = usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail)
 
-    const pathClicked = (index : number) => {
-        // Send cell containing path to back-end
-        const row = pathRows[index];
-        const cell = row?.cells[0];
-        if (cell) {
-            showPathDetail({ cell: cell });
-        }
+  const pathClicked = (index: number): void => {
+    // Send cell containing path to back-end
+    const row = pathRows[index]
+    const cell = row?.cells[0]
+    if (cell !== undefined) {
+      showPathDetail({ cell }).catch(() => {})
     }
+  }
 
-    return (
+  return (
         <RoutingContentPlaceholder>
             <Stack spacing={Spacing.XXL}>
                 <Headline size={HeadlineSize.M}>Indexed content</Headline>
@@ -44,5 +43,5 @@ export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns,
                 </Box>
             </Stack>
         </RoutingContentPlaceholder>
-    );
+  )
 }
