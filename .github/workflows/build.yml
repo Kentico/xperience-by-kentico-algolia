@@ -18,10 +18,10 @@ jobs:
         - name: Code Checkout
           uses: actions/checkout@v2
         - name: Install Dependencies
-          working-directory: ./src/admin/client
+          working-directory: ./src/Admin/Client
           run: npm ci
         - name: Code Linting
-          working-directory: ./src/admin/client
+          working-directory: ./src/Admin/Client
           run: npm run lint
   net6:
     name: Build .NET 6.0
