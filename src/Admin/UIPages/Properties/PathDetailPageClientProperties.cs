@@ -7,7 +7,7 @@ namespace Kentico.Xperience.Algolia.Admin
     /// <summary>
     /// Template properties for the <see cref="PathDetail"/> UI page.
     /// </summary>
-    internal class PathDetailPageProps : TemplateClientProperties
+    internal class PathDetailPageClientProperties : TemplateClientProperties
     {
         /// <summary>
         /// The alias path being displayed.

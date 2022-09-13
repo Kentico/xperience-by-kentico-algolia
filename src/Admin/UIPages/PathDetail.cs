@@ -19,7 +19,7 @@ namespace Kentico.Xperience.Algolia.Admin
     /// </summary>
     [UIBreadcrumbs(false)]
     [UIPageLocation(PageLocationEnum.Dialog)]
-    internal class PathDetail : Page<PathDetailPageProps>
+    internal class PathDetail : Page<PathDetailPageClientProperties>
     {
         private string mAliasPath;
 
@@ -54,7 +54,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
 
         /// <inheritdoc/>
-        public override Task<PathDetailPageProps> ConfigureTemplateProperties(PathDetailPageProps properties)
+        public override Task<PathDetailPageClientProperties> ConfigureTemplateProperties(PathDetailPageClientProperties properties)
         {
             properties.AliasPath = AliasPath;
             properties.Columns = new Column[] {

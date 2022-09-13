@@ -15,7 +15,7 @@ namespace Kentico.Xperience.Algolia.Admin
     /// <summary>
     /// An admin UI page which displays the indexed paths and properties of an Algolia index.
     /// </summary>
-    internal class IndexedContent : Page<IndexedContentPageProps>
+    internal class IndexedContent : Page<IndexedContentPageClientProperties>
     {
         private readonly IPageUrlGenerator pageUrlGenerator;
 
@@ -54,7 +54,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
 
         /// <inheritdoc/>
-        public override Task<IndexedContentPageProps> ConfigureTemplateProperties(IndexedContentPageProps properties)
+        public override Task<IndexedContentPageClientProperties> ConfigureTemplateProperties(IndexedContentPageClientProperties properties)
         {
             var index = IndexStore.Instance.Get(IndexIdentifier);
             if (index == null)

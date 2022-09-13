@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Algolia.Search.Models.Common;
 
+using CMS.Core;
+
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
@@ -17,20 +19,19 @@ namespace Kentico.Xperience.Algolia.Admin
     /// <summary>
     /// An admin UI page that displays statistics about the registered Algolia indexes.
     /// </summary>
-    internal class IndexListing : ListingPageBase<InfoObjectListingConfiguration>
+    internal class IndexListing : ListingPageBase<ListingConfiguration>
     {
         private readonly IAlgoliaClient algoliaClient;
         private readonly IPageUrlGenerator pageUrlGenerator;
 
 
         /// <inheritdoc/>
-        public override InfoObjectListingConfiguration PageConfiguration { get; set; } = new InfoObjectListingConfiguration()
+        public override ListingConfiguration PageConfiguration { get; set; } = new ListingConfiguration()
         {
             ColumnConfigurations = new List<ColumnConfiguration>(),
             TableActions = new List<ActionConfiguration>(),
             HeaderActions = new List<ActionConfiguration>(),
-            PageSizes = new List<int> { 10, 25 },
-            QueryModifiers = new List<QueryModifier>()
+            PageSizes = new List<int> { 10, 25 }
         };
 
 
@@ -91,8 +92,9 @@ namespace Kentico.Xperience.Algolia.Admin
         /// </summary>
         /// <param name="id">The ID of the row whose action was performed, which corresponds with the internal
         /// <see cref="AlgoliaIndex.Identifier"/> to rebuild.</param>
+        /// <param name="cancellationToken">The cancellation token for the action.</param>
         [PageCommand]
-        public async Task<ICommandResponse<RowActionResult>> Rebuild(int id)
+        public async Task<ICommandResponse<RowActionResult>> Rebuild(int id, CancellationToken cancellationToken)
         {
             var result = new RowActionResult(false);
             var index = IndexStore.Instance.Get(id);
@@ -102,38 +104,59 @@ namespace Kentico.Xperience.Algolia.Admin
                     .AddErrorMessage($"Error loading Algolia index with identifier {id}.");
             }
 
-            await algoliaClient.Rebuild(index.IndexName, CancellationToken.None);
-
-            return ResponseFrom(result)
-                .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
+            try
+            {
+                await algoliaClient.Rebuild(index.IndexName, cancellationToken);
+                return ResponseFrom(result)
+                    .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
+            }
+            catch(Exception ex)
+            {
+                EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
+                return ResponseFrom(result)
+                    .AddErrorMessage($"Errors occurred while rebuilding the '{index.IndexName}' index. Please check the Event Log for more details.");
+            }
+            
         }
 
 
         /// <inheritdoc/>
         protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
         {
-            var statistics = await algoliaClient.GetStatistics(CancellationToken.None);
-
-            // Add statistics for indexes that are registered but not created in Algolia
-            AddMissingStatistics(statistics);
-
-            // Remove statistics for indexes that are not registered in this instance
-            var filteredStatistics = statistics.Where(stat =>
-                IndexStore.Instance.GetAll().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
-
-            var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
-            var orderedStatistics = SortStatistics(searchedStatistics, settings);
-            var rows = orderedStatistics.Select(stat => GetRow(stat));
-
-            return new LoadDataResult
+            try
             {
-                Rows = rows,
-                TotalCount = rows.Count()
-            };
+                var statistics = await algoliaClient.GetStatistics(cancellationToken);
+
+                // Add statistics for indexes that are registered but not created in Algolia
+                AddMissingStatistics(statistics);
+
+                // Remove statistics for indexes that are not registered in this instance
+                var filteredStatistics = statistics.Where(stat =>
+                    IndexStore.Instance.GetAll().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
+
+                var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
+                var orderedStatistics = SortStatistics(searchedStatistics, settings);
+                var rows = orderedStatistics.Select(stat => GetRow(stat));
+
+                return new LoadDataResult
+                {
+                    Rows = rows,
+                    TotalCount = rows.Count()
+                };
+            }
+            catch (Exception ex)
+            {
+                EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
+                return new LoadDataResult
+                {
+                    Rows = Enumerable.Empty<Row>(),
+                    TotalCount = 0
+                };
+            }
         }
 
 
-        private void AddMissingStatistics(List<IndicesResponse> statistics)
+        private static void AddMissingStatistics(List<IndicesResponse> statistics)
         {
             foreach (var indexName in IndexStore.Instance.GetAll().Select(i => i.IndexName))
             {
@@ -151,7 +174,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private IEnumerable<IndicesResponse> DoSearch(IEnumerable<IndicesResponse> statistics, string searchTerm)
+        private static IEnumerable<IndicesResponse> DoSearch(IEnumerable<IndicesResponse> statistics, string searchTerm)
         {
             if (string.IsNullOrEmpty(searchTerm))
             {
@@ -213,21 +236,18 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private IOrderedEnumerable<IndicesResponse> SortStatistics(IEnumerable<IndicesResponse> statistics, LoadDataSettings settings)
+        private static IEnumerable<IndicesResponse> SortStatistics(IEnumerable<IndicesResponse> statistics, LoadDataSettings settings)
         {
             if (string.IsNullOrEmpty(settings.SortBy))
             {
-                return statistics.OrderBy(stat => 1);
+                return statistics;
             }
 
-            switch (settings.SortType)
+            return settings.SortType switch
             {
-                case SortTypeEnum.Desc:
-                    return statistics.OrderByDescending(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null));
-                default:
-                case SortTypeEnum.Asc:
-                    return statistics.OrderBy(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null));
-            }
+                SortTypeEnum.Desc => statistics.OrderByDescending(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null)),
+                _ => statistics.OrderBy(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null)),
+            };
         }
     }
 }

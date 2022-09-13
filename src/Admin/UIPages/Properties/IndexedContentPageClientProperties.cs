@@ -7,7 +7,7 @@ namespace Kentico.Xperience.Algolia.Admin
     /// <summary>
     /// Template properties for the <see cref="IndexedContent"/> UI page.
     /// </summary>
-    internal class IndexedContentPageProps : TemplateClientProperties
+    internal class IndexedContentPageClientProperties : TemplateClientProperties
     {
         /// <summary>
         /// Columns to display in the indexed path table.
