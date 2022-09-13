@@ -41,7 +41,7 @@ namespace Kentico.Xperience.Algolia
                 throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
             }
 
-            var facetableProperties = index.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            var facetableProperties = index.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
             if (facetableProperties.Any(prop => {
                 var attr = prop.GetCustomAttributes<FacetableAttribute>(false).FirstOrDefault();
                 return attr.FilterOnly && attr.Searchable;

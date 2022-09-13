@@ -212,7 +212,7 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
             }
 
-            var properties = searchModelType.GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
+            var properties = searchModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => columnsToUpdate.Contains(prop.Name));
             foreach (var prop in properties)
             {
                 object nodeValue = GetNodeValue(node, prop, searchModelType);

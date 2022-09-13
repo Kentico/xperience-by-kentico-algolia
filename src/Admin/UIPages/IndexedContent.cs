@@ -66,7 +66,7 @@ namespace Kentico.Xperience.Algolia.Admin
             properties.PathRows = includedPathAttributes.Select((attr, i) => GetPath(attr, i));
             properties.PathColumns = GetPathColumns();
 
-            var searchModelProperties = index.Type.GetProperties();
+            var searchModelProperties = index.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             properties.PropertyRows = searchModelProperties.Select(prop => GetProperty(prop));
             properties.PropertyColumns = GetPropertyColumns();
 
@@ -98,7 +98,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Column[] GetPathColumns()
+        private static Column[] GetPathColumns()
         {
             return new Column[] {
                 new Column
@@ -115,7 +115,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Row GetProperty(PropertyInfo property)
+        private static Row GetProperty(PropertyInfo property)
         {
             var isSearchable = Attribute.IsDefined(property, typeof(SearchableAttribute));
             var isRetrievable = Attribute.IsDefined(property, typeof(RetrievableAttribute));
@@ -179,7 +179,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Column[] GetPropertyColumns()
+        private static Column[] GetPropertyColumns()
         {
             return new Column[] {
                 new Column
@@ -216,25 +216,25 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Color GetIconColor(bool status)
+        private static Color GetIconColor(bool status)
         {
             return status ? Color.SuccessIcon : Color.IconLowEmphasis;
         }
 
 
-        private string GetIconName(bool status)
+        private static string GetIconName(bool status)
         {
             return status ? Icons.Check : Icons.Minus;
         }
 
 
-        private Color GetPageTypeColor(IncludedPathAttribute attribute)
+        private static Color GetPageTypeColor(IncludedPathAttribute attribute)
         {
             if (!attribute.PageTypes.Any())
             {
                 return Color.BackgroundTagGrey;
             }
-            else if (attribute.PageTypes.Count() == 1)
+            else if (attribute.PageTypes.Length == 1)
             {
                 return Color.BackgroundTagUltramarineBlue;
             }
@@ -253,12 +253,12 @@ namespace Kentico.Xperience.Algolia.Admin
                     .Count;
                 return $"All ({allTypes})";
             }
-            else if (attribute.PageTypes.Count() == 1)
+            else if (attribute.PageTypes.Length == 1)
             {
                 return "1 page type";
             }
 
-            return $"{attribute.PageTypes.Count()} page types";
+            return $"{attribute.PageTypes.Length} page types";
         }
 
 

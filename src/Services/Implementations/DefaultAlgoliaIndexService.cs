@@ -81,9 +81,9 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new ArgumentNullException(nameof(searchModel));
             }
 
-            var searchableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
-            var retrievableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
-            var facetableProperties = searchModel.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            var searchableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
+            var retrievableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
+            var facetableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
 
             return new IndexSettings()
             {
