@@ -98,17 +98,17 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private static Column[] GetPathColumns()
+        private Column[] GetPathColumns()
         {
             return new Column[] {
                 new Column
                 {
-                    Caption = "Path",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.path"),
                     ContentType = ColumnContentType.Text
                 },
                 new Column
                 {
-                    Caption = "Page types",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.pagetypes"),
                     ContentType = ColumnContentType.Component
                 }
             };
@@ -179,37 +179,37 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private static Column[] GetPropertyColumns()
+        private Column[] GetPropertyColumns()
         {
             return new Column[] {
                 new Column
                 {
-                    Caption = "Property",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.property"),
                     ContentType = ColumnContentType.Text
                 },
                 new Column
                 {
-                    Caption = "Searchable",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.searchable"),
                     ContentType = ColumnContentType.Component
                 },
                 new Column
                 {
-                    Caption = "Retrievable",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.retrievable"),
                     ContentType = ColumnContentType.Component
                 },
                 new Column
                 {
-                    Caption = "Facetable",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.facetable"),
                     ContentType = ColumnContentType.Component
                 },
                 new Column
                 {
-                    Caption = "Source",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.source"),
                     ContentType = ColumnContentType.Component
                 },
                 new Column
                 {
-                    Caption = "URL",
+                    Caption = LocalizationService.GetString("integrations.algolia.content.columns.url"),
                     ContentType = ColumnContentType.Component
                 }
             };
@@ -251,14 +251,14 @@ namespace Kentico.Xperience.Algolia.Admin
                     .OnSite(SiteService.CurrentSite?.SiteID)
                     .Columns(nameof(DataClassInfo.ClassIsDocumentType))
                     .Count;
-                return $"All ({allTypes})";
+                return String.Format(LocalizationService.GetString("integrations.algolia.content.alltypes"), allTypes);
             }
             else if (attribute.PageTypes.Length == 1)
             {
-                return "1 page type";
+                return LocalizationService.GetString("integrations.algolia.content.singletype");
             }
 
-            return $"{attribute.PageTypes.Length} page types";
+            return String.Format(LocalizationService.GetString("integrations.algolia.content.multipletypes"), attribute.PageTypes.Length);
         }
 
 

@@ -29,6 +29,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
+        private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
 
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace Kentico.Xperience.Algolia.Services
             return await progressiveCache.LoadAsync(async (cs) => {
                 var response = await searchClient.ListIndicesAsync().ConfigureAwait(false);
                 return response.Items;
-            }, new CacheSettings(20, "Algolia|ListIndices")).ConfigureAwait(false);
+            }, new CacheSettings(20, CACHEKEY_STATISTICS)).ConfigureAwait(false);
         }
 
 
@@ -159,6 +160,9 @@ namespace Kentico.Xperience.Algolia.Services
 
         private async Task RebuildInternal(AlgoliaIndex algoliaIndex)
         {
+            // Clear statistics cache so listing displays updated data after rebuild
+            CacheHelper.Remove(CACHEKEY_STATISTICS);
+            
             var indexedNodes = new List<TreeNode>();
             var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
             foreach (var includedPathAttribute in includedPathAttributes)

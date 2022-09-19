@@ -54,8 +54,8 @@ namespace Kentico.Xperience.Algolia.Admin
                 {
                     new CalloutConfiguration
                     {
-                        Headline = "No indexes",
-                        Content = "No Algolia indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-algolia'>our instructions</a> to read more about creating and registering Algolia indexes.",
+                        Headline = LocalizationService.GetString("integrations.algolia.listing.noindexes.headline"),
+                        Content = LocalizationService.GetString("integrations.algolia.listing.noindexes.description"),
                         ContentAsHtml = true,
                         Type = CalloutType.FriendlyWarning,
                         Placement = CalloutPlacement.OnDesk
@@ -64,12 +64,12 @@ namespace Kentico.Xperience.Algolia.Admin
             }
 
             PageConfiguration.ColumnConfigurations
-                .AddColumn(nameof(IndicesResponse.Name), "Name", defaultSortDirection: SortTypeEnum.Asc, searchable: true)
-                .AddColumn(nameof(IndicesResponse.Entries), "Indexed items")
-                .AddColumn(nameof(IndicesResponse.LastBuildTimes), "Build time (seconds)")
-                .AddColumn(nameof(IndicesResponse.UpdatedAt), "Last update");
+                .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("integrations.algolia.listing.columns.name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
+                .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("integrations.algolia.listing.columns.entries"))
+                .AddColumn(nameof(IndicesResponse.LastBuildTimes), LocalizationService.GetString("integrations.algolia.listing.columns.buildtime"))
+                .AddColumn(nameof(IndicesResponse.UpdatedAt), LocalizationService.GetString("integrations.algolia.listing.columns.updatedat"));
 
-            PageConfiguration.TableActions.AddCommand("Rebuild", nameof(Rebuild), Icons.RotateRight);
+            PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"), nameof(Rebuild), Icons.RotateRight);
 
             return base.ConfigurePage();
         }
@@ -101,20 +101,20 @@ namespace Kentico.Xperience.Algolia.Admin
             if (index == null)
             {
                 return ResponseFrom(result)
-                    .AddErrorMessage($"Error loading Algolia index with identifier {id}.");
+                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.loaderror"), id));
             }
 
             try
             {
                 await algoliaClient.Rebuild(index.IndexName, cancellationToken);
                 return ResponseFrom(result)
-                    .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
+                    .AddSuccessMessage(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilding"));
             }
             catch(Exception ex)
             {
                 EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
                 return ResponseFrom(result)
-                    .AddErrorMessage($"Errors occurred while rebuilding the '{index.IndexName}' index. Please check the Event Log for more details.");
+                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror", index.IndexName)));
             }
             
         }
@@ -224,8 +224,8 @@ namespace Kentico.Xperience.Algolia.Admin
                             {
                                 new Action(ActionType.Command)
                                 {
-                                    Title = "Rebuild",
-                                    Label = "Rebulid",
+                                    Title = LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"),
+                                    Label = LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"),
                                     Icon = Icons.RotateRight,
                                     Parameter = nameof(Rebuild)
                                 }

@@ -5,6 +5,7 @@
 		<AdminOrgName>kentico</AdminOrgName>
 		<RootNamespace>Kentico.Xperience.Algolia</RootNamespace>
 		<LangVersion>Latest</LangVersion>
+		<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -59,6 +60,12 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\AlgoliaResources.resx">
+			<ExcludeFromManifest>true</ExcludeFromManifest>
+		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

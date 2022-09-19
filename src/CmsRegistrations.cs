@@ -19,13 +19,13 @@ using Kentico.Xperience.Algolia.Services;
 [assembly: RegisterModule(typeof(AlgoliaAdminModule))]
 
 // UI applications
-[assembly: UIApplication(typeof(AlgoliaApplication), "Algolia", "Algolia", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
+[assembly: UIApplication(typeof(AlgoliaApplication), "Algolia", "{$integrations.algolia.applicationname$}", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
 
 // Admin UI pages
-[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "List of indexes", TemplateNames.LISTING, UIPageOrder.First)]
-[assembly: UIPage(typeof(IndexListing), PageParameterConstants.PARAMETERIZED_SLUG, typeof(ViewIndexSection), "View index", TemplateNames.SECTION_LAYOUT, UIPageOrder.NoOrder)]
-[assembly: UIPage(typeof(ViewIndexSection), "Content", typeof(IndexedContent), "Indexed content", "@kentico/xperience-integrations-algolia/IndexedContent", UIPageOrder.First)]
-[assembly: UIPage(typeof(IndexedContent), PageParameterConstants.PARAMETERIZED_SLUG, typeof(PathDetail), "Path detail", "@kentico/xperience-integrations-algolia/PathDetail", UIPageOrder.First)]
+[assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "{$integrations.algolia.listing$}", TemplateNames.LISTING, UIPageOrder.First)]
+[assembly: UIPage(typeof(IndexListing), PageParameterConstants.PARAMETERIZED_SLUG, typeof(ViewIndexSection), "{$integrations.algolia.section.viewindex$}", TemplateNames.SECTION_LAYOUT, UIPageOrder.NoOrder)]
+[assembly: UIPage(typeof(ViewIndexSection), "Content", typeof(IndexedContent), "{$integrations.algolia.content$}", "@kentico/xperience-integrations-algolia/IndexedContent", UIPageOrder.First)]
+[assembly: UIPage(typeof(IndexedContent), PageParameterConstants.PARAMETERIZED_SLUG, typeof(PathDetail), "{$integrations.algolia.pathdetail$}", "@kentico/xperience-integrations-algolia/PathDetail", UIPageOrder.First)]
 
 // Default service implementations
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]

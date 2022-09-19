@@ -1,6 +1,7 @@
 import { usePageCommand } from '@kentico/xperience-admin-base'
 import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
 import React, { useState } from 'react'
+import { useLocalization } from '../localization/LocalizationContext'
 
 const ListingCommands = {
   LoadData: 'LoadData'
@@ -22,6 +23,7 @@ interface LoadDataResult {
 }
 
 export const PathDetailTemplate = ({ aliasPath, columns }: PathDetailPageProps): JSX.Element => {
+  const { localization } = useLocalization();
   const tableRef = React.createRef<HTMLDivElement>()
 
   const [tableData, setTableData] = useState<LoadDataResult>({
@@ -83,13 +85,13 @@ export const PathDetailTemplate = ({ aliasPath, columns }: PathDetailPageProps):
 
   return (
         <Stack spacing={Spacing.XL}>
-            <Headline size={HeadlineSize.L}>Path detail</Headline>
+            <Headline size={HeadlineSize.L}>{localization.integrations.algolia.pathdetail.headlines.main}</Headline>
             <Box>
-                <Headline size={HeadlineSize.S}>Path</Headline>
+                <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.path}</Headline>
                 <span>{aliasPath}</span>
             </Box>
             <Box>
-                <Headline size={HeadlineSize.S}>Page types</Headline>
+                <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.pagetypes}</Headline>
                 <Table ref={tableRef} columns={columns.filter(c => c.visible)} rows={prepareRows(tableData.rows)} />
             </Box>
             {tableData.totalCount > templateParameters.pageSize &&

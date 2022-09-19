@@ -60,7 +60,7 @@ namespace Kentico.Xperience.Algolia.Admin
             properties.Columns = new Column[] {
                 new Column
                 {
-                    Caption = "Code name",
+                    Caption = LocalizationService.GetString("integrations.algolia.pathdetail.columns.codename"),
                     ContentType = ColumnContentType.Text,
                     MinWidth = 80,
                     Visible = true
@@ -122,7 +122,8 @@ namespace Kentico.Xperience.Algolia.Admin
             {
                 EventLogService.LogException(nameof(PathDetail), nameof(LoadData), ex);
 
-                return Task.FromResult(ResponseFrom(new LoadDataResult()).AddErrorMessage("An error occurred while loading data. Please check the Event Log for more details."));
+                return Task.FromResult(ResponseFrom(new LoadDataResult())
+                    .AddErrorMessage(LocalizationService.GetString("integrations.algolia.pathdetail.messages.loaderror")));
             }
         }
     }
