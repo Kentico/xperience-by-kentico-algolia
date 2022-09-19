@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
 import { RoutingContentPlaceholder, usePageCommand } from '@kentico/xperience-admin-base'
-import { useLocalization } from '../localization/LocalizationContext'
+import localization from '../localization/localization.json'
 
 interface IndexedContentPageProps {
   readonly pathColumns: TableColumn[]
@@ -19,7 +19,6 @@ const Commands = {
 }
 
 export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns, propertyRows }: IndexedContentPageProps): JSX.Element => {
-  const { localization } = useLocalization();
   const { execute: showPathDetail } = usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail)
 
   const pathClicked = (index: number): void => {

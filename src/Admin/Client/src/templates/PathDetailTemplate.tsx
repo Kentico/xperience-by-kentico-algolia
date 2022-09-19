@@ -1,7 +1,7 @@
 import { usePageCommand } from '@kentico/xperience-admin-base'
 import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
 import React, { useState } from 'react'
-import { useLocalization } from '../localization/LocalizationContext'
+import localization from '../localization/localization.json'
 
 const ListingCommands = {
   LoadData: 'LoadData'
@@ -23,7 +23,6 @@ interface LoadDataResult {
 }
 
 export const PathDetailTemplate = ({ aliasPath, columns }: PathDetailPageProps): JSX.Element => {
-  const { localization } = useLocalization();
   const tableRef = React.createRef<HTMLDivElement>()
 
   const [tableData, setTableData] = useState<LoadDataResult>({

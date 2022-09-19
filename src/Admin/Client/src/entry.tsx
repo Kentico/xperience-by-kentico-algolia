@@ -1,2 +1,1 @@
-export * from './custom-layout/IndexedContentTemplate'
-export * from './custom-layout/PathDetailTemplate'
+export * from './templates'
