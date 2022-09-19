@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Settings;
@@ -31,7 +33,7 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public ISearchIndex InitializeIndex(string indexName)
+        public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
         {
             var algoliaIndex = IndexStore.Instance.Get(indexName);
             if (algoliaIndex == null)
@@ -46,7 +48,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             var searchIndex = searchClient.InitIndex(indexName);
-            searchIndex.SetSettings(indexSettings);
+            await searchIndex.SetSettingsAsync(indexSettings, ct: cancellationToken);
 
             return searchIndex;
         }
@@ -73,14 +75,8 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <param name="searchModel">The index search model class.</param>
         /// <returns>The index settings.</returns>
-        /// <exception cref="ArgumentNullException" />
         private IndexSettings GetIndexSettings(Type searchModel)
         {
-            if (searchModel == null)
-            {
-                throw new ArgumentNullException(nameof(searchModel));
-            }
-
             var searchableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
             var retrievableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
             var facetableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));

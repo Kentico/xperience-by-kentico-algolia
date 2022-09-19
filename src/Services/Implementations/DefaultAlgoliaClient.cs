@@ -143,7 +143,7 @@ namespace Kentico.Xperience.Algolia.Services
         private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
         {
             var deletedCount = 0;
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
+            var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
             var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(objectIds, ct: cancellationToken).ConfigureAwait(false);
             foreach (var response in batchIndexingResponse.Responses)
             {
@@ -177,7 +177,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             var data = indexedNodes.Select(node => algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE));
-            var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
+            var searchIndex = await algoliaIndexService.InitializeIndex(algoliaIndex.IndexName, cancellationToken);
             await searchIndex.ReplaceAllObjectsAsync(data, ct: cancellationToken).ConfigureAwait(false);
         }
 
@@ -185,7 +185,7 @@ namespace Kentico.Xperience.Algolia.Services
         private async Task<int> UpsertRecordsInternal(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
         {
             var upsertedCount = 0;
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
+            var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
             var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true, ct: cancellationToken).ConfigureAwait(false);
             foreach (var response in batchIndexingResponse.Responses)
             {

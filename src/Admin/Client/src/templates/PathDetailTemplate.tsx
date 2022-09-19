@@ -90,9 +90,16 @@ export const PathDetailTemplate = ({ aliasPath, columns }: PathDetailPageProps):
                 <span>{aliasPath}</span>
             </Box>
             <Box>
-                <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.pagetypes}</Headline>
+            <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.pagetypes}</Headline>
+            {tableData.totalCount > 0
+              ? (
                 <Table ref={tableRef} columns={columns.filter(c => c.visible)} rows={prepareRows(tableData.rows)} />
+                )
+              : (
+                <p>{localization.integrations.algolia.messages.norecords}</p>
+                )}
             </Box>
+
             {tableData.totalCount > templateParameters.pageSize &&
                 <Box>
                     <Pagination

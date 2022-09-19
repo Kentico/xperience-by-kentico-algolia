@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
 
@@ -14,7 +16,8 @@ namespace Kentico.Xperience.Algolia.Services
         /// and calls <see cref="ISearchIndex.SetSettings"/>.
         /// </summary>
         /// <param name="indexName">The code name of the index.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <exception cref="InvalidOperationException" />
-        ISearchIndex InitializeIndex(string indexName);
+        Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken);
     }
 }

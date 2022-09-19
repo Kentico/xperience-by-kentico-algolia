@@ -14,6 +14,9 @@
                     "path": "Path",
                     "pagetypes": "Page types"
                 }
+            },
+            "messages": {
+                "norecords": "There are no records to display"
             }
         }
     }
