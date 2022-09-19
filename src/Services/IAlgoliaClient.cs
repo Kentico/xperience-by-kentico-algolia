@@ -36,7 +36,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
-        Task<List<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
+        Task<IEnumerable<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
 
 
         /// <summary>

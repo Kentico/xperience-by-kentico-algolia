@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +30,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly AlgoliaOptions algoliaOptions;
         private readonly IInsightsClient insightsClient;
         private readonly IEventLogService eventLogService;
+        private readonly Regex queryParameterRegex = new ("^[a-fA-F0-9]{32}$");
         
 
         private string ContactGUID
@@ -58,7 +61,13 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                return QueryHelper.GetString(algoliaOptions.QueryIdParameterName, String.Empty);
+                var value = QueryHelper.GetString(algoliaOptions.QueryIdParameterName, String.Empty);
+                if (queryParameterRegex.IsMatch(value))
+                {
+                    return value;
+                }
+
+                return String.Empty;
             }
         }
 
@@ -88,98 +97,123 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc />
         public async Task<InsightsResponse> LogSearchResultClicked(string eventName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || Position <= 0)
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ClickedObjectIDsAfterSearchAsync(eventName, indexName, new string[] { ObjectId }, new uint[] { Position }, QueryId);
+                return await insightsClient.User(ContactGUID).ClickedObjectIDsAfterSearchAsync(eventName, indexName, new string[] { ObjectId }, new uint[] { Position }, QueryId, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogSearchResultClicked), ex);
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogSearchResultConversion(string conversionName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName))
             {
-                return null;
+                return new InsightsResponse() {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ConvertedObjectIDsAfterSearchAsync(conversionName, indexName, new string[] { ObjectId }, QueryId);
+                return await insightsClient.User(ContactGUID).ConvertedObjectIDsAfterSearchAsync(conversionName, indexName, new string[] { ObjectId }, QueryId, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogSearchResultConversion), ex);
+                return new InsightsResponse() {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogPageViewed(int documentId, string eventName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || documentId <= 0)
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ViewedObjectIDsAsync(eventName, indexName, new string[] { documentId.ToString() });
+                return await insightsClient.User(ContactGUID).ViewedObjectIDsAsync(eventName, indexName, new string[] { documentId.ToString() }, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogPageViewed), ex);
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogPageConversion(int documentId, string conversionName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName) || documentId <= 0)
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ConvertedObjectIDsAsync(conversionName, indexName, new string[] { documentId.ToString() });
+                return await insightsClient.User(ContactGUID).ConvertedObjectIDsAsync(conversionName, indexName, new string[] { documentId.ToString() }, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogPageConversion), ex);
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetsViewed(IEnumerable<AlgoliaFacetedAttribute> facets, string eventName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || facets == null)
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             var viewedFacets = new List<string>();
@@ -192,59 +226,80 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 try
                 {
-                    return await insightsClient.User(ContactGUID).ViewedFiltersAsync(eventName, indexName, viewedFacets);
+                    return await insightsClient.User(ContactGUID).ViewedFiltersAsync(eventName, indexName, viewedFacets, ct: cancellationToken);
                 }
                 catch (Exception ex)
                 {
                     eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetsViewed), ex);
+                    return new InsightsResponse()
+                    {
+                        Status = (int)HttpStatusCode.InternalServerError,
+                        Message = ex.Message
+                    };
                 }
             }
 
-            return null;
+            return new InsightsResponse()
+            {
+                Status = (int)HttpStatusCode.BadRequest,
+                Message = "No facets were provided."
+            };
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetClicked(string facet, string eventName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(eventName) || String.IsNullOrEmpty(indexName))
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ClickedFiltersAsync(eventName, indexName, new string[] { facet });
+                return await insightsClient.User(ContactGUID).ClickedFiltersAsync(eventName, indexName, new string[] { facet }, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetClicked), ex);
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 
         /// <inheritdoc />
         public async Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(conversionName) || String.IsNullOrEmpty(indexName))
             {
-                return null;
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Message = "One or more parameters are invalid."
+                };
             }
 
             try
             {
-                return await insightsClient.User(ContactGUID).ConvertedFiltersAsync(conversionName, indexName, new string[] { facet });
+                return await insightsClient.User(ContactGUID).ConvertedFiltersAsync(conversionName, indexName, new string[] { facet }, ct: cancellationToken);
             }
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetConverted), ex);
+                return new InsightsResponse()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Message = ex.Message
+                };
             }
-
-            return null;
         }
 
 

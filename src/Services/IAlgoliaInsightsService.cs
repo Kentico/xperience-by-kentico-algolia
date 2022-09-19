@@ -25,8 +25,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="eventName">The name of the event.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogSearchResultClicked(string eventName, string indexName, CancellationToken cancellationToken);
@@ -39,8 +38,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="conversionName">The name of the converstion.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogSearchResultConversion(string conversionName, string indexName, CancellationToken cancellationToken);
@@ -54,8 +52,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="conversionName">The name of the conversion.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogPageConversion(int documentId, string conversionName, string indexName, CancellationToken cancellationToken);
@@ -70,8 +67,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="eventName">The name of the event.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogPageViewed(int documentId, string eventName, string indexName, CancellationToken cancellationToken);
@@ -84,8 +80,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="eventName">The name of the event.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogFacetsViewed(IEnumerable<AlgoliaFacetedAttribute> facets, string eventName, string indexName, CancellationToken cancellationToken);
@@ -98,8 +93,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="eventName">The name of the event.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogFacetClicked(string facet, string eventName, string indexName, CancellationToken cancellationToken);
@@ -112,8 +106,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="conversionName">The name of the conversion.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The response from Algolia, or null if the request was skipped or an error occurred communicating
-        /// with Algolia.</returns>
+        /// <returns>A response object containing the status code and message from the server.</returns>
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
         Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName, CancellationToken cancellationToken);

@@ -128,7 +128,7 @@ namespace Kentico.Xperience.Algolia.Admin
                 var statistics = await algoliaClient.GetStatistics(cancellationToken);
 
                 // Add statistics for indexes that are registered but not created in Algolia
-                AddMissingStatistics(statistics);
+                statistics = AddMissingStatistics(statistics);
 
                 // Remove statistics for indexes that are not registered in this instance
                 var filteredStatistics = statistics.Where(stat =>
@@ -156,13 +156,14 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private static void AddMissingStatistics(List<IndicesResponse> statistics)
+        private static IEnumerable<IndicesResponse> AddMissingStatistics(IEnumerable<IndicesResponse> statistics)
         {
+            var retVal = statistics.ToList();
             foreach (var indexName in IndexStore.Instance.GetAll().Select(i => i.IndexName))
             {
                 if (!statistics.Any(stat => stat.Name.Equals(indexName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    statistics.Add(new IndicesResponse
+                    retVal.Add(new IndicesResponse
                     {
                         Name = indexName,
                         Entries = 0,
@@ -171,6 +172,8 @@ namespace Kentico.Xperience.Algolia.Admin
                     });
                 }
             }
+
+            return retVal;
         }
 
 
