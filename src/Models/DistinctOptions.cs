@@ -11,6 +11,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
         /// <summary>
         /// The name of the attribute used for Algolia de-duplication.
         /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct"/>.</remarks>
         public string DistinctAttribute
         {
             get;
@@ -20,6 +21,7 @@ namespace Kentico.Xperience.AlgoliaSearch.Models
         /// <summary>
         /// The distinction level.
         /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-parameters/distinct"/>.</remarks>
         public int DistinctLevel
         {
             get;
