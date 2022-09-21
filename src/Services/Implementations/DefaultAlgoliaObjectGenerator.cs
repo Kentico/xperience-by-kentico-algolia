@@ -165,13 +165,8 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 // Property uses SourceAttribute, loop through column names until a non-null value is found
                 var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                foreach (var source in sourceAttribute.Sources)
+                foreach (var source in sourceAttribute.Sources.Where(s => columnsToUpdate.Contains(s)))
                 {
-                    if (!columnsToUpdate.Contains(source))
-                    {
-                        continue;
-                    }
-
                     nodeValue = node.GetValue(source);
                     if (nodeValue != null)
                     {
@@ -228,7 +223,7 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
             }
 
-            var properties = searchModelType.GetProperties();
+            var properties = searchModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var prop in properties)
             {
                 object nodeValue = GetNodeValue(node, prop, searchModelType, columnsToUpdate);

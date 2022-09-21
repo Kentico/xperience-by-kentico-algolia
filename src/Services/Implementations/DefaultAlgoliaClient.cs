@@ -11,6 +11,7 @@ using Algolia.Search.Models.Common;
 using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.Helpers;
+using CMS.Helpers.Caching.Abstractions;
 
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
@@ -26,6 +27,7 @@ namespace Kentico.Xperience.Algolia.Services
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
+        private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
@@ -37,12 +39,14 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
             IAlgoliaObjectGenerator algoliaObjectGenerator,
+            ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
             IProgressiveCache progressiveCache,
             ISearchClient searchClient)
         {
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
+            this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
             this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
@@ -66,7 +70,8 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        public async Task<IEnumerable<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
         {
             return await progressiveCache.LoadAsync(async (cs) => {
                 var response = await searchClient.ListIndicesAsync(ct: cancellationToken).ConfigureAwait(false);
@@ -157,7 +162,7 @@ namespace Kentico.Xperience.Algolia.Services
         private async Task RebuildInternal(AlgoliaIndex algoliaIndex, CancellationToken cancellationToken)
         {
             // Clear statistics cache so listing displays updated data after rebuild
-            CacheHelper.Remove(CACHEKEY_STATISTICS);
+            cacheAccessor.Remove(CACHEKEY_STATISTICS);
             
             var indexedNodes = new List<TreeNode>();
             var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);

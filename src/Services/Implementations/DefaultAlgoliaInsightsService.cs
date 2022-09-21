@@ -61,13 +61,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                var value = QueryHelper.GetString(algoliaOptions.QueryIdParameterName, String.Empty);
-                if (queryParameterRegex.IsMatch(value))
-                {
-                    return value;
-                }
-
-                return String.Empty;
+                return QueryHelper.GetString(algoliaOptions.QueryIdParameterName, String.Empty);
             }
         }
 
@@ -99,11 +93,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || Position <= 0)
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -113,11 +103,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogSearchResultClicked), ex);
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -127,10 +113,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(ObjectId) || String.IsNullOrEmpty(QueryId) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName))
             {
-                return new InsightsResponse() {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -140,10 +123,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogSearchResultConversion), ex);
-                return new InsightsResponse() {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -153,11 +133,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(eventName) || documentId <= 0)
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -167,11 +143,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogPageViewed), ex);
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -181,11 +153,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(indexName) || String.IsNullOrEmpty(conversionName) || documentId <= 0)
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -195,11 +163,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogPageConversion), ex);
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -209,11 +173,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || facets == null)
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             var viewedFacets = new List<string>();
@@ -231,11 +191,7 @@ namespace Kentico.Xperience.Algolia.Services
                 catch (Exception ex)
                 {
                     eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetsViewed), ex);
-                    return new InsightsResponse()
-                    {
-                        Status = (int)HttpStatusCode.InternalServerError,
-                        Message = ex.Message
-                    };
+                    return ExceptionResponse();
                 }
             }
 
@@ -252,11 +208,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(eventName) || String.IsNullOrEmpty(indexName))
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -266,11 +218,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetClicked), ex);
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -280,11 +228,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (String.IsNullOrEmpty(ContactGUID) || String.IsNullOrEmpty(facet) || String.IsNullOrEmpty(conversionName) || String.IsNullOrEmpty(indexName))
             {
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.BadRequest,
-                    Message = "One or more parameters are invalid."
-                };
+                return InvalidParameterResponse();
             }
 
             try
@@ -294,11 +238,7 @@ namespace Kentico.Xperience.Algolia.Services
             catch (Exception ex)
             {
                 eventLogService.LogException(nameof(DefaultAlgoliaInsightsService), nameof(LogFacetConverted), ex);
-                return new InsightsResponse()
-                {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Message = ex.Message
-                };
+                return ExceptionResponse();
             }
         }
 
@@ -311,6 +251,16 @@ namespace Kentico.Xperience.Algolia.Services
                 var position = i + 1 + (searchResponse.HitsPerPage * searchResponse.Page);
                 searchResponse.Hits[i].Url = GetInsightsUrl(searchResponse.Hits[i], position, searchResponse.QueryID);
             }
+        }
+
+
+        private InsightsResponse ExceptionResponse()
+        {
+            return new InsightsResponse()
+            {
+                Status = (int)HttpStatusCode.InternalServerError,
+                Message = "Errors occurred while communicating with Algolia. Please check the Event Log for more details."
+            };
         }
 
 
@@ -328,9 +278,22 @@ namespace Kentico.Xperience.Algolia.Services
             var url = hit.Url;
             url = URLHelper.AddQueryParameter(url, algoliaOptions.ObjectIdParameterName, hit.ObjectID);
             url = URLHelper.AddQueryParameter(url, algoliaOptions.PositionParameterName, position.ToString());
-            url = URLHelper.AddQueryParameter(url, algoliaOptions.QueryIdParameterName, queryId);
+            if (queryParameterRegex.IsMatch(queryId))
+            {
+                url = URLHelper.AddQueryParameter(url, algoliaOptions.QueryIdParameterName, queryId);
+            }
 
             return url;
+        }
+
+
+        private InsightsResponse InvalidParameterResponse()
+        {
+            return new InsightsResponse()
+            {
+                Status = (int)HttpStatusCode.BadRequest,
+                Message = "One or more parameters are invalid."
+            };
         }
     }
 }

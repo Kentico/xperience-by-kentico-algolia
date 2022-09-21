@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using CMS.DataEngine;
+using CMS.DataEngine.Query;
 using CMS.DocumentEngine;
 
 using Kentico.Xperience.Admin.Base;
@@ -249,8 +249,7 @@ namespace Kentico.Xperience.Algolia.Admin
             {
                 var allTypes = DocumentTypeHelper.GetDocumentTypeClasses()
                     .OnSite(SiteService.CurrentSite?.SiteID)
-                    .Columns(nameof(DataClassInfo.ClassIsDocumentType))
-                    .Count;
+                    .GetCount();
                 return String.Format(LocalizationService.GetString("integrations.algolia.content.alltypes"), allTypes);
             }
             else if (attribute.PageTypes.Length == 1)
