@@ -29,7 +29,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
-        private readonly IProgressiveCache progressiveCache;
+        private readonly Dictionary<Type, string[]> cachedIndexedColumns = new();
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
             nameof(AlgoliaSearchModel.Url),
@@ -43,14 +43,12 @@ namespace Kentico.Xperience.Algolia.Services
         public DefaultAlgoliaObjectGenerator(IConversionService conversionService,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever,
-            IProgressiveCache progressiveCache)
+            IMediaFileUrlRetriever mediaFileUrlRetriever)
         {
             this.conversionService = conversionService;
             this.eventLogService = eventLogService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
-            this.progressiveCache = progressiveCache;
         }
 
 
@@ -122,28 +120,34 @@ namespace Kentico.Xperience.Algolia.Services
         /// <returns>The database columns that are indexed.</returns>
         private string[] GetIndexedColumnNames(Type searchModel)
         {
-            return progressiveCache.Load(cs => {
-                // Don't include properties with SourceAttribute at first, check the sources and add to list after
-                var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
-                var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
-                foreach (var property in propertiesWithSourceAttribute)
-                {
-                    var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                    if (sourceAttribute == null)
-                    {
-                        continue;
-                    }
+            if (cachedIndexedColumns.TryGetValue(searchModel, out string[] value))
+            {
+                return value;
+            }
 
-                    indexedColumnNames.AddRange(sourceAttribute.Sources);
+            // Don't include properties with SourceAttribute at first, check the sources and add to list after
+            var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
+            var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
+            foreach (var property in propertiesWithSourceAttribute)
+            {
+                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
+                if (sourceAttribute == null)
+                {
+                    continue;
                 }
 
-                // Remove column names from AlgoliaSearchModel that aren't database columns
-                indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+                indexedColumnNames.AddRange(sourceAttribute.Sources);
+            }
 
-                return indexedColumnNames.ToArray();
-            }, new CacheSettings(60, $"{nameof(DefaultAlgoliaObjectGenerator)}|{nameof(GetIndexedColumnNames)}|{searchModel}"));
+            // Remove column names from AlgoliaSearchModel that aren't database columns
+            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+
+            var indexedColumns = indexedColumnNames.ToArray();
+            cachedIndexedColumns.Add(searchModel, indexedColumns);
+
+            return indexedColumns;
         }
 
 
