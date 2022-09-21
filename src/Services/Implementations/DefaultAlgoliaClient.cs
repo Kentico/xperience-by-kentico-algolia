@@ -165,8 +165,7 @@ namespace Kentico.Xperience.Algolia.Services
             cacheAccessor.Remove(CACHEKEY_STATISTICS);
             
             var indexedNodes = new List<TreeNode>();
-            var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            foreach (var includedPathAttribute in includedPathAttributes)
+            foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
             {
                 var query = new MultiDocumentQuery()
                     .Path(includedPathAttribute.AliasPath)

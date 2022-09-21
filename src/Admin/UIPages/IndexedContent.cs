@@ -18,6 +18,7 @@ namespace Kentico.Xperience.Algolia.Admin
     internal class IndexedContent : Page<IndexedContentPageClientProperties>
     {
         private readonly IPageUrlGenerator pageUrlGenerator;
+        private AlgoliaIndex indexToDisplay;
 
 
         /// <summary>
@@ -43,30 +44,21 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <summary>
         /// A page command which displays details of a particular indexed path.
         /// </summary>
-        /// <param name="args">The table cell which was clicked which contains an indexed alias path.</param>
+        /// <param name="args">The arguments emitted by the template.</param>
         [PageCommand]
         public Task<INavigateResponse> ShowPathDetail(PathDetailArguments args)
         {
-            var aliasPath = Uri.EscapeDataString(args.Cell.Value);
-
-            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(PathDetail), IndexIdentifier.ToString(), aliasPath)));
+            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(PathDetail), IndexIdentifier.ToString(), args.Identifier)));
         }
 
 
         /// <inheritdoc/>
         public override Task<IndexedContentPageClientProperties> ConfigureTemplateProperties(IndexedContentPageClientProperties properties)
         {
-            var index = IndexStore.Instance.Get(IndexIdentifier);
-            if (index == null)
-            {
-                throw new InvalidOperationException($"Unable to retrieve Algolia index with identifier '{IndexIdentifier}.'");
-            }
-
-            var includedPathAttributes = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            properties.PathRows = includedPathAttributes.Select((attr, i) => GetPath(attr, i));
+            properties.PathRows = indexToDisplay.IncludedPaths.Select(attr => GetPath(attr));
             properties.PathColumns = GetPathColumns();
 
-            var searchModelProperties = index.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            var searchModelProperties = indexToDisplay.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             properties.PropertyRows = searchModelProperties.Select(prop => GetProperty(prop));
             properties.PropertyColumns = GetPropertyColumns();
 
@@ -74,11 +66,29 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private Row GetPath(IncludedPathAttribute attribute, int rowNum)
+        /// <inheritdoc/>
+        public override Task<PageValidationResult> ValidatePage()
+        {
+            indexToDisplay = IndexStore.Instance.Get(IndexIdentifier);
+            if (indexToDisplay == null)
+            {
+                return Task.FromResult(new PageValidationResult
+                {
+                    IsValid = false,
+                    ErrorMessageKey = "integrations.algolia.error.noindex",
+                    ErrorMessageParams = new object[] { IndexIdentifier }
+                });
+            }
+
+            return base.ValidatePage();
+        }
+
+
+        private Row GetPath(IncludedPathAttribute attribute)
         {
             return new Row
             {
-                Identifier = rowNum,
+                Identifier = attribute.Identifier,
                 Cells = new Cell[] {
                     new StringCell
                     {
@@ -267,21 +277,10 @@ namespace Kentico.Xperience.Algolia.Admin
         internal class PathDetailArguments
         {
             /// <summary>
-            /// The data of the cell that was clicked in the indexed path table.
+            /// The identifier of the row clicked, which corresponds with the internal
+            /// <see cref="IncludedPathAttribute.Identifier"/>.
             /// </summary>
-            public CellData Cell { get; set; }
-        }
-
-
-        /// <summary>
-        /// The data of the cell that was clicked in the indexed path table.
-        /// </summary>
-        internal class CellData
-        {
-            /// <summary>
-            /// The value of the clicked cell.
-            /// </summary>
-            public string Value { get; set; }
+            public string Identifier { get; set; }
         }
     }
 }

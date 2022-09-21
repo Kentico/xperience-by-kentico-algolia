@@ -101,7 +101,7 @@ namespace Kentico.Xperience.Algolia.Admin
             if (index == null)
             {
                 return ResponseFrom(result)
-                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.loaderror"), id));
+                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.error.noindex"), id));
             }
 
             try

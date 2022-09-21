@@ -56,8 +56,7 @@ namespace Kentico.Xperience.Algolia.Extensions
                 return false;
             }
 
-            var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            return includedPathAttributes.Any(includedPathAttribute => {
+            return algoliaIndex.IncludedPaths.Any(includedPathAttribute => {
                 var matchesPageType = (includedPathAttribute.PageTypes.Length == 0 || includedPathAttribute.PageTypes.Contains(node.ClassName));
                 if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {

@@ -50,6 +50,8 @@ namespace Kentico.Xperience.Algolia
                 throw new InvalidOperationException($"Facetable attributes cannot be both {nameof(FacetableAttribute.Searchable)} and {nameof(FacetableAttribute.FilterOnly)}.");
             }
 
+            AddIncludedPaths(index);
+
             index.Identifier = registeredIndexes.Count + 1;
             registeredIndexes.Add(index);
 
@@ -81,6 +83,18 @@ namespace Kentico.Xperience.Algolia
         public IEnumerable<AlgoliaIndex> GetAll()
         {
             return registeredIndexes;
+        }
+
+
+        private void AddIncludedPaths(AlgoliaIndex index)
+        {
+            var paths = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
+            foreach (var path in paths)
+            {
+                path.Identifier = Guid.NewGuid().ToString();
+            }
+
+            index.IncludedPaths = paths;
         }
 
 

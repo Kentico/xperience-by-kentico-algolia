@@ -156,6 +156,12 @@
   <data name="integrations.algolia.content.singletype" xml:space="preserve">
     <value>1 page type</value>
   </data>
+  <data name="integrations.algolia.error.noindex" xml:space="preserve">
+    <value>Error loading Algolia index with identifier {0}.</value>
+  </data>
+  <data name="integrations.algolia.error.nopath" xml:space="preserve">
+    <value>Error loading details for path with identifier {0}.</value>
+  </data>
   <data name="integrations.algolia.listing" xml:space="preserve">
     <value>List of indexes</value>
   </data>
@@ -173,9 +179,6 @@
   </data>
   <data name="integrations.algolia.listing.commands.rebuild" xml:space="preserve">
     <value>Rebuild</value>
-  </data>
-  <data name="integrations.algolia.listing.messages.loaderror" xml:space="preserve">
-    <value>Error loading Algolia index with identifier {0}.</value>
   </data>
   <data name="integrations.algolia.listing.messages.rebuilderror" xml:space="preserve">
     <value>Errors occurred while rebuilding the '{0}' index. Please check the Event Log for more details.</value>

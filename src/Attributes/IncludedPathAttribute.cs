@@ -31,6 +31,16 @@ namespace Kentico.Xperience.Algolia.Attributes
 
 
         /// <summary>
+        /// The internal identifier of the included path.
+        /// </summary>
+        internal string Identifier
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="IncludedPathAttribute"/> class.
         /// </summary>
         /// <param name="aliasPath">The node alias pattern that will be used to match pages in the content tree

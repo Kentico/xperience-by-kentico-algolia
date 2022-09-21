@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +20,7 @@ namespace Kentico.Xperience.Algolia.Admin
     [UIPageLocation(PageLocationEnum.Dialog)]
     internal class PathDetail : Page<PathDetailPageClientProperties>
     {
-        private string mAliasPath;
+        private IncludedPathAttribute pathToDisplay;
 
 
         /// <summary>
@@ -37,26 +36,20 @@ namespace Kentico.Xperience.Algolia.Admin
 
 
         /// <summary>
-        /// The indexed path to display the details of.
+        /// The internal <see cref="IncludedPathAttribute.Identifier"/> of the indexed path to display the details of.
         /// </summary>
         [PageParameter(typeof(StringPageModelBinder))]
-        public string AliasPath
+        public string PathIdentifier
         {
-            get
-            {
-                return mAliasPath;
-            }
-            set
-            {
-                mAliasPath = Uri.UnescapeDataString(value);
-            }
+            get;
+            set;
         }
 
 
         /// <inheritdoc/>
         public override Task<PathDetailPageClientProperties> ConfigureTemplateProperties(PathDetailPageClientProperties properties)
         {
-            properties.AliasPath = AliasPath;
+            properties.AliasPath = pathToDisplay.AliasPath;
             properties.Columns = new Column[] {
                 new Column
                 {
@@ -81,20 +74,7 @@ namespace Kentico.Xperience.Algolia.Admin
         {
             try
             {
-                var index = IndexStore.Instance.Get(IndexIdentifier);
-                if (index == null)
-                {
-                    throw new InvalidOperationException($"Unable to retrieve Algolia index with identifier '{IndexIdentifier}.'");
-                }
-
-                var includedPathAttribute = index.Type.GetCustomAttributes<IncludedPathAttribute>(false)
-                    .FirstOrDefault(attr => attr.AliasPath.Equals(AliasPath, StringComparison.OrdinalIgnoreCase));
-                if (includedPathAttribute == null)
-                {
-                    throw new InvalidOperationException($"Unable to load included path definition for alias '{AliasPath}.'");
-                }
-
-                var includedPageTypes = includedPathAttribute.PageTypes;
+                var includedPageTypes = pathToDisplay.PageTypes;
                 if (!includedPageTypes.Any())
                 {
                     includedPageTypes = DocumentTypeHelper.GetDocumentTypeClasses()
@@ -125,6 +105,34 @@ namespace Kentico.Xperience.Algolia.Admin
                 return Task.FromResult(ResponseFrom(new LoadDataResult())
                     .AddErrorMessage(LocalizationService.GetString("integrations.algolia.pathdetail.messages.loaderror")));
             }
+        }
+
+
+        /// <inheritdoc/>
+        public override Task<PageValidationResult> ValidatePage()
+        {
+            var index = IndexStore.Instance.Get(IndexIdentifier);
+            if (index == null)
+            {
+                return Task.FromResult(new PageValidationResult {
+                    IsValid = false,
+                    ErrorMessageKey = "integrations.algolia.error.noindex",
+                    ErrorMessageParams = new object[] { IndexIdentifier }
+                });
+            }
+
+            pathToDisplay = index.IncludedPaths.SingleOrDefault(attr => attr.Identifier.Equals(PathIdentifier, StringComparison.OrdinalIgnoreCase));
+            if (pathToDisplay == null)
+            {
+                return Task.FromResult(new PageValidationResult
+                {
+                    IsValid = false,
+                    ErrorMessageKey = "integrations.algolia.error.nopath",
+                    ErrorMessageParams = new object[] { PathIdentifier }
+                });
+            }
+
+            return base.ValidatePage();
         }
     }
 }

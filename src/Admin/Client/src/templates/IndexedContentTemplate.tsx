@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
+import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableColumn, TableRow } from '@kentico/xperience-admin-components'
 import { RoutingContentPlaceholder, usePageCommand } from '@kentico/xperience-admin-base'
 import localization from '../localization/localization.json'
 
@@ -11,7 +11,7 @@ interface IndexedContentPageProps {
 }
 
 interface PathDetailArguments {
-  readonly cell: TableCell
+  readonly identifier: string
 }
 
 const Commands = {
@@ -22,11 +22,10 @@ export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns,
   const { execute: showPathDetail } = usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail)
 
   const pathClicked = (index: number): void => {
-    // Send cell containing path to back-end
+    // Send path identifier to back-end
     const row = pathRows[index]
-    const cell = row?.cells[0]
-    if (cell !== undefined) {
-      showPathDetail({ cell }).catch(() => {})
+    if (row !== undefined) {
+      showPathDetail({ identifier: row.identifier }).catch(() => {})
     }
   }
 
