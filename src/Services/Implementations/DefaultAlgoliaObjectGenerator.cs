@@ -190,7 +190,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             // Convert node value to URLs if necessary
-            if (Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
+            if (nodeValue != null && Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
             {
                 nodeValue = GetAssetUrlsForColumn(node, nodeValue, usedColumn);
             }
