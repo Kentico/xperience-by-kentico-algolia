@@ -1,17 +1,14 @@
-﻿using CMS;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using CMS;
 using CMS.Core;
 using CMS.DocumentEngine;
-using CMS.DocumentEngine.Internal;
 
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaTaskLogger), typeof(DefaultAlgoliaTaskLogger), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
@@ -21,18 +18,44 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
+        private readonly IEventLogService eventLogService;
+
+
+        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService) {
+            this.eventLogService = eventLogService;
+        }
+
+
+        /// <inheritdoc />
         public void LogTask(AlgoliaQueueItem task)
         {
-            AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(task);
+            try
+            {
+                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTask), ex);
+            }
+            
         }
 
 
+        /// <inheritdoc />
         public void LogTasks(IEnumerable<AlgoliaQueueItem> tasks)
         {
-            AlgoliaQueueWorker.EnqueueAlgoliaQueueItems(tasks);
+            try
+            {
+                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItems(tasks);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), ex);
+            }
         }
 
 
+        /// <inheritdoc />
         public void HandleEvent(TreeNode node, string eventName)
         {
             foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))
@@ -42,12 +65,7 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                LogTask(new AlgoliaQueueItem()
-                {
-                    Node = node,
-                    TaskType = GetTaskType(node, eventName),
-                    IndexName = indexName
-                });
+                LogTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
             }
         }
 
@@ -64,8 +82,7 @@ namespace Kentico.Xperience.Algolia.Services
                 return AlgoliaTaskType.UPDATE;
             }
 
-            if (eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
-                eventName.Equals(DocumentCultureDataInfo.TYPEINFO.Events.BulkDelete.Name, StringComparison.OrdinalIgnoreCase) ||
+            if (eventName.Equals(DocumentEvents.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
                 eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return AlgoliaTaskType.DELETE;

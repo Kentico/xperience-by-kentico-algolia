@@ -1,10 +1,8 @@
-﻿using Algolia.Search.Models.Search;
+﻿using System;
 
-using Microsoft.Extensions.Localization;
+using Algolia.Search.Models.Search;
 
-using System;
-
-namespace Kentico.Xperience.Algolia.Models.Facets
+namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
     /// Defines methods for creating Algolia faceting interfaces and filtering queries based
@@ -32,14 +30,10 @@ namespace Kentico.Xperience.Algolia.Models.Facets
 
 
         /// <summary>
-        /// Sets the <see cref="AlgoliaFacetedAttribute.DisplayName"/> of each facet within
-        /// <see cref="FacetedAttributes"/>. The key searched within the given <see cref="IStringLocalizer"/>
-        /// is in the format <i>algolia.facet.[AttributeName]</i>. Also sets the <see cref="AlgoliaFacet.DisplayValue"/>
-        /// of each facet within the attribute, using a key in the format
-        /// <i>algolia.facet.[AttributeName].[FacetValue]</i>.
+        /// Updates the <see cref="FacetedAttributes"/> with the facets and counts returned from
+        /// an Algolia search. The checked state of facets used in the search are persisted.
         /// </summary>
-        /// <param name="localizer">The localizer containing facet display names. See
-        /// <see href="https://docs.xperience.io/multilingual-websites/setting-up-a-multilingual-user-interface/localizing-builder-components"/>.</param>
-        void Localize(IStringLocalizer localizer);
+        /// <param name="config">The configuration to use when updating the facets.</param>
+        public void UpdateFacets(FacetConfiguration config);
     }
 }

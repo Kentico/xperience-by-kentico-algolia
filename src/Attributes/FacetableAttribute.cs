@@ -1,8 +1,8 @@
-﻿using Algolia.Search.Clients;
+﻿using System;
 
-using Kentico.Xperience.Algolia.Models.Facets;
+using Algolia.Search.Clients;
 
-using System;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Attributes
 {
@@ -45,14 +45,6 @@ namespace Kentico.Xperience.Algolia.Attributes
         {
             get;
             set;
-        }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="FacetableAttribute"/> class.
-        /// </summary>
-        public FacetableAttribute()
-        {
         }
      }
 }

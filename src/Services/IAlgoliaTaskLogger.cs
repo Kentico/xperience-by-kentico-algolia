@@ -1,8 +1,8 @@
-﻿using CMS.DocumentEngine;
+﻿using System.Collections.Generic;
+
+using CMS.DocumentEngine;
 
 using Kentico.Xperience.Algolia.Models;
-
-using System.Collections.Generic;
 
 namespace Kentico.Xperience.Algolia.Services
 {

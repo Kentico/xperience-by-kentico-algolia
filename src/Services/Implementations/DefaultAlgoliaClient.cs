@@ -1,25 +1,21 @@
-﻿using CMS;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
-using CMS.FormEngine;
-using CMS.MediaLibrary;
+using CMS.WorkflowEngine;
 
-using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-
-using static Kentico.Xperience.Algolia.Models.AlgoliaQueueItem;
 
 [assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
@@ -30,36 +26,33 @@ namespace Kentico.Xperience.Algolia.Services
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
-        private readonly IConversionService conversionService;
+        private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly IEventLogService eventLogService;
-        private readonly IMediaFileInfoProvider mediaFileInfoProvider;
-        private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
-        private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
-            nameof(AlgoliaSearchModel.ObjectID),
-            nameof(AlgoliaSearchModel.Url),
-            nameof(AlgoliaSearchModel.ClassName)
-        };
+        private readonly IVersionHistoryInfoProvider versionHistoryInfoProvider;
+        private readonly IWorkflowStepInfoProvider workflowStepInfoProvider;
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
-            IConversionService conversionService,
+            IAlgoliaObjectGenerator algoliaObjectGenerator,
             IEventLogService eventLogService,
-            IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever)
+            IVersionHistoryInfoProvider versionHistoryInfoProvider,
+            IWorkflowStepInfoProvider workflowStepInfoProvider)
         {
-            this.eventLogService = eventLogService;
             this.algoliaIndexService = algoliaIndexService;
-            this.conversionService = conversionService;
-            this.mediaFileInfoProvider = mediaFileInfoProvider;
-            this.mediaFileUrlRetriever = mediaFileUrlRetriever;
+            this.algoliaObjectGenerator = algoliaObjectGenerator;
+            this.eventLogService = eventLogService;
+            this.versionHistoryInfoProvider = versionHistoryInfoProvider;
+            this.workflowStepInfoProvider = workflowStepInfoProvider;
         }
 
 
-        public Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName)
+        /// <inheritdoc />
+        public Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -74,7 +67,8 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items)
+        /// <inheritdoc />
+        public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items, CancellationToken cancellationToken)
         {
             var successfulOperations = 0;
 
@@ -85,19 +79,24 @@ namespace Kentico.Xperience.Algolia.Services
                 try
                 {
                     var algoliaIndex = IndexStore.Instance.Get(group.Key);
-                    if (algoliaIndex == null)
+
+                    var deleteIds = new List<string>();
+                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
+                    deleteIds.AddRange(GetIdsToDelete(algoliaIndex, deleteTasks));
+
+                    var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
+                    var upsertData = new List<JObject>();
+                    foreach (var queueItem in updateTasks)
                     {
-                        eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), $"Attempted to process tasks for index '{group.Key},' but the index is not registered.");
-                        continue;
+                        // There may be less fragments than previously indexed. Delete fragments created by the
+                        // previous version of the node
+                        deleteIds.AddRange(GetFragmentsToDelete(queueItem.Node, algoliaIndex, queueItem.TaskType));
+                        var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
+                        upsertData.AddRange(data);
                     }
 
-                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
-                    var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
-                    var upsertData = updateTasks.Select(queueItem => GetTreeNodeData(queueItem.Node, algoliaIndex.Type, queueItem.TaskType));
-                    var deleteData = deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
-
-                    successfulOperations += await UpsertRecords(upsertData, group.Key);
-                    successfulOperations += await DeleteRecords(deleteData, group.Key);
+                    successfulOperations += await DeleteRecords(deleteIds, group.Key, cancellationToken);
+                    successfulOperations += await UpsertRecords(upsertData, group.Key, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -109,8 +108,10 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        public Task Rebuild(string indexName)
+        /// <inheritdoc />
+        public Task Rebuild(string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -126,8 +127,10 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName)
+        /// <inheritdoc />
+        public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -139,6 +142,61 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return UpsertRecordsInternal(dataObjects, indexName);
+        }
+
+
+        /// <summary>
+        /// Gets the IDs of the fragments previously generated by a node update. Because the data that was split could
+        /// be smaller than previous updates, if they were not deleted during an update task, there would be orphaned
+        /// data in Algolia. When the <paramref name="taskType"/> is <see cref="AlgoliaTaskType.UPDATE"/>, we must check
+        /// for a previous version and delete the fragments generated by that version, before upserting new fragments.
+        /// </summary>
+        /// <param name="node">The node to get the previous version of.</param>
+        /// <param name="algoliaIndex">The index containing the <paramref name="node"/>.</param>
+        /// <param name="taskType">The task type that is being processed.</param>
+        /// <returns>A list of Algolia IDs that should be deleted, or an empty list.</returns>
+        /// <exception cref="ArgumentNullException" />
+        private IEnumerable<string> GetFragmentsToDelete(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
+        {
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (algoliaIndex == null)
+            {
+                throw new ArgumentNullException(nameof(algoliaIndex));
+            }
+
+            if (taskType != AlgoliaTaskType.UPDATE || algoliaIndex.DistinctOptions == null)
+            {
+                // Only split data on UPDATE tasks if splitting is enabled
+                return Enumerable.Empty<string>();
+            }
+
+            var publishedStepId = workflowStepInfoProvider.Get()
+                .TopN(1)
+                .WhereEquals(nameof(WorkflowStepInfo.StepWorkflowID), node.WorkflowStep.StepWorkflowID)
+                .WhereEquals(nameof(WorkflowStepInfo.StepType), WorkflowStepTypeEnum.DocumentPublished)
+                .AsIDQuery()
+                .GetScalarResult<int>(0);
+            var previouslyPublishedVersionID = versionHistoryInfoProvider.Get()
+                .TopN(1)
+                .WhereEquals(nameof(VersionHistoryInfo.DocumentID), node.DocumentID)
+                .WhereEquals(nameof(VersionHistoryInfo.NodeSiteID), node.NodeSiteID)
+                .WhereEquals(nameof(VersionHistoryInfo.VersionWorkflowStepID), publishedStepId)
+                .OrderByDescending(nameof(VersionHistoryInfo.WasPublishedTo))
+                .AsIDQuery()
+                .GetScalarResult<int>(0);
+            if (previouslyPublishedVersionID == 0)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            var previouslyPublishedNode = node.VersionManager.GetVersion(previouslyPublishedVersionID, node);
+            var previouslyPublishedNodeData = algoliaObjectGenerator.GetTreeNodeData(previouslyPublishedNode, algoliaIndex.Type, AlgoliaTaskType.CREATE);
+
+            return algoliaObjectGenerator.SplitData(previouslyPublishedNodeData, algoliaIndex).Select(obj => obj.Value<string>("objectID"));
         }
 
 
@@ -156,194 +214,35 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        /// <summary>
-        /// Converts the assets from the <paramref name="node"/>'s value into absolute URLs.
-        /// </summary>
-        /// <remarks>Logs an error if the definition of the <paramref name="columnName"/> can't
-        /// be found.</remarks>
-        /// <param name="node">The <see cref="TreeNode"/> the value was loaded from.</param>
-        /// <param name="nodeValue">The original value of the column.</param>
-        /// <param name="columnName">The name of the column the value was loaded from.</param>
-        /// <returns>An list of absolute URLs, or an empty list.</returns>
-        private IEnumerable<string> GetAssetUrlsForColumn(TreeNode node, object nodeValue, string columnName)
+        private IEnumerable<JObject> GetDataToUpsert(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
         {
-            var strValue = conversionService.GetString(nodeValue, String.Empty);
-            if (String.IsNullOrEmpty(strValue))
+            if (algoliaIndex.DistinctOptions != null)
             {
-                return Enumerable.Empty<string>();
+                // If the data is split, force CREATE type to push all data to Algolia
+                var nodeData = algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE);
+                return algoliaObjectGenerator.SplitData(nodeData, algoliaIndex);
             }
 
-            // Ensure field is Asset type
-            var dataClassInfo = DataClassInfoProvider.GetDataClassInfo(node.ClassName, false);
-            var formInfo = new FormInfo(dataClassInfo.ClassFormDefinition);
-            var field = formInfo.GetFormField(columnName);
-            if (field == null)
-            {
-                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(GetAssetUrlsForColumn), $"Unable to load field definition for page type '{node.ClassName}' column name '{columnName}.'");
-                return Enumerable.Empty<string>();
-            }
-
-            if (!field.DataType.Equals(FieldDataType.Assets, StringComparison.OrdinalIgnoreCase))
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var assets = JsonConvert.DeserializeObject<IEnumerable<AssetRelatedItem>>(strValue);
-            var mediaFiles = mediaFileInfoProvider.Get().ForAssets(assets);
-
-            return mediaFiles.Select(file => mediaFileUrlRetriever.Retrieve(file).RelativePath);
+            return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, taskType) };
         }
 
 
-        private string[] GetIndexedColumnNames(Type searchModel)
+        private IEnumerable<string> GetIdsToDelete(AlgoliaIndex algoliaIndex, IEnumerable<AlgoliaQueueItem> deleteTasks)
         {
-            // Don't include properties with SourceAttribute at first, check the sources and add to list after
-            var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
-            var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
-            foreach (var property in propertiesWithSourceAttribute)
+            if (algoliaIndex.DistinctOptions != null)
             {
-                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                if (sourceAttribute == null)
+                // Data has been split, get IDs of the smaller records
+                var ids = new List<string>();
+                foreach (var queueItem in deleteTasks)
                 {
-                    continue;
+                    var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
+                    ids.AddRange(data.Select(obj => obj.Value<string>("objectID")));
                 }
 
-                indexedColumnNames.AddRange(sourceAttribute.Sources);
+                return ids;
             }
 
-            // Remove column names from AlgoliaSearchModel that aren't database columns
-            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
-
-            return indexedColumnNames.ToArray();
-        }
-
-
-        /// <summary>
-        /// Gets the <paramref name="node"/> value using the <paramref name="property"/>
-        /// name, or the property's <see cref="SourceAttribute"/> if specified.
-        /// </summary>
-        /// <param name="node">The <see cref="TreeNode"/> to load a value from.</param>
-        /// <param name="property">The Algolia search model property.</param>
-        /// <param name="searchModelType">The Algolia search model.</param>
-        private object GetNodeValue(TreeNode node, PropertyInfo property, Type searchModelType)
-        {
-            var usedColumn = property.Name;
-            var nodeValue = node.GetValue(property.Name);
-            var searchModel = Activator.CreateInstance(searchModelType) as AlgoliaSearchModel;
-            if (Attribute.IsDefined(property, typeof(SourceAttribute)))
-            {
-                // Property uses SourceAttribute, loop through column names until a non-null value is found
-                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                foreach (var source in sourceAttribute.Sources)
-                {
-                    nodeValue = node.GetValue(source);
-                    if (nodeValue != null)
-                    {
-                        usedColumn = source;
-                        break;
-                    }
-                }
-            }
-
-            // Convert node value to URLs if necessary
-            if (Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
-            {
-                nodeValue = GetAssetUrlsForColumn(node, nodeValue, usedColumn);
-            }
-
-            nodeValue = searchModel.OnIndexingProperty(node, property.Name, usedColumn, nodeValue);
-
-            return nodeValue;
-        }
-
-
-        /// <summary>
-        /// Creates an anonymous object with the indexed column names of the <paramref name="searchModelType"/> and
-        /// their values loaded from the passed <paramref name="node"/>.
-        /// </summary>
-        /// <remarks>When the <paramref name="taskType"/> is <see cref="AlgoliaTaskType.UPDATE"/>, only the updated
-        /// columns will be included in the resulting object for a partial update. For <see cref="AlgoliaTaskType.CREATE"/>,
-        /// all indexed columns are included.</remarks>
-        /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
-        /// <param name="searchModelType">The class of the Algolia search model.</param>
-        /// <param name="taskType">The Algolia task being processed.</param>
-        /// <returns>The anonymous data that will be passed to Algolia.</returns>
-        /// <exception cref="ArgumentNullException" />
-        private JObject GetTreeNodeData(TreeNode node, Type searchModelType, AlgoliaTaskType taskType)
-        {
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (searchModelType == null)
-            {
-                throw new ArgumentNullException(nameof(searchModelType));
-            }
-
-            var data = new JObject();
-            MapChangedProperties(node, data, searchModelType, taskType);
-            MapCommonProperties(node, data);
-
-            return data;
-        }
-
-
-        private void MapChangedProperties(TreeNode node, JObject data, Type searchModelType, AlgoliaTaskType taskType)
-        {
-            var serializer = new JsonSerializer();
-            serializer.Converters.Add(new DecimalPrecisionConverter());
-
-            var columnsToUpdate = new List<string>();
-            var indexedColumns = GetIndexedColumnNames(searchModelType);
-            if (taskType == AlgoliaTaskType.CREATE)
-            {
-                columnsToUpdate.AddRange(indexedColumns);
-            }
-            else if (taskType == AlgoliaTaskType.UPDATE)
-            {
-                columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
-            }
-
-            var searchModel = Activator.CreateInstance(searchModelType);
-            var properties = searchModel.GetType().GetProperties().Where(prop => columnsToUpdate.Contains(prop.Name));
-            foreach (var prop in properties)
-            {
-                object nodeValue = GetNodeValue(node, prop, searchModelType);
-                if (nodeValue == null)
-                {
-                    continue;
-                }
-
-                data.Add(prop.Name, JToken.FromObject(nodeValue, serializer));
-            }
-        }
-
-
-        /// <summary>
-        /// Sets values in the <paramref name="data"/> object using the common search model properties
-        /// located within the <see cref="AlgoliaSearchModel"/> class.
-        /// </summary>
-        /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
-        /// <param name="data">The dynamic data that will be passed to Algolia.</param>
-        private void MapCommonProperties(TreeNode node, JObject data)
-        {
-            data["objectID"] = node.DocumentID.ToString();
-            data[nameof(AlgoliaSearchModel.ClassName)] = node.ClassName;
-
-            try
-            {
-                data[nameof(AlgoliaSearchModel.Url)] = DocumentURLProvider.GetAbsoluteUrl(node);
-            }
-            catch (Exception)
-            {
-                // GetAbsoluteUrl can throw an exception when processing a page update AlgoliaQueueItem
-                // and the page was deleted before the update task has processed. In this case, upsert an
-                // empty URL
-                data[nameof(AlgoliaSearchModel.Url)] = String.Empty;
-            }
+            return deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
         }
 
 
@@ -366,9 +265,10 @@ namespace Kentico.Xperience.Algolia.Services
                 indexedNodes.AddRange(query.TypedResult);
             }
 
-            var data = indexedNodes.Select(node => GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE));
+            var dataToUpsert = new List<JObject>();
+            indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(node, algoliaIndex, AlgoliaTaskType.CREATE)));
             var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
-            await searchIndex.ReplaceAllObjectsAsync(data).ConfigureAwait(false);
+            await searchIndex.ReplaceAllObjectsAsync(dataToUpsert).ConfigureAwait(false);
         }
 
 
