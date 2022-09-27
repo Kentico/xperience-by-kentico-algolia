@@ -16,7 +16,9 @@ using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Models;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -30,6 +32,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly AlgoliaOptions algoliaOptions;
         private readonly IInsightsClient insightsClient;
         private readonly IEventLogService eventLogService;
+        private readonly IHttpContextAccessor httpContextAccessor; 
         private readonly Regex queryParameterRegex = new ("^[a-fA-F0-9]{32}$");
         
 
@@ -52,7 +55,13 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                return QueryHelper.GetString(algoliaOptions.ObjectIdParameterName, String.Empty);
+                StringValues values;
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.ObjectIdParameterName, out values))
+                {
+                    return values.FirstOrDefault();
+                }
+
+                return String.Empty;
             }
         }
 
@@ -61,7 +70,13 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                return QueryHelper.GetString(algoliaOptions.QueryIdParameterName, String.Empty);
+                StringValues values;
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.QueryIdParameterName, out values))
+                {
+                    return values.FirstOrDefault();
+                }
+
+                return String.Empty;
             }
         }
 
@@ -70,7 +85,13 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                return (uint)QueryHelper.GetInteger(algoliaOptions.PositionParameterName, 0);
+                StringValues values;
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.PositionParameterName, out values))
+                {
+                    return Convert.ToUInt32(values.FirstOrDefault());
+                }
+
+                return 0;
             }
         }
 
@@ -79,10 +100,12 @@ namespace Kentico.Xperience.Algolia.Services
         /// Initializes a new instance of the <see cref="DefaultAlgoliaInsightsService"/> class.
         /// </summary>
         public DefaultAlgoliaInsightsService(IOptions<AlgoliaOptions> algoliaOptions,
+            IHttpContextAccessor httpContextAccessor,
             IInsightsClient insightsClient,
             IEventLogService eventLogService)
         {
             this.algoliaOptions = algoliaOptions.Value;
+            this.httpContextAccessor = httpContextAccessor;
             this.insightsClient = insightsClient;
             this.eventLogService = eventLogService;
         }
