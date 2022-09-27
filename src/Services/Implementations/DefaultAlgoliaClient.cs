@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using CMS;
 using CMS.Core;
+using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.WorkflowEngine;
 
@@ -27,6 +28,8 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly IEventLogService eventLogService;
+        private readonly IVersionHistoryInfoProvider versionHistoryInfoProvider;
+        private readonly IWorkflowStepInfoProvider workflowStepInfoProvider;
 
 
         /// <summary>
@@ -34,11 +37,15 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
             IAlgoliaObjectGenerator algoliaObjectGenerator,
-            IEventLogService eventLogService)
+            IEventLogService eventLogService,
+            IVersionHistoryInfoProvider versionHistoryInfoProvider,
+            IWorkflowStepInfoProvider workflowStepInfoProvider)
         {
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.eventLogService = eventLogService;
+            this.versionHistoryInfoProvider = versionHistoryInfoProvider;
+            this.workflowStepInfoProvider = workflowStepInfoProvider;
         }
 
 
@@ -161,26 +168,35 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new ArgumentNullException(nameof(algoliaIndex));
             }
 
-            if (taskType != AlgoliaTaskType.UPDATE || algoliaIndex.DistinctOptions == null || node.WorkflowHistory.Count == 0)
+            if (taskType != AlgoliaTaskType.UPDATE || algoliaIndex.DistinctOptions == null)
+            {
+                // Only split data on UPDATE tasks if splitting is enabled
+                return Enumerable.Empty<string>();
+            }
+
+            var publishedStepId = workflowStepInfoProvider.Get()
+                .TopN(1)
+                .WhereEquals(nameof(WorkflowStepInfo.StepWorkflowID), node.WorkflowStep.StepWorkflowID)
+                .WhereEquals(nameof(WorkflowStepInfo.StepType), WorkflowStepTypeEnum.DocumentPublished)
+                .AsIDQuery()
+                .GetScalarResult<int>(0);
+            var previouslyPublishedVersionID = versionHistoryInfoProvider.Get()
+                .TopN(1)
+                .WhereEquals(nameof(VersionHistoryInfo.DocumentID), node.DocumentID)
+                .WhereEquals(nameof(VersionHistoryInfo.NodeSiteID), node.NodeSiteID)
+                .WhereEquals(nameof(VersionHistoryInfo.VersionWorkflowStepID), publishedStepId)
+                .OrderByDescending(nameof(VersionHistoryInfo.WasPublishedTo))
+                .AsIDQuery()
+                .GetScalarResult<int>(0);
+            if (previouslyPublishedVersionID == 0)
             {
                 return Enumerable.Empty<string>();
             }
 
-            if (node.WorkflowHistory[0] is not WorkflowHistoryInfo lastWorkflow)
-            {
-                return Enumerable.Empty<string>();
-            }
+            var previouslyPublishedNode = node.VersionManager.GetVersion(previouslyPublishedVersionID, node);
+            var previouslyPublishedNodeData = algoliaObjectGenerator.GetTreeNodeData(previouslyPublishedNode, algoliaIndex.Type, AlgoliaTaskType.CREATE);
 
-            var lastVersion = VersionHistoryInfo.Provider.Get(lastWorkflow.VersionHistoryID);
-            if (lastVersion == null)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var versionedNode = node.VersionManager.GetVersion(lastVersion, node);
-            var nodeData = algoliaObjectGenerator.GetTreeNodeData(versionedNode, algoliaIndex.Type, AlgoliaTaskType.CREATE);
-
-            return algoliaObjectGenerator.SplitData(nodeData, algoliaIndex).Select(obj => obj.Value<string>("objectID"));
+            return algoliaObjectGenerator.SplitData(previouslyPublishedNodeData, algoliaIndex).Select(obj => obj.Value<string>("objectID"));
         }
 
 
