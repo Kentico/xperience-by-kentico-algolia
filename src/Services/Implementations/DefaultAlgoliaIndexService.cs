@@ -11,6 +11,7 @@ using Algolia.Search.Models.Settings;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Attributes;
+using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -43,7 +44,7 @@ namespace Kentico.Xperience.Algolia.Services
 
             if (!cachedSettings.TryGetValue(indexName, out IndexSettings indexSettings))
             {
-                indexSettings = GetIndexSettings(algoliaIndex.Type);
+                indexSettings = GetIndexSettings(algoliaIndex);
                 cachedSettings.Add(indexName, indexSettings);
             }
 
@@ -73,20 +74,33 @@ namespace Kentico.Xperience.Algolia.Services
         /// <summary>
         /// Gets the <see cref="IndexSettings"/> of the Algolia index.
         /// </summary>
-        /// <param name="searchModel">The index search model class.</param>
+        /// <param name="algoliaIndex">The index to retrieve settings for.</param>
         /// <returns>The index settings.</returns>
-        private IndexSettings GetIndexSettings(Type searchModel)
+        /// <exception cref="ArgumentNullException" />
+        private IndexSettings GetIndexSettings(AlgoliaIndex algoliaIndex)
         {
-            var searchableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
-            var retrievableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
-            var facetableProperties = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            if (algoliaIndex == null)
+            {
+                throw new ArgumentNullException(nameof(algoliaIndex));
+            }
 
-            return new IndexSettings()
+            var searchableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
+            var retrievableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
+            var facetableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            var indexSettings = new IndexSettings()
             {
                 SearchableAttributes = OrderSearchableProperties(searchableProperties),
                 AttributesToRetrieve = retrievableProperties.Select(p => p.Name).ToList(),
                 AttributesForFaceting = facetableProperties.Select(GetFilterablePropertyName).ToList()
             };
+
+            if (algoliaIndex.DistinctOptions != null)
+            {
+                indexSettings.Distinct = algoliaIndex.DistinctOptions.DistinctLevel;
+                indexSettings.AttributeForDistinct = algoliaIndex.DistinctOptions.DistinctAttribute;
+            }
+
+            return indexSettings;
         }
 
 

@@ -11,6 +11,16 @@ namespace Kentico.Xperience.Algolia.Models
     public sealed class AlgoliaIndex
     {
         /// <summary>
+        /// The distinct and de-duplication settings for the Algolia index.
+        /// </summary>
+        public DistinctOptions DistinctOptions
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// The type of the class which extends <see cref="AlgoliaSearchModel"/>.
         /// </summary>
         public Type Type
@@ -53,9 +63,10 @@ namespace Kentico.Xperience.Algolia.Models
         /// </summary>
         /// <param name="type">The type of the class which extends <see cref="AlgoliaSearchModel"/>.</param>
         /// <param name="indexName">The code name of the Algolia index.</param>
+        /// <param name="distinctOptions">The distinct and de-duplication settings for the Algolia index.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public AlgoliaIndex(Type type, string indexName)
+        public AlgoliaIndex(Type type, string indexName, DistinctOptions distinctOptions = null)
         {
             if (String.IsNullOrEmpty(indexName))
             {
@@ -74,6 +85,7 @@ namespace Kentico.Xperience.Algolia.Models
 
             Type = type;
             IndexName = indexName;
+            DistinctOptions = distinctOptions;
         }
     }
 }

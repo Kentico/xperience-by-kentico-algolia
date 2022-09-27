@@ -8,7 +8,6 @@ using CMS.DataEngine;
 using CMS.DataEngine.Internal;
 using CMS.DocumentEngine;
 using CMS.FormEngine;
-using CMS.Helpers;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
@@ -70,6 +69,14 @@ namespace Kentico.Xperience.Algolia.Services
             MapCommonProperties(node, data);
 
             return data;
+        }
+
+
+        /// <inheritdoc/>
+        public IEnumerable<JObject> SplitData(JObject originalData, AlgoliaIndex algoliaIndex)
+        {
+            // No data splitting by default
+            return new JObject[] { originalData };
         }
 
 

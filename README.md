@@ -1,7 +1,7 @@
 ![build](https://github.com/Kentico/kentico-xperience-algolia/actions/workflows/build.yml/badge.svg)
 [![Nuget](https://img.shields.io/nuget/v/Kentico.Xperience.Algolia)](https://www.nuget.org/packages/Kentico.Xperience.Algolia)
 [![Kentico.Xperience.WebApp 22.1.3](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.1.3-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
-[![Algolia.Search 6.11.0](https://img.shields.io/badge/Algolia.Search-v6.11.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
+[![Algolia.Search 6.13.0](https://img.shields.io/badge/Algolia.Search-v6.13.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
 
 # Xperience by Kentico Algolia Search Integration
 
@@ -35,6 +35,10 @@ A single class (created by your developers) contains the Algolia index attribute
 ```cs
 builder.Services.AddAlgolia(builder.Configuration);
 ```
+
+## Limitations
+
+It's important to note that Algolia has [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of your records. If you are indexing content that may contain large amounts of data, we recommend splitting your records into smaller "fragments." Follow the instructions in the [Splitting large content](#scissors-splitting-large-content) section.
 
 ## :gear: Creating and registering an Algolia index
 
@@ -216,6 +220,82 @@ public string ArticleTeaser { get; set; }
 
 [MediaUrls, Retrievable, Source(new string[] { nameof(Article.ArticleTeaser), nameof(Coffee.CoffeeImage) })]
 public IEnumerable<string> Thumbnail { get; set; }
+```
+
+## :scissors: Splitting large content
+
+Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of Algolia records, we recommend splitting large content into smaller fragments. This operation is performed automatically during indexing by [`IAlgoliaObjectGenerator.SplitData()`](/src/Services/IAlgoliaObjectGenerator.cs), but there is no data splitting by default.
+
+To enable data splitting for an Algolia index, add the `DistinctOptions` parameter during registration:
+
+```cs
+builder.Services.AddAlgolia(builder.Configuration,
+    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName, new DistinctOptions(nameof(SiteSearchModel.DocumentName), 1)));
+```
+
+The `DistinctOptions` constructor accepts two parameters:
+
+  - __distinctAttribute__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct). This is a property of the search model whose value will remain constant for all fragments, and is used to identify fragments during de-duplication. Fragments of a search result are "grouped" together according to this attribute's value, then a certain number of fragments per-group are returned, depending on the `distinctLevel` setting. In most cases, this will be a property like `DocumentName` or `NodeAliasPath`.
+  - __distinctLevel__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/distinct). A value of zero disables de-duplication and grouping, while positive values determine how many fragments will be returned by a search. This is generally set to "1" so that only one fragment is returned from each grouping.
+
+To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the below example. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs should _not_ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
+
+In the following example, we have large articles on our website which can be split into smaller fragments by splitting text on the `<p>` tag. Note that each fragment still contains all of the original data- only the "Content" property is modified.
+
+```cs
+[assembly: RegisterImplementation(typeof(IAlgoliaObjectGenerator), typeof(CustomAlgoliaObjectGenerator))]
+namespace DancingGoat.Algolia
+{
+  public class CustomAlgoliaObjectGenerator : IAlgoliaObjectGenerator
+  {
+      private readonly IAlgoliaObjectGenerator defaultImplementation;
+
+      public CustomAlgoliaObjectGenerator(IAlgoliaObjectGenerator defaultImplementation)
+      {
+          this.defaultImplementation = defaultImplementation;
+      }
+
+      public JObject GetTreeNodeData(TreeNode node, Type searchModelType, AlgoliaTaskType taskType)
+      {
+          return defaultImplementation.GetTreeNodeData(node, searchModelType, taskType);
+      }
+
+      public IEnumerable<JObject> SplitData(JObject originalData, AlgoliaIndex algoliaIndex)
+      {
+          if (algoliaIndex.Type == typeof(SiteSearchModel))
+          {
+              return SplitParagraphs(originalData, nameof(SiteSearchModel.Content));
+          }
+
+          return new JObject[] { originalData };
+      }
+
+      private IEnumerable<JObject> SplitParagraphs(JObject originalData, string propertyToSplit)
+      {
+          var originalId = originalData.Value<string>("objectID");
+          var content = originalData.Value<string>(propertyToSplit);
+          if (string.IsNullOrEmpty(content))
+          {
+              return new JObject[] { originalData };
+          }
+
+          List<string> paragraphs = new List<string>();
+          var matches = Regex.Match(content, @"<p>\s*(.+?)\s*</p>");
+          while (matches.Success)
+          {
+              paragraphs.Add(matches.Value);
+              matches = matches.NextMatch();
+          }
+
+          return paragraphs.Select((p, index) => {
+              var data = (JObject)originalData.DeepClone();
+              data["objectID"] = $"{originalId}-{index}";
+              data[propertyToSplit] = p;
+              return data;
+          });
+      }
+  }
+}
 ```
 
 ## :mag_right: Implementing the search interface
@@ -467,7 +547,7 @@ Each `AlgoliaFacet` object represents the faceted attribute's possible values an
 
 2. In the __Pages__ application, edit the coffess and set values for the new fields.
 
-1. In the `Search()` method, add a parameter that accepts `IAlgoliaFacetFilter`. Then, call the `GetFilter()` method to generate the facet filters:
+3. In the `Search()` method, add a parameter that accepts `IAlgoliaFacetFilter`. Then, call the `GetFilter()` method to generate the facet filters:
 
 ```cs
 private async Task<SearchResponse<SiteSearchModel>> Search(IAlgoliaFacetFilter filter, CancellationToken cancellationToken)
