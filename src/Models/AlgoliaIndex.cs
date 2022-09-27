@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Kentico.Xperience.AlgoliaSearch.Models;
-
 namespace Kentico.Xperience.Algolia.Models
 {
     /// <summary>
