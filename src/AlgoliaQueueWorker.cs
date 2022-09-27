@@ -16,7 +16,7 @@ namespace Kentico.Xperience.Algolia
     /// </summary>
     internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
     {
-        private readonly IAlgoliaClient algoliaClient;
+        private readonly IAlgoliaTaskProcessor algoliaTaskProcessor;
 
 
         /// <inheritdoc />
@@ -30,7 +30,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         public AlgoliaQueueWorker()
         {
-            algoliaClient = Service.Resolve<IAlgoliaClient>();
+            algoliaTaskProcessor = Service.Resolve<IAlgoliaTaskProcessor>();
         }
 
 
@@ -60,20 +60,6 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        /// <summary>
-        /// Adds mulitple <see cref="AlgoliaQueueItem"/>s to the worker queue to be processed.
-        /// </summary>
-        /// <param name="queueItems"></param>
-        /// <exception cref="InvalidOperationException" />
-        public void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
-        {
-            foreach(var queueItem in queueItems)
-            {
-                EnqueueAlgoliaQueueItem(queueItem);
-            }
-        }
-
-
         /// <inheritdoc />
         protected override void Finish()
         {
@@ -81,16 +67,16 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        /// <inheritdoc />
-        protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
-        {
-            return algoliaClient.ProcessAlgoliaTasks(items, CancellationToken.None).Result;
-        }
-
-
         /// <inheritdoc/>
         protected override void ProcessItem(AlgoliaQueueItem item)
         {
+        }
+
+
+        /// <inheritdoc />
+        protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
+        {
+            return algoliaTaskProcessor.ProcessAlgoliaTasks(items, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

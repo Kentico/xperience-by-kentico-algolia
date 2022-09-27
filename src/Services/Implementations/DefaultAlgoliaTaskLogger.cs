@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using CMS.Core;
@@ -24,37 +23,20 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public void LogTask(AlgoliaQueueItem task)
-        {
-            try
-            {
-                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
-            }
-            catch (InvalidOperationException ex)
-            {
-                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTask), ex);
-            }
-            
-        }
-
-
-        /// <inheritdoc />
-        public void LogTasks(IEnumerable<AlgoliaQueueItem> tasks)
-        {
-            try
-            {
-                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItems(tasks);
-            }
-            catch (InvalidOperationException ex)
-            {
-                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), ex);
-            }
-        }
-
-
-        /// <inheritdoc />
         public void HandleEvent(TreeNode node, string eventName)
         {
+            // Check crawlers
+            foreach (var crawlerId in IndexStore.Instance.GetAllCrawlers())
+            {
+                var url = DocumentURLProvider.GetAbsoluteUrl(node);
+                LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, GetTaskType(node, eventName)));
+            }
+
+            // Check standard indexes
+            if (!node.IsAlgoliaIndexed())
+            {
+                return;
+            }
             foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))
             {
                 if (!node.IsIndexedByIndex(indexName))
@@ -62,7 +44,41 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                LogTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
+                LogIndexTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
+            }
+        }
+
+
+        /// <summary>
+        /// Logs a single <see cref="AlgoliaCrawlerQueueItem"/>.
+        /// </summary>
+        /// <param name="task">The task to log.</param>
+        private void LogCrawlerTask(AlgoliaCrawlerQueueItem task)
+        {
+            try
+            {
+                AlgoliaCrawlerQueueWorker.Current.EnqueueCrawlerQueueItem(task);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogCrawlerTask), ex);
+            }
+        }
+
+
+        /// <summary>
+        /// Logs a single <see cref="AlgoliaQueueItem"/>.
+        /// </summary>
+        /// <param name="task">The task to log.</param>
+        private void LogIndexTask(AlgoliaQueueItem task)
+        {
+            try
+            {
+                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
+            }
+            catch (InvalidOperationException ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogIndexTask), ex);
             }
         }
 

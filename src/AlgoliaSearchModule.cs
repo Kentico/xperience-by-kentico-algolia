@@ -3,7 +3,6 @@ using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
 
-using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Services;
 
 namespace Kentico.Xperience.Algolia
@@ -17,6 +16,15 @@ namespace Kentico.Xperience.Algolia
         private IAppSettingsService appSettingsService;
         private IConversionService conversionService;
         private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
+
+
+        private bool IndexingDisabled
+        {
+            get
+            {
+                return conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);
+            }
+        }
 
 
         /// <inheritdoc/>
@@ -36,19 +44,9 @@ namespace Kentico.Xperience.Algolia
 
             DocumentEvents.Delete.Before += HandleDocumentEvent;
             WorkflowEvents.Publish.After += HandleWorkflowEvent;
-            WorkflowEvents.Archive.After += HandleWorkflowEvent;
+            WorkflowEvents.Archive.Before += HandleWorkflowEvent;
             RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
-        }
-
-
-        /// <summary>
-        /// Returns <c>true</c> if the event event handler should continue processing and log
-        /// an Algolia task.
-        /// </summary>
-        private bool EventShouldContinue(TreeNode node)
-        {
-            return !conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false) &&
-                node.IsAlgoliaIndexed();
+            RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaCrawlerQueueWorker.Current.EnsureRunningThread();
         }
 
 
@@ -57,7 +55,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private void HandleWorkflowEvent(object sender, WorkflowEventArgs e)
         {
-            if (!EventShouldContinue(e.Document))
+            if (IndexingDisabled)
             {
                 return;
             }
@@ -71,7 +69,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         private void HandleDocumentEvent(object sender, DocumentEventArgs e)
         {
-            if (!EventShouldContinue(e.Node))
+            if (IndexingDisabled)
             {
                 return;
             }

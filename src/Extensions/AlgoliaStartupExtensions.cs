@@ -23,9 +23,13 @@ namespace Kentico.Xperience.Algolia.Extensions
         /// <param name="services">The service collection.</param>
         /// <param name="configuration">The application configuration.</param>
         /// <param name="indexes">The Algolia indexes to register.</param>
-        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, params AlgoliaIndex[] indexes)
+        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, AlgoliaIndex[] indexes, string[] crawlers = null)
         {
             Array.ForEach(indexes, index => IndexStore.Instance.Add(index));
+            if (crawlers != null)
+            {
+                Array.ForEach(crawlers, crawlerId => IndexStore.Instance.AddCrawler(crawlerId));
+            }
 
             return services
                 .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME))

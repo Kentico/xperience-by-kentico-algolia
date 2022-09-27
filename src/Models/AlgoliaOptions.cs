@@ -43,6 +43,20 @@ namespace Kentico.Xperience.Algolia.Models
         }
 
 
+        public string CrawlerApiKey
+        {
+            get;
+            set;
+        }
+
+
+        public string CrawlerUserId
+        {
+            get;
+            set;
+        }
+
+
         /// <summary>
         /// The query string parameter name which stores a search result's <see cref="AlgoliaSearchModel.ObjectID"/>.
         /// Used by the <see cref="IAlgoliaInsightsService.SetInsightsUrls"/> to set search results URLs,

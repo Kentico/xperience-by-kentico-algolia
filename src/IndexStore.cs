@@ -15,6 +15,7 @@ namespace Kentico.Xperience.Algolia
     {
         private static readonly Lazy<IndexStore> mInstance = new();
         private readonly List<AlgoliaIndex> registeredIndexes = new();
+        private readonly List<string> registeredCrawlers = new();
 
 
         /// <summary>
@@ -59,6 +60,24 @@ namespace Kentico.Xperience.Algolia
         }
 
 
+        public IndexStore AddCrawler(string crawlerId)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(crawlerId);
+            }
+
+            if (registeredCrawlers.Any(id => id.Equals(crawlerId, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Attempted to register Algolia crawler with ID '{crawlerId},' but it is already registered.");
+            }
+
+            registeredCrawlers.Add(crawlerId);
+
+            return this;
+        }
+
+
         /// <summary>
         /// Gets a registered <see cref="AlgoliaIndex"/> with the specified <paramref name="indexName"/>,
         /// or <c>null</c>.
@@ -83,6 +102,12 @@ namespace Kentico.Xperience.Algolia
         public IEnumerable<AlgoliaIndex> GetAll()
         {
             return registeredIndexes;
+        }
+
+
+        public IEnumerable<string> GetAllCrawlers()
+        {
+            return registeredCrawlers;
         }
 
 

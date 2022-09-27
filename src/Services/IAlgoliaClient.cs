@@ -16,6 +16,9 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     public interface IAlgoliaClient
     {
+        Task CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+
+
         /// <summary>
         /// Removes records from the Algolia index.
         /// </summary>
@@ -29,6 +32,12 @@ namespace Kentico.Xperience.Algolia.Services
         Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken);
 
 
+        Task DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+
+
+        Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken);
+
+
         /// <summary>
         /// Gets the indices of the Algolia application with basic statistics.
         /// </summary>
@@ -38,16 +47,6 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ObjectDisposedException" />
         Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
 
-
-        /// <summary>
-        /// Processes multiple queue items from all Algolia indexes in batches. Algolia
-        /// automatically applies batching in multiples of 1,000 when using their API,
-        /// so all queue items are forwarded to the API.
-        /// </summary>
-        /// <param name="items">The items to process.</param>
-        /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The number of items processed.</returns>
-        Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items, CancellationToken cancellationToken);
 
 
         /// <summary>
