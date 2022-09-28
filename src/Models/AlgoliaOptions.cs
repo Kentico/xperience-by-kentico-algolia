@@ -43,6 +43,9 @@ namespace Kentico.Xperience.Algolia.Models
         }
 
 
+        /// <summary>
+        /// The Algolia crawler API key.
+        /// </summary>
         public string CrawlerApiKey
         {
             get;
@@ -50,6 +53,9 @@ namespace Kentico.Xperience.Algolia.Models
         }
 
 
+        /// <summary>
+        /// The Algolia crawler user ID.
+        /// </summary>
         public string CrawlerUserId
         {
             get;

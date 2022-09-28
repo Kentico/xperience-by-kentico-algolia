@@ -8,7 +8,7 @@ using Kentico.Xperience.Algolia.Services;
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>
-    /// Initializes page event handlers, and ensures the thread queue worker for processing Algolia tasks.
+    /// Initializes page event handlers, and ensures the thread queue workers for processing Algolia tasks.
     /// </summary>
     internal class AlgoliaSearchModule : Module
     {
@@ -51,7 +51,7 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <summary>
-        /// Called after a page is published or archived. Logs an Algolia task to be processed later.
+        /// Called when a page is published or archived. Logs an Algolia task to be processed later.
         /// </summary>
         private void HandleWorkflowEvent(object sender, WorkflowEventArgs e)
         {
@@ -65,7 +65,7 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <summary>
-        /// Called before a page is deleted. Logs an Algolia task to be processed later.
+        /// Called when a page is deleted. Logs an Algolia task to be processed later.
         /// </summary>
         private void HandleDocumentEvent(object sender, DocumentEventArgs e)
         {

@@ -52,7 +52,7 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 try
                 {
-                    var algoliaIndex = IndexStore.Instance.Get(group.Key);
+                    var algoliaIndex = IndexStore.Instance.GetIndex(group.Key);
 
                     var deleteIds = new List<string>();
                     var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
@@ -96,8 +96,7 @@ namespace Kentico.Xperience.Algolia.Services
                     .Select(t => t.Url);
                 if (urlsToUpdate.Any())
                 {
-                    successfulOperations += urlsToUpdate.Count();
-                    await algoliaClient.CrawlUrls(group.Key, urlsToUpdate, cancellationToken);
+                    successfulOperations += await algoliaClient.CrawlUrls(group.Key, urlsToUpdate, cancellationToken);
                 }
 
                 var urlsToDelete = group
@@ -105,8 +104,7 @@ namespace Kentico.Xperience.Algolia.Services
                     .Select(t => t.Url);
                 if (urlsToDelete.Any())
                 {
-                    successfulOperations += urlsToDelete.Count();
-                    await algoliaClient.DeleteUrls(group.Key, urlsToDelete, cancellationToken);
+                    successfulOperations += await algoliaClient.DeleteUrls(group.Key, urlsToDelete, cancellationToken);
                 }
             }
 

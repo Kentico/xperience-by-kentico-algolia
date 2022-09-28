@@ -17,6 +17,9 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
+        /// </summary>
         public DefaultAlgoliaTaskLogger(IEventLogService eventLogService) {
             this.eventLogService = eventLogService;
         }
@@ -25,11 +28,13 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc />
         public void HandleEvent(TreeNode node, string eventName)
         {
+            var taskType = GetTaskType(node, eventName);
+
             // Check crawlers
             foreach (var crawlerId in IndexStore.Instance.GetAllCrawlers())
             {
                 var url = DocumentURLProvider.GetAbsoluteUrl(node);
-                LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, GetTaskType(node, eventName)));
+                LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, taskType));
             }
 
             // Check standard indexes
@@ -37,14 +42,14 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 return;
             }
-            foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))
+            foreach (var indexName in IndexStore.Instance.GetAllIndexes().Select(index => index.IndexName))
             {
                 if (!node.IsIndexedByIndex(indexName))
                 {
                     continue;
                 }
 
-                LogIndexTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
+                LogIndexTask(new AlgoliaQueueItem(node, taskType, indexName));
             }
         }
 

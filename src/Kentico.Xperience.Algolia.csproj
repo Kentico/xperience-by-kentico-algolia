@@ -6,6 +6,7 @@
 		<RootNamespace>Kentico.Xperience.Algolia</RootNamespace>
 		<LangVersion>Latest</LangVersion>
 		<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+		<NoWarn>S1075</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup>

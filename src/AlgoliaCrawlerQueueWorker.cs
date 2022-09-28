@@ -11,6 +11,10 @@ using Kentico.Xperience.Algolia.Services;
 
 namespace Kentico.Xperience.Algolia
 {
+    /// <summary>
+    /// Thread worker which enqueues recently updated or deleted nodes and processes
+    /// the tasks in the background thread.
+    /// </summary>
     internal class AlgoliaCrawlerQueueWorker : ThreadQueueWorker<AlgoliaCrawlerQueueItem, AlgoliaCrawlerQueueWorker>
     {
         private readonly IAlgoliaTaskProcessor algoliaTaskProcessor;
@@ -20,12 +24,22 @@ namespace Kentico.Xperience.Algolia
         protected override int DefaultInterval => 10000;
 
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AlgoliaCrawlerQueueWorker"/> class.
+        /// Should not be called directly- the worker should be initialized during startup using
+        /// <see cref="ThreadWorker{T}.EnsureRunningThread"/>.
+        /// </summary>
         public AlgoliaCrawlerQueueWorker()
         {
             algoliaTaskProcessor = Service.Resolve<IAlgoliaTaskProcessor>();
         }
 
 
+        /// <summary>
+        /// Adds an <see cref="AlgoliaCrawlerQueueItem"/> to the worker queue to be processed.
+        /// </summary>
+        /// <param name="queueItem">The item to be added to the queue.</param>
+        /// <exception cref="InvalidOperationException" />
         public void EnqueueCrawlerQueueItem(AlgoliaCrawlerQueueItem queueItem)
         {
             if (queueItem == null || String.IsNullOrEmpty(queueItem.CrawlerId) || String.IsNullOrEmpty(queueItem.Url))

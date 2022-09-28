@@ -28,7 +28,7 @@ namespace Kentico.Xperience.Algolia.Extensions
         {
             if (indexes != null)
             {
-                Array.ForEach(indexes, index => IndexStore.Instance.Add(index));
+                Array.ForEach(indexes, index => IndexStore.Instance.AddIndex(index));
             }
             
             if (crawlers != null)

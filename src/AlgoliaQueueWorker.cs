@@ -24,8 +24,8 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AlgoliaQueueItem"/> class. Should
-        /// not be called directly- the worker should be initialized during startup using
+        /// Initializes a new instance of the <see cref="AlgoliaQueueWorker"/> class.
+        /// Should not be called directly- the worker should be initialized during startup using
         /// <see cref="ThreadWorker{T}.EnsureRunningThread"/>.
         /// </summary>
         public AlgoliaQueueWorker()
@@ -51,7 +51,7 @@ namespace Kentico.Xperience.Algolia
                 return;
             }
 
-            if (IndexStore.Instance.Get(queueItem.IndexName) == null)
+            if (IndexStore.Instance.GetIndex(queueItem.IndexName) == null)
             {
                 throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
             }

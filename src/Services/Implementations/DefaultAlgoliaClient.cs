@@ -37,9 +37,9 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
-        private const string BASE_URL = "https://crawler.algolia.com";
-        private const string PATH_CRAWL_URLS = "api/1/crawlers/{0}/urls/crawl";
-        private const string PATH_GET_CRAWLER = "api/1/crawlers/{0}?withConfig=true";
+        private const string BASE_URL = "https://crawler.algolia.com/api/1";
+        private const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
+        private const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
 
 
         /// <summary>
@@ -64,54 +64,48 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc/>
-        public async Task CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        public Task<int> CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(crawlerId))
             {
                 throw new ArgumentNullException(nameof(crawlerId));
             }
 
-            if (!urls.Any())
+            if (urls == null || !urls.Any())
             {
-                return;
+                throw new InvalidOperationException("No URLs were provided.");
             }
 
-            var path = String.Format(PATH_CRAWL_URLS, crawlerId);
-            var body = new CrawlUrlsBody(urls);
-            var data = new StringContent(JsonConvert.SerializeObject(body), null, "application/json");
-            await SendRequest(path, HttpMethod.Post, cancellationToken, data);
+            return CrawlUrlsInternal(crawlerId, urls, cancellationToken);
         }
 
 
         /// <inheritdoc/>
-        public async Task DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
-        {
-            var crawlerDetail = await GetCrawler(crawlerId, cancellationToken);
-            var indexName = $"{crawlerDetail.Config.IndexPrefix}{crawlerDetail.Name}";
-            var searchIndex = searchClient.InitIndex(indexName);
-
-            await searchIndex.DeleteObjectsAsync(urls, ct: cancellationToken);
-        }
-
-
-        /// <inheritdoc/>
-        public async Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken)
+        public Task<int> DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(crawlerId))
             {
                 throw new ArgumentNullException(nameof(crawlerId));
             }
 
-            var path = String.Format(PATH_GET_CRAWLER, crawlerId);
-            var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
-            if (response == null)
+            if (urls == null || !urls.Any())
             {
-                return null;
+                throw new InvalidOperationException("No URLs were provided.");
             }
 
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            return DeleteUrlsInternal(crawlerId, urls, cancellationToken);
+        }
 
-            return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
+
+        /// <inheritdoc/>
+        public Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(nameof(crawlerId));
+            }
+
+            return GetCrawlerInternal(crawlerId, cancellationToken);
         }
 
 
@@ -150,7 +144,7 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");
@@ -177,6 +171,42 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        private async Task<int> CrawlUrlsInternal(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            var path = String.Format(PATH_CRAWL_URLS, crawlerId);
+            var body = new CrawlUrlsBody(urls);
+            var data = new StringContent(JsonConvert.SerializeObject(body), null, "application/json");
+            var response = await SendRequest(path, HttpMethod.Post, cancellationToken, data);
+            if (response == null)
+            {
+                return 0;
+            }
+
+            return urls.Count();
+        }
+
+
+        private async Task<int> DeleteUrlsInternal(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            var crawlerDetail = await GetCrawler(crawlerId, cancellationToken);
+            if (crawlerDetail == null)
+            {
+                return 0;
+            }
+
+            var indexName = $"{crawlerDetail.Config.IndexPrefix}{crawlerDetail.Name}";
+            var searchIndex = searchClient.InitIndex(indexName);
+            var deletedCount = 0;
+            var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(urls, ct: cancellationToken);
+            foreach (var response in batchIndexingResponse.Responses)
+            {
+                deletedCount += response.ObjectIDs.Count();
+            }
+
+            return deletedCount;
+        }
+
+
         private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
         {
             var deletedCount = 0;
@@ -200,6 +230,21 @@ namespace Kentico.Xperience.Algolia.Services
 
             var bytes = Encoding.UTF8.GetBytes($"{algoliaOptions.CrawlerUserId}:{algoliaOptions.CrawlerApiKey}");
             return Convert.ToBase64String(bytes);
+        }
+
+
+        private async Task<AlgoliaCrawler> GetCrawlerInternal(string crawlerId, CancellationToken cancellationToken)
+        {
+            var path = String.Format(PATH_GET_CRAWLER, crawlerId);
+            var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
+            if (response == null)
+            {
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
         }
 
 

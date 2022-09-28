@@ -16,7 +16,14 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     public interface IAlgoliaClient
     {
-        Task CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+        /// <summary>
+        /// Requests Algolia crawling of the specified <paramref name="urls"/>.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to update.</param>
+        /// <param name="urls">The URLs to crawl.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>The number of URLs crawled.</returns>
+        Task<int> CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
 
 
         /// <summary>
@@ -32,9 +39,24 @@ namespace Kentico.Xperience.Algolia.Services
         Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken);
 
 
-        Task DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+        /// <summary>
+        /// Deletes crawled URLs from the crawler's underlying index.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to update.</param>
+        /// <param name="urls">The URLs to delete from the index.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>The number of records deleted.</returns>
+        Task<int> DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
 
 
+        /// <summary>
+        /// Gets the full crawler details from Algolia's REST API.
+        /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/rest-api/crawler/#get-a-crawler"/>.</remarks>
+        /// <param name="crawlerId">The ID of the crawler to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>An <see cref="AlgoliaCrawler"/> with the <see cref="AlgoliaCrawler.Config"/> details, or
+        /// <c>null</c> if there was an error retrieving the crawler.</returns>
         Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken);
 
 

@@ -9,7 +9,7 @@ using Kentico.Xperience.Algolia.Models;
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>
-    /// Represents a store of Algolia indexes.
+    /// Represents a store of Algolia indexes and crawlers.
     /// </summary>
     public sealed class IndexStore
     {
@@ -30,7 +30,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="index">The index to add.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public IndexStore Add(AlgoliaIndex index)
+        public IndexStore AddIndex(AlgoliaIndex index)
         {
             if (index == null)
             {
@@ -60,6 +60,12 @@ namespace Kentico.Xperience.Algolia
         }
 
 
+        /// <summary>
+        /// Adds a crawler to the store.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to add.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
         public IndexStore AddCrawler(string crawlerId)
         {
             if (String.IsNullOrEmpty(crawlerId))
@@ -85,7 +91,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="indexName">The name of the index to retrieve.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public AlgoliaIndex Get(string indexName)
+        public AlgoliaIndex GetIndex(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
             {
@@ -99,12 +105,15 @@ namespace Kentico.Xperience.Algolia
         /// <summary>
         /// Gets all registered indexes.
         /// </summary>
-        public IEnumerable<AlgoliaIndex> GetAll()
+        public IEnumerable<AlgoliaIndex> GetAllIndexes()
         {
             return registeredIndexes;
         }
 
 
+        /// <summary>
+        /// Gets all registered crawlers.
+        /// </summary>
         public IEnumerable<string> GetAllCrawlers()
         {
             return registeredCrawlers;
@@ -123,7 +132,7 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        internal AlgoliaIndex Get(int id)
+        internal AlgoliaIndex GetIndex(int id)
         {
             return registeredIndexes.FirstOrDefault(i => i.Identifier == id);
         }
