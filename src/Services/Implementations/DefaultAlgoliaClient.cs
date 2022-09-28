@@ -37,6 +37,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
+        private const string CACHEKEY_CRAWLER = "Algolia|Crawler|{0}";
         private const string BASE_URL = "https://crawler.algolia.com/api/1";
         private const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
         private const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
@@ -235,16 +236,19 @@ namespace Kentico.Xperience.Algolia.Services
 
         private async Task<AlgoliaCrawler> GetCrawlerInternal(string crawlerId, CancellationToken cancellationToken)
         {
-            var path = String.Format(PATH_GET_CRAWLER, crawlerId);
-            var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
-            if (response == null)
-            {
-                return null;
-            }
+            return await progressiveCache.LoadAsync(async (cs) => {
+                var path = String.Format(PATH_GET_CRAWLER, crawlerId);
+                var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
+                if (response == null)
+                {
+                    cs.Cached = false;
+                    return null;
+                }
 
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
-            return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
+                return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
+            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId))).ConfigureAwait(false);
         }
 
 

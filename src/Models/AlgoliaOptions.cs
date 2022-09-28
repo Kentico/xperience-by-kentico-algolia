@@ -64,6 +64,16 @@ namespace Kentico.Xperience.Algolia.Models
 
 
         /// <summary>
+        /// The interval at which <see cref="AlgoliaCrawlerQueueWorker"/> runs.
+        /// </summary>
+        public int CrawlerInterval
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
         /// The query string parameter name which stores a search result's <see cref="AlgoliaSearchModel.ObjectID"/>.
         /// Used by the <see cref="IAlgoliaInsightsService.SetInsightsUrls"/> to set search results URLs,
         /// and is logged by <see cref="IAlgoliaInsightsService.LogSearchResultClicked"/>

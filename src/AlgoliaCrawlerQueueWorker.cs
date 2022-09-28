@@ -9,6 +9,8 @@ using CMS.Core;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
+using Microsoft.Extensions.Options;
+
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>
@@ -21,7 +23,19 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <inheritdoc/>
-        protected override int DefaultInterval => 10000;
+        protected override int DefaultInterval
+        {
+            get
+            {
+                var algoliaOptions = Service.Resolve<IOptions<AlgoliaOptions>>();
+                if (algoliaOptions.Value.CrawlerInterval > 0)
+                {
+                    return algoliaOptions.Value.CrawlerInterval;
+                }
+                
+                return 600000;
+            }
+        }
 
 
         /// <summary>
