@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,8 +78,8 @@ namespace Kentico.Xperience.Algolia.Services
 
             var path = String.Format(PATH_CRAWL_URLS, crawlerId);
             var body = new CrawlUrlsBody(urls);
-            var data = new StringContent(JsonConvert.SerializeObject(body));
-            var response = await SendRequest(path, HttpMethod.Post, cancellationToken, data);
+            var data = new StringContent(JsonConvert.SerializeObject(body), null, "application/json");
+            await SendRequest(path, HttpMethod.Post, cancellationToken, data);
         }
 
 
@@ -245,9 +246,14 @@ namespace Kentico.Xperience.Algolia.Services
 
         private async Task<HttpResponseMessage> SendRequest(string path, HttpMethod method, CancellationToken cancellationToken, HttpContent data = null)
         {
+            if (method == HttpMethod.Post && data == null)
+            {
+                throw new InvalidOperationException("Data must be provided for the POST method.");
+            }
+
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
 
                 var url = $"{BASE_URL}/{path}";
@@ -258,7 +264,9 @@ namespace Kentico.Xperience.Algolia.Services
                 }
                 else if (method.Equals(HttpMethod.Post))
                 {
-                    response = await client.PostAsync(url, data, cancellationToken: cancellationToken);
+                    // Algolia throws 415 if charset is specified
+                    data.Headers.ContentType.CharSet = String.Empty;
+                    response = await client.PostAsync(url, data, cancellationToken);
                 }
                 else
                 {

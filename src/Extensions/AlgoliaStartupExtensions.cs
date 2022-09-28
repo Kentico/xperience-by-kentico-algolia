@@ -18,14 +18,19 @@ namespace Kentico.Xperience.Algolia.Extensions
         /// <summary>
         /// Registers instances of <see cref="IInsightsClient"/> and <see cref="ISearchClient"/> with
         /// Dependency Injection and configures the Algolia options. Registers the provided <paramref name="indexes"/>
-        /// with the <see cref="IndexStore"/>.
+        /// and <paramref name="crawlers"/> with the <see cref="IndexStore"/>.
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="configuration">The application configuration.</param>
         /// <param name="indexes">The Algolia indexes to register.</param>
-        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, AlgoliaIndex[] indexes, string[] crawlers = null)
+        /// <param name="crawlers">The Algolia crawlers to register.</param>
+        public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration, AlgoliaIndex[] indexes = null, string[] crawlers = null)
         {
-            Array.ForEach(indexes, index => IndexStore.Instance.Add(index));
+            if (indexes != null)
+            {
+                Array.ForEach(indexes, index => IndexStore.Instance.Add(index));
+            }
+            
             if (crawlers != null)
             {
                 Array.ForEach(crawlers, crawlerId => IndexStore.Instance.AddCrawler(crawlerId));
