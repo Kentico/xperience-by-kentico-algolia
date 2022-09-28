@@ -30,7 +30,7 @@ A single class (created by your developers) contains the Algolia index attribute
 ```
 > :warning: Do not use the Admin API key! Use the custom API key you created in step #3.
 
-5. In __Program.cs__, register the Algolia integration:
+5. In `Program.cs`, register the Algolia integration:
 
 ```cs
 builder.Services.AddAlgolia(builder.Configuration);
@@ -74,18 +74,21 @@ public class SiteSearchModel : AlgoliaSearchModel
 Indexes must be registered during application startup in the Xperience application. To register an index, you can modify the `AddAlgolia()` method called in __Program.cs__. This method accepts a list of [`AlgoliaIndex`](/src/Models/AlgoliaIndex.cs), so you can create and register as many indexes as needed:
 
 ```cs
-builder.Services.AddAlgolia(builder.Configuration,
+builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
+{
     new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName),
     // more indexes...
-    );
+});
 ```
 
 If you're developing your search solution in multiple environments (e.g. "DEV" and "STG"), it is recommended that you create a unique Algolia index per environment. With this approach, the search functionality can be tested in each environment individually and changes to the index structure or content will not affect other environments. This can be implemented any way you'd like, including some custom service which transforms the index names. The simplest approach would be to prepend some environment name to the index, which is stored in the application settings:
 
 ```cs
 var environment = builder.Configuration["Environment"];
-builder.Services.AddAlgolia(builder.Configuration,
-    new AlgoliaIndex(typeof(SiteSearchModel), $"{environment}-{SiteSearchModel.IndexName}"));
+builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
+{
+    new AlgoliaIndex(typeof(SiteSearchModel), $"{environment}-{SiteSearchModel.IndexName}")
+});
 ```
 
 ### Determining which pages to index
@@ -229,8 +232,10 @@ Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617
 To enable data splitting for an Algolia index, add the `DistinctOptions` parameter during registration:
 
 ```cs
-builder.Services.AddAlgolia(builder.Configuration,
-    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName, new DistinctOptions(nameof(SiteSearchModel.DocumentName), 1)));
+builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
+{
+    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName, new DistinctOptions(nameof(SiteSearchModel.DocumentName), 1))
+});
 ```
 
 The `DistinctOptions` constructor accepts two parameters:
@@ -1080,6 +1085,47 @@ endpoints.MapControllerRoute(
 ```
 
 When you run the site and visit your new page, you'll see that you have a fully functioning search interface with faceting. See Algolia's [InstantSearch documentation](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) for more detailed walkthroughs on designing the search interface and customizing widgets.
+
+## :snail: Using Algolia crawlers
+
+This integration provides basic support for [Algolia crawlers](https://www.algolia.com/doc/tools/crawler/getting-started/overview/). Crawlers are created and configured within [Algolia's Crawler Admin](https://crawler.algolia.com/admin), and this integration ensures that updated, archived, and deleted pages in Xperience are properly updated within the crawler.
+
+### Limitations
+
+The [endpoint](https://www.algolia.com/doc/rest-api/crawler/#crawl-specific-urls) used to request re-crawling of updated Xperience pages has a limitation of 200 requests per day. By default, the process which requests re-crawling of pages runs every 10 minutes (114 times per day) and the limitation shouldn't be reached when a _single_ crawler is registered. However, if you have registered multiple crawlers, you will need to extend the interval by setting the `crawlerInterval` setting in `appsettings.json`:
+
+```json
+"xperience.algolia": {
+    "crawlerInterval": 1200000 // 20 minutes
+}
+```
+
+### Setup
+
+After you have created your crawler in Algolia, follow these steps to register the crawler in Xperience:
+
+1. Locate the User ID and API Key in the [Algolia Crawler Admin](https://www.algolia.com/doc/tools/crawler/apis/crawler-rest-api/#authentication) and add the values to your `appsettings.json`:
+
+```json
+"xperience.algolia": {
+    "crawlerUserId": "<Crawler User ID>",
+    "crawlerApiKey": "<Crawler API Key>"
+}
+```
+
+> :warning: Even if you are only using Algolia crawlers, you still need to include the application settings mentioned in step #4 of [Installation](#rocket-installation)
+
+3. Locate the ID of the crawlers you wish to register in Xperience. The ID of each crawler can be found in the URL while navigating the Algolia Crawler Admin, or in the __Settings__ menu.  
+4. In `Program.cs`, edit (or add) the `AddAlgolia` method to include one or more crawler IDs:
+
+```cs
+builder.Services.AddAlgolia(builder.Configuration, crawlers: new string[]
+{
+    "<Crawler ID>"
+});
+```
+
+Your Xperience by Kentico application will now request re-crawling of all published pages in the content tree, and will delete records from the crawler when a page is deleted or archived. 
 
 ## Questions & Support
 
