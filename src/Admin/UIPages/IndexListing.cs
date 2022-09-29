@@ -114,7 +114,7 @@ namespace Kentico.Xperience.Algolia.Admin
             {
                 EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
                 return ResponseFrom(result)
-                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror", index.IndexName)));
+                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror"), index.IndexName));
             }
             
         }

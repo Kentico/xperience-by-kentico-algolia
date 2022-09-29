@@ -1125,7 +1125,79 @@ builder.Services.AddAlgolia(builder.Configuration, crawlers: new string[]
 });
 ```
 
-Your Xperience by Kentico application will now request re-crawling of all published pages in the content tree, and will delete records from the crawler when a page is deleted or archived. 
+Your Xperience by Kentico application will now request re-crawling of all published pages in the content tree, and will delete records from the crawler when a page is deleted or archived.
+
+### Configuring crawlers
+
+As the data indexed by your crawler is managed entirely by Algolia, you are welcome to configure the crawler however you'd like using [Algolia's Editor](https://www.algolia.com/doc/tools/crawler/getting-started/crawler-configuration/#how-do-you-access-a-crawler-configuration). However, the "objectID" of your records __must__ be the URL of your pages! This is the default configuration, so you only need to ensure that it isn't changed. Below is a sample `actions` section of the configuration used in the Dancing Goat sample site:
+
+```js
+actions: [
+    {
+      indexName: "Dancing Goat",
+      pathsToMatch: [
+        "https://mysite.com/coffees/**",
+        "https://mysite.com/articles/**",
+      ],
+      recordExtractor: ({ url, $, contentLength, fileType }) => {
+        return [
+          {
+            objectID: url.href, // Do not change this!
+            path: url.pathname.split("/")[1],
+            fileType,
+            title: $("head > title").text(),
+            keywords: $("meta[name=keywords]").attr("content"),
+            description: $("meta[name=description]").attr("content"),
+            image: $('meta[property="og:image"]').attr("content"),
+            content: $("p").text(),
+          },
+        ];
+      },
+    },
+  ],
+```
+
+### Searching your crawler
+
+As your crawler can contain any number of dynamic fields in its configuration, this integration doesn't contain a strongly-typed model for crawlers. We encourage your developers to create their own model for each crawler- using the example configuration above, the model could look like this:
+
+```cs
+public class CrawlerHitModel
+{
+    public string ObjectId { get; set; }
+
+    public string Title { get; set; }
+
+    public string Content { get; set; }
+
+    public string Description { get; set; }
+
+    public string Image { get; set; }
+}
+```
+
+To perform a search against the crawler and return the `CrawlerHitModel` results, you must obtain the full index name from the crawler's configuration. Because the crawler's configuration contains a name and optional prefix that is added to the underlying index name, use `IAlgoliaClient.GetCrawler()` to retrieve the configuration, and combine the prefix and name.
+
+In the below example we've only registered a single crawler, so we can use `FirstOrDefault()` to get the crawler ID. In cases where there are multiple crawlers registered, your developers will need to create a mapping to identify which crawler should be used in a particular search. We are also using the `path` and `fileType` attributes to only return pages under the /coffees path:
+
+```cs
+public async Task<IActionResult> Search([FromQuery] string searchText, CancellationToken cancellationToken)
+{
+    // Get index name
+    var crawlerId = IndexStore.Instance.GetAllCrawlers().FirstOrDefault();
+    var crawler = await algoliaClient.GetCrawler(crawlerId, cancellationToken);
+    var indexName = $"{crawler.Config.IndexPrefix}{crawler.Name}";
+
+    // Search
+    var searchIndex = searchClient.InitIndex(indexName);
+    var query = new Query(searchText) {
+        Filters = "path:coffees AND fileType:html"
+    };
+    var result = await searchIndex.SearchAsync<CrawlerHitModel>(query, ct: cancellationToken);
+
+    return View(result.Hits);
+}
+```
 
 ## Questions & Support
 
