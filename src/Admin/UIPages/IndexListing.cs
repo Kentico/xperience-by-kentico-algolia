@@ -156,7 +156,7 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
+        private static void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
         {
             foreach (var indexName in IndexStore.Instance.GetAllIndexes().Select(i => i.IndexName))
             {

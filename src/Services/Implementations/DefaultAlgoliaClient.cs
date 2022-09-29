@@ -300,39 +300,37 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new InvalidOperationException("Data must be provided for the POST method.");
             }
 
-            using (var client = new HttpClient())
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
+
+            var url = $"{BASE_URL}/{path}";
+            HttpResponseMessage response = null;
+            if (method.Equals(HttpMethod.Get))
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
-
-                var url = $"{BASE_URL}/{path}";
-                HttpResponseMessage response = null;
-                if (method.Equals(HttpMethod.Get))
-                {
-                    response = await client.GetAsync(url, cancellationToken);
-                }
-                else if (method.Equals(HttpMethod.Post))
-                {
-                    // Algolia throws 415 if charset is specified
-                    data.Headers.ContentType.CharSet = String.Empty;
-                    response = await client.PostAsync(url, data, cancellationToken);
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest),
-                        $"Request for {path} returned {response.StatusCode}: {content}");
-
-                    return null;
-                }
-
-                return response;
+                response = await client.GetAsync(url, cancellationToken);
             }
+            else if (method.Equals(HttpMethod.Post))
+            {
+                // Algolia throws 415 if charset is specified
+                data.Headers.ContentType.CharSet = String.Empty;
+                response = await client.PostAsync(url, data, cancellationToken);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest),
+                    $"Request for {path} returned {response.StatusCode}: {content}");
+
+                return null;
+            }
+
+            return response;
         }
 
 

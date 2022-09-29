@@ -36,7 +36,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly Regex queryParameterRegex = new ("^[a-fA-F0-9]{32}$");
         
 
-        private string ContactGUID
+        private static string ContactGUID
         {
             get
             {

@@ -54,7 +54,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         /// <param name="queueItem">The item to be added to the queue.</param>
         /// <exception cref="InvalidOperationException" />
-        public void EnqueueCrawlerQueueItem(AlgoliaCrawlerQueueItem queueItem)
+        public static void EnqueueCrawlerQueueItem(AlgoliaCrawlerQueueItem queueItem)
         {
             if (queueItem == null || String.IsNullOrEmpty(queueItem.CrawlerId) || String.IsNullOrEmpty(queueItem.Url))
             {

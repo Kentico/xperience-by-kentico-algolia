@@ -62,7 +62,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             try
             {
-                AlgoliaCrawlerQueueWorker.Current.EnqueueCrawlerQueueItem(task);
+                AlgoliaCrawlerQueueWorker.EnqueueCrawlerQueueItem(task);
             }
             catch (InvalidOperationException ex)
             {
@@ -79,7 +79,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             try
             {
-                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
+                AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(task);
             }
             catch (InvalidOperationException ex)
             {
@@ -88,7 +88,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
+        private static AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
         {
             if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count == 0)
             {

@@ -120,7 +120,7 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        private void AddIncludedPaths(AlgoliaIndex index)
+        private static void AddIncludedPaths(AlgoliaIndex index)
         {
             var paths = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
             foreach (var path in paths)
