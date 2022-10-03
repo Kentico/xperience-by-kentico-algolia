@@ -12,6 +12,8 @@ namespace Kentico.Xperience.Algolia.Models
     {
         /// <summary>
         /// A collection of an Algolia index's faceted attributes and the available facets.
+        /// The property must have a public getter and setter for faceting functionality to work
+        /// as described in the documenation.
         /// </summary>
         AlgoliaFacetedAttribute[] FacetedAttributes
         {

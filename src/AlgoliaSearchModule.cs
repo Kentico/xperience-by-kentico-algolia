@@ -1,18 +1,11 @@
-﻿using System.Runtime.CompilerServices;
-
-using CMS;
 using CMS.Base;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
 
-using Kentico.Xperience.Algolia;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Services;
 
-[assembly: AssemblyDiscoverable]
-[assembly: InternalsVisibleTo("Kentico.Xperience.Algolia.Tests")]
-[assembly: RegisterModule(typeof(AlgoliaSearchModule))]
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>

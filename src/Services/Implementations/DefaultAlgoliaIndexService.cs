@@ -2,19 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Settings;
 
-using CMS;
-using CMS.Core;
 using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaIndexService), typeof(DefaultAlgoliaIndexService), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -36,7 +34,7 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public ISearchIndex InitializeIndex(string indexName)
+        public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
         {
             var algoliaIndex = IndexStore.Instance.Get(indexName);
             if (algoliaIndex == null)
@@ -51,7 +49,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             var searchIndex = searchClient.InitIndex(indexName);
-            searchIndex.SetSettings(indexSettings);
+            await searchIndex.SetSettingsAsync(indexSettings, ct: cancellationToken);
 
             return searchIndex;
         }

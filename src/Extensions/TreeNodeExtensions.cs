@@ -49,15 +49,14 @@ namespace Kentico.Xperience.Algolia.Extensions
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var alogliaIndex = IndexStore.Instance.Get(indexName);
-            if (alogliaIndex == null)
+            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            if (algoliaIndex == null)
             {
                 Service.Resolve<IEventLogService>().LogError(nameof(TreeNodeExtensions), nameof(IsIndexedByIndex), $"Error loading registered Algolia index '{indexName}.'");
                 return false;
             }
 
-            var includedPathAttributes = alogliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            return includedPathAttributes.Any(includedPathAttribute => {
+            return algoliaIndex.IncludedPaths.Any(includedPathAttribute => {
                 var matchesPageType = (includedPathAttribute.PageTypes.Length == 0 || includedPathAttribute.PageTypes.Contains(node.ClassName));
                 if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {

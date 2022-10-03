@@ -3,24 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DataEngine.Internal;
 using CMS.DocumentEngine;
 using CMS.FormEngine;
-using CMS.Helpers;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaObjectGenerator), typeof(DefaultAlgoliaObjectGenerator), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -32,7 +28,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
-        private readonly IProgressiveCache progressiveCache;
+        private readonly Dictionary<Type, string[]> cachedIndexedColumns = new();
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
             nameof(AlgoliaSearchModel.Url),
@@ -46,14 +42,12 @@ namespace Kentico.Xperience.Algolia.Services
         public DefaultAlgoliaObjectGenerator(IConversionService conversionService,
             IEventLogService eventLogService,
             IMediaFileInfoProvider mediaFileInfoProvider,
-            IMediaFileUrlRetriever mediaFileUrlRetriever,
-            IProgressiveCache progressiveCache)
+            IMediaFileUrlRetriever mediaFileUrlRetriever)
         {
             this.conversionService = conversionService;
             this.eventLogService = eventLogService;
             this.mediaFileInfoProvider = mediaFileInfoProvider;
             this.mediaFileUrlRetriever = mediaFileUrlRetriever;
-            this.progressiveCache = progressiveCache;
         }
 
 
@@ -133,28 +127,34 @@ namespace Kentico.Xperience.Algolia.Services
         /// <returns>The database columns that are indexed.</returns>
         private string[] GetIndexedColumnNames(Type searchModel)
         {
-            return progressiveCache.Load(cs => {
-                // Don't include properties with SourceAttribute at first, check the sources and add to list after
-                var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
-                var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
-                foreach (var property in propertiesWithSourceAttribute)
-                {
-                    var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                    if (sourceAttribute == null)
-                    {
-                        continue;
-                    }
+            if (cachedIndexedColumns.TryGetValue(searchModel, out string[] value))
+            {
+                return value;
+            }
 
-                    indexedColumnNames.AddRange(sourceAttribute.Sources);
+            // Don't include properties with SourceAttribute at first, check the sources and add to list after
+            var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
+            var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
+            foreach (var property in propertiesWithSourceAttribute)
+            {
+                var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
+                if (sourceAttribute == null)
+                {
+                    continue;
                 }
 
-                // Remove column names from AlgoliaSearchModel that aren't database columns
-                indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+                indexedColumnNames.AddRange(sourceAttribute.Sources);
+            }
 
-                return indexedColumnNames.ToArray();
-            }, new CacheSettings(60, $"{nameof(DefaultAlgoliaObjectGenerator)}|{nameof(GetIndexedColumnNames)}|{searchModel}"));
+            // Remove column names from AlgoliaSearchModel that aren't database columns
+            indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
+
+            var indexedColumns = indexedColumnNames.ToArray();
+            cachedIndexedColumns.Add(searchModel, indexedColumns);
+
+            return indexedColumns;
         }
 
 
@@ -176,13 +176,8 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 // Property uses SourceAttribute, loop through column names until a non-null value is found
                 var sourceAttribute = property.GetCustomAttributes<SourceAttribute>(false).FirstOrDefault();
-                foreach (var source in sourceAttribute.Sources)
+                foreach (var source in sourceAttribute.Sources.Where(s => columnsToUpdate.Contains(s)))
                 {
-                    if (!columnsToUpdate.Contains(source))
-                    {
-                        continue;
-                    }
-
                     nodeValue = node.GetValue(source);
                     if (nodeValue != null)
                     {
@@ -202,7 +197,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             // Convert node value to URLs if necessary
-            if (Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
+            if (nodeValue != null && Attribute.IsDefined(property, typeof(MediaUrlsAttribute)))
             {
                 nodeValue = GetAssetUrlsForColumn(node, nodeValue, usedColumn);
             }
@@ -239,7 +234,7 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
             }
 
-            var properties = searchModelType.GetProperties();
+            var properties = searchModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var prop in properties)
             {
                 object nodeValue = GetNodeValue(node, prop, searchModelType, columnsToUpdate);

@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-using CMS;
+using Algolia.Search.Clients;
+using Algolia.Search.Models.Common;
+
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
+using CMS.Helpers;
+using CMS.Helpers.Caching.Abstractions;
 using CMS.WorkflowEngine;
 
-using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json.Linq;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaClient), typeof(DefaultAlgoliaClient), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -27,9 +27,13 @@ namespace Kentico.Xperience.Algolia.Services
     {
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
+        private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
         private readonly IVersionHistoryInfoProvider versionHistoryInfoProvider;
         private readonly IWorkflowStepInfoProvider workflowStepInfoProvider;
+        private readonly IProgressiveCache progressiveCache;
+        private readonly ISearchClient searchClient;
+        private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
 
 
         /// <summary>
@@ -37,22 +41,27 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
             IAlgoliaObjectGenerator algoliaObjectGenerator,
+            ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
             IVersionHistoryInfoProvider versionHistoryInfoProvider,
-            IWorkflowStepInfoProvider workflowStepInfoProvider)
+            IWorkflowStepInfoProvider workflowStepInfoProvider,
+            IProgressiveCache progressiveCache,
+            ISearchClient searchClient)
         {
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
+            this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
             this.versionHistoryInfoProvider = versionHistoryInfoProvider;
             this.workflowStepInfoProvider = workflowStepInfoProvider;
+            this.progressiveCache = progressiveCache;
+            this.searchClient = searchClient;
         }
 
 
         /// <inheritdoc />
         public Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -63,7 +72,17 @@ namespace Kentico.Xperience.Algolia.Services
                 return Task.FromResult(0);
             }
 
-            return DeleteRecordsInternal(objectIds, indexName);
+            return DeleteRecordsInternal(objectIds, indexName, cancellationToken);
+        }
+
+
+        /// <inheritdoc/>
+        public async Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
+        {
+            return await progressiveCache.LoadAsync(async (cs) => {
+                var response = await searchClient.ListIndicesAsync(ct: cancellationToken).ConfigureAwait(false);
+                return response.Items;
+            }, new CacheSettings(20, CACHEKEY_STATISTICS)).ConfigureAwait(false);
         }
 
 
@@ -111,7 +130,6 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc />
         public Task Rebuild(string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -123,14 +141,13 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");
             }
 
-            return RebuildInternal(algoliaIndex);
+            return RebuildInternal(algoliaIndex, cancellationToken);
         }
 
 
         /// <inheritdoc />
         public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
@@ -141,7 +158,7 @@ namespace Kentico.Xperience.Algolia.Services
                 return Task.FromResult(0);
             }
 
-            return UpsertRecordsInternal(dataObjects, indexName);
+            return UpsertRecordsInternal(dataObjects, indexName, cancellationToken);
         }
 
 
@@ -200,11 +217,11 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName)
+        private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
         {
             var deletedCount = 0;
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(objectIds).ConfigureAwait(false);
+            var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
+            var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(objectIds, ct: cancellationToken).ConfigureAwait(false);
             foreach (var response in batchIndexingResponse.Responses)
             {
                 deletedCount += response.ObjectIDs.Count();
@@ -246,11 +263,13 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private async Task RebuildInternal(AlgoliaIndex algoliaIndex)
+        private async Task RebuildInternal(AlgoliaIndex algoliaIndex, CancellationToken cancellationToken)
         {
+            // Clear statistics cache so listing displays updated data after rebuild
+            cacheAccessor.Remove(CACHEKEY_STATISTICS);
+            
             var indexedNodes = new List<TreeNode>();
-            var includedPathAttributes = algoliaIndex.Type.GetCustomAttributes<IncludedPathAttribute>(false);
-            foreach (var includedPathAttribute in includedPathAttributes)
+            foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
             {
                 var query = new MultiDocumentQuery()
                     .Path(includedPathAttribute.AliasPath)
@@ -267,16 +286,16 @@ namespace Kentico.Xperience.Algolia.Services
 
             var dataToUpsert = new List<JObject>();
             indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(node, algoliaIndex, AlgoliaTaskType.CREATE)));
-            var searchIndex = algoliaIndexService.InitializeIndex(algoliaIndex.IndexName);
-            await searchIndex.ReplaceAllObjectsAsync(dataToUpsert).ConfigureAwait(false);
+            var searchIndex = await algoliaIndexService.InitializeIndex(algoliaIndex.IndexName, cancellationToken);
+            await searchIndex.ReplaceAllObjectsAsync(dataToUpsert, ct: cancellationToken).ConfigureAwait(false);
         }
 
 
-        private async Task<int> UpsertRecordsInternal(IEnumerable<JObject> dataObjects, string indexName)
+        private async Task<int> UpsertRecordsInternal(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
         {
             var upsertedCount = 0;
-            var searchIndex = algoliaIndexService.InitializeIndex(indexName);
-            var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true).ConfigureAwait(false);
+            var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
+            var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true, ct: cancellationToken).ConfigureAwait(false);
             foreach (var response in batchIndexingResponse.Responses)
             {
                 upsertedCount += response.ObjectIDs.Count();

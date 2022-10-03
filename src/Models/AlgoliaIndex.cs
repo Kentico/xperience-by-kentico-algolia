@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+
+using Kentico.Xperience.Algolia.Attributes;
 
 namespace Kentico.Xperience.Algolia.Models
 {
@@ -32,6 +35,26 @@ namespace Kentico.Xperience.Algolia.Models
         public string IndexName
         {
             get;
+        }
+
+
+        /// <summary>
+        /// An arbitrary ID used to identify the Algolia index in the admin UI.
+        /// </summary>
+        internal int Identifier
+        {
+            get;
+            set;
+        }
+
+
+        /// <summary>
+        /// The <see cref="IncludedPathAttribute"/>s which are defined in the search model.
+        /// </summary>
+        internal IEnumerable<IncludedPathAttribute> IncludedPaths
+        {
+            get;
+            set;
         }
 
 

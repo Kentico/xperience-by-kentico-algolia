@@ -2,8 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
+		<AdminOrgName>kentico</AdminOrgName>
 		<RootNamespace>Kentico.Xperience.Algolia</RootNamespace>
 		<LangVersion>Latest</LangVersion>
+		<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -23,7 +25,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<AdminClientPath Include="Admin\Client\dist\**">
+			<ProjectName>xperience-integrations-algolia</ProjectName>
+		</AdminClientPath>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="..\img\icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="Admin\Client\node_modules\**" />
+		<EmbeddedResource Remove="Admin\Client\node_modules\**" />
+		<None Remove="Admin\Client\node_modules\**" />
 	</ItemGroup>
 
 	<PropertyGroup Condition=" $(Configuration) == 'Release' ">
@@ -36,7 +50,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Algolia.Search" Version="6.13.0" />
-		<PackageReference Include="Kentico.Xperience.WebApp" Version="22.1.1" />
+		<PackageReference Include="Kentico.Xperience.Admin" Version="22.1.3" />
+		<PackageReference Include="Kentico.Xperience.WebApp" Version="22.1.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
@@ -45,6 +60,12 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\AlgoliaResources.resx">
+			<ExcludeFromManifest>true</ExcludeFromManifest>
+		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

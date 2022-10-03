@@ -1,6 +1,6 @@
 ![build](https://github.com/Kentico/kentico-xperience-algolia/actions/workflows/build.yml/badge.svg)
 [![Nuget](https://img.shields.io/nuget/v/Kentico.Xperience.Algolia)](https://www.nuget.org/packages/Kentico.Xperience.Algolia)
-[![Kentico.Xperience.WebApp 22.1.1](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.1.1-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
+[![Kentico.Xperience.WebApp 22.1.3](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.1.3-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
 [![Algolia.Search 6.13.0](https://img.shields.io/badge/Algolia.Search-v6.13.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
 
 # Xperience by Kentico Algolia Search Integration
@@ -310,11 +310,11 @@ public SearchController(IAlgoliaIndexService indexService)
     _indexService = indexService;
 }
 
-public ActionResult Search(string searchText, int page = DEFAULT_PAGE_NUMBER)
+public async Task<ActionResult> Search(string searchText, CancellationToken cancellationToken, int page = DEFAULT_PAGE_NUMBER)
 {
     page = Math.Max(page, DEFAULT_PAGE_NUMBER);
 
-    var searchIndex = _indexService.InitializeIndex(SiteSearchModel.IndexName);
+    var searchIndex = await _indexService.InitializeIndex(SiteSearchModel.IndexName, cancellationToken);
     var query = new Query(searchText)
     {
         Page = page - 1,
@@ -323,7 +323,7 @@ public ActionResult Search(string searchText, int page = DEFAULT_PAGE_NUMBER)
 
     try
     {
-        var results = searchIndex.Search<SiteSearchModel>(query);
+        var results = await searchIndex.SearchAsync<SiteSearchModel>(query, ct: cancellationToken);
         //...
     }
     catch (Exception e)
@@ -498,7 +498,7 @@ private async Task<SearchResponse<SiteSearchModel>> Search(CancellationToken can
         Facets = facetsToRetrieve
     };
 
-    var searchIndex = algoliaIndexService.InitializeIndex(SiteSearchModel.IndexName);
+    var searchIndex = await algoliaIndexService.InitializeIndex(SiteSearchModel.IndexName, cancellationToken);
     return await searchIndex.SearchAsync<SiteSearchModel>(query, ct: cancellationToken);
 }
 ```
@@ -547,7 +547,7 @@ Each `AlgoliaFacet` object represents the faceted attribute's possible values an
 
 2. In the __Pages__ application, edit the coffess and set values for the new fields.
 
-1. In the `Search()` method, add a parameter that accepts `IAlgoliaFacetFilter`. Then, call the `GetFilter()` method to generate the facet filters:
+3. In the `Search()` method, add a parameter that accepts `IAlgoliaFacetFilter`. Then, call the `GetFilter()` method to generate the facet filters:
 
 ```cs
 private async Task<SearchResponse<SiteSearchModel>> Search(IAlgoliaFacetFilter filter, CancellationToken cancellationToken)
@@ -570,7 +570,7 @@ private async Task<SearchResponse<SiteSearchModel>> Search(IAlgoliaFacetFilter f
         Facets = facetsToRetrieve
     };
 
-    var searchIndex = algoliaIndexService.InitializeIndex(SiteSearchModel.IndexName);
+    var searchIndex = await algoliaIndexService.InitializeIndex(SiteSearchModel.IndexName, cancellationToken);
     return await searchIndex.SearchAsync<SiteSearchModel>(query, ct: cancellationToken);
 }
 ```

@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Algolia.Search.Models.Common;
 
 using Kentico.Xperience.Algolia.Models;
 
@@ -25,6 +27,16 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ObjectDisposedException" />
         /// <returns>The number of records deleted.</returns>
         Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// Gets the indices of the Algolia application with basic statistics.
+        /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/>.</remarks>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <exception cref="OperationCanceledException" />
+        /// <exception cref="ObjectDisposedException" />
+        Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
 
 
         /// <summary>

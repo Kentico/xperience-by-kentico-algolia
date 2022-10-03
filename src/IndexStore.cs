@@ -41,7 +41,7 @@ namespace Kentico.Xperience.Algolia
                 throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
             }
 
-            var facetableProperties = index.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            var facetableProperties = index.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
             if (facetableProperties.Any(prop => {
                 var attr = prop.GetCustomAttributes<FacetableAttribute>(false).FirstOrDefault();
                 return attr.FilterOnly && attr.Searchable;
@@ -50,6 +50,9 @@ namespace Kentico.Xperience.Algolia
                 throw new InvalidOperationException($"Facetable attributes cannot be both {nameof(FacetableAttribute.Searchable)} and {nameof(FacetableAttribute.FilterOnly)}.");
             }
 
+            AddIncludedPaths(index);
+
+            index.Identifier = registeredIndexes.Count + 1;
             registeredIndexes.Add(index);
 
             return this;
@@ -80,6 +83,24 @@ namespace Kentico.Xperience.Algolia
         public IEnumerable<AlgoliaIndex> GetAll()
         {
             return registeredIndexes;
+        }
+
+
+        private void AddIncludedPaths(AlgoliaIndex index)
+        {
+            var paths = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
+            foreach (var path in paths)
+            {
+                path.Identifier = Guid.NewGuid().ToString();
+            }
+
+            index.IncludedPaths = paths;
+        }
+
+
+        internal AlgoliaIndex Get(int id)
+        {
+            return registeredIndexes.FirstOrDefault(i => i.Identifier == id);
         }
     }
 }
