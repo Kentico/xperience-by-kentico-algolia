@@ -98,6 +98,12 @@ namespace Kentico.Xperience.Algolia
         }
 
 
+        internal void Clear()
+        {
+            registeredIndexes.Clear();
+        }
+
+
         internal AlgoliaIndex Get(int id)
         {
             return registeredIndexes.FirstOrDefault(i => i.Identifier == id);

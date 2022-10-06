@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using CMS.Core;
@@ -24,35 +23,6 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public void LogTask(AlgoliaQueueItem task)
-        {
-            try
-            {
-                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(task);
-            }
-            catch (InvalidOperationException ex)
-            {
-                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTask), ex);
-            }
-            
-        }
-
-
-        /// <inheritdoc />
-        public void LogTasks(IEnumerable<AlgoliaQueueItem> tasks)
-        {
-            try
-            {
-                AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItems(tasks);
-            }
-            catch (InvalidOperationException ex)
-            {
-                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogTasks), ex);
-            }
-        }
-
-
-        /// <inheritdoc />
         public void HandleEvent(TreeNode node, string eventName)
         {
             foreach (var indexName in IndexStore.Instance.GetAll().Select(index => index.IndexName))
@@ -62,12 +32,20 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                LogTask(new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName));
+                try
+                {
+                    var queueItem = new AlgoliaQueueItem(node, GetTaskType(node, eventName), indexName, node.ChangedColumns());
+                    AlgoliaQueueWorker.Current.EnqueueAlgoliaQueueItem(queueItem);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(HandleEvent), ex);
+                }
             }
         }
 
 
-        private AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
+        private static AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
         {
             if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count == 0)
             {

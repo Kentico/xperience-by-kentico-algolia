@@ -60,20 +60,6 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        /// <summary>
-        /// Adds mulitple <see cref="AlgoliaQueueItem"/>s to the worker queue to be processed.
-        /// </summary>
-        /// <param name="queueItems"></param>
-        /// <exception cref="InvalidOperationException" />
-        public void EnqueueAlgoliaQueueItems(IEnumerable<AlgoliaQueueItem> queueItems)
-        {
-            foreach(var queueItem in queueItems)
-            {
-                EnqueueAlgoliaQueueItem(queueItem);
-            }
-        }
-
-
         /// <inheritdoc />
         protected override void Finish()
         {

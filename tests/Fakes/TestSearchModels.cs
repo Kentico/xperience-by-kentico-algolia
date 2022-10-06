@@ -1,0 +1,63 @@
+﻿using Kentico.Xperience.Algolia.Attributes;
+
+namespace Kentico.Xperience.Algolia.Test
+{
+    internal class TestSearchModels
+    {
+        [IncludedPath("/Articles/%", PageTypes = new string[] { FakeNodes.DOCTYPE_ARTICLE })]
+        public class ArticleEnSearchModel : ModelBaseClass
+        {
+            public string DocumentName { get; set; }
+
+
+            [Facetable(FilterOnly = true)]
+            public string FacetableProperty { get; set; }
+
+
+            [Searchable(Unordered = true)]
+            public string UnorderedProperty { get; set; }
+        }
+
+
+        [IncludedPath("/Products/%", PageTypes = new string[] { FakeNodes.DOCTYPE_PRODUCT })]
+        public class ProductsSearchModel : ModelBaseClass
+        {
+            [Retrievable]
+            public string RetrievableProperty { get; set; }
+
+
+            [Searchable(Order = 1)]
+            public string Order1Property1 { get; set; }
+
+
+            [Searchable(Order = 1)]
+            public string Order1Property2 { get; set; }
+
+
+            [Searchable(Order = 2)]
+            public string Order2Property { get; set; }
+        }
+
+
+        [IncludedPath("/Articles/%")]
+        [IncludedPath("/Products/%")]
+        public class SplittingModel : ModelBaseClass
+        {
+            [Searchable]
+            public string AttributeForDistinct { get; set; }
+        }
+
+
+        public class InvalidFacetableModel : ModelBaseClass
+        {
+            [Facetable(FilterOnly = true, Searchable = true)]
+            public string FacetableProperty { get; set; }
+        }
+
+
+        [IncludedPath("/Articles/%")]
+        public class OtherSiteModel : ModelBaseClass
+        {
+        }
+    }
+}

@@ -28,7 +28,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IEventLogService eventLogService;
         private readonly IMediaFileInfoProvider mediaFileInfoProvider;
         private readonly IMediaFileUrlRetriever mediaFileUrlRetriever;
-        private readonly Dictionary<Type, string[]> cachedIndexedColumns = new();
+        private readonly Dictionary<string, string[]> cachedIndexedColumns = new();
         private readonly string[] ignoredPropertiesForTrackingChanges = new string[] {
             nameof(AlgoliaSearchModel.ObjectID),
             nameof(AlgoliaSearchModel.Url),
@@ -52,21 +52,11 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc/>
-        public JObject GetTreeNodeData(TreeNode node, Type searchModelType, AlgoliaTaskType taskType)
+        public JObject GetTreeNodeData(AlgoliaQueueItem queueItem)
         {
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            if (searchModelType == null)
-            {
-                throw new ArgumentNullException(nameof(searchModelType));
-            }
-
             var data = new JObject();
-            MapChangedProperties(node, data, searchModelType, taskType);
-            MapCommonProperties(node, data);
+            MapChangedProperties(queueItem, data);
+            MapCommonProperties(queueItem.Node, data);
 
             return data;
         }
@@ -120,22 +110,23 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <summary>
-        /// Gets the names of all database columns which are indexed by the passed
-        /// <paramref name="searchModel"/>, minus those listed in <see cref="ignoredPropertiesForTrackingChanges"/>.
+        /// Gets the names of all database columns which are indexed by the passed index,
+        /// minus those listed in <see cref="ignoredPropertiesForTrackingChanges"/>.
         /// </summary>
-        /// <param name="searchModel">The search model to retrieve database columns of.</param>
+        /// <param name="indexName">The index to load columns for.</param>
         /// <returns>The database columns that are indexed.</returns>
-        private string[] GetIndexedColumnNames(Type searchModel)
+        private string[] GetIndexedColumnNames(string indexName)
         {
-            if (cachedIndexedColumns.TryGetValue(searchModel, out string[] value))
+            if (cachedIndexedColumns.TryGetValue(indexName, out string[] value))
             {
                 return value;
             }
 
             // Don't include properties with SourceAttribute at first, check the sources and add to list after
-            var indexedColumnNames = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var indexedColumnNames = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
-            var propertiesWithSourceAttribute = searchModel.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            var propertiesWithSourceAttribute = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                 .Where(prop => Attribute.IsDefined(prop, typeof(SourceAttribute)));
             foreach (var property in propertiesWithSourceAttribute)
             {
@@ -152,7 +143,7 @@ namespace Kentico.Xperience.Algolia.Services
             indexedColumnNames.RemoveAll(col => ignoredPropertiesForTrackingChanges.Contains(col));
 
             var indexedColumns = indexedColumnNames.ToArray();
-            cachedIndexedColumns.Add(searchModel, indexedColumns);
+            cachedIndexedColumns.Add(indexName, indexedColumns);
 
             return indexedColumns;
         }
@@ -171,7 +162,6 @@ namespace Kentico.Xperience.Algolia.Services
         {
             object nodeValue = null;
             var usedColumn = property.Name;
-            var searchModel = Activator.CreateInstance(searchModelType) as AlgoliaSearchModel;
             if (Attribute.IsDefined(property, typeof(SourceAttribute)))
             {
                 // Property uses SourceAttribute, loop through column names until a non-null value is found
@@ -202,6 +192,7 @@ namespace Kentico.Xperience.Algolia.Services
                 nodeValue = GetAssetUrlsForColumn(node, nodeValue, usedColumn);
             }
 
+            var searchModel = Activator.CreateInstance(searchModelType) as AlgoliaSearchModel;
             nodeValue = searchModel.OnIndexingProperty(node, property.Name, usedColumn, nodeValue);
 
             return nodeValue;
@@ -209,35 +200,32 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <summary>
-        /// Adds values to the <paramref name="data"/> by retriving the indexed columns of the
-        /// <paramref name="searchModelType"/> and getting values from the <paramref name="node"/>.
-        /// When the <paramref name="taskType"/> is <see cref="AlgoliaTaskType.UPDATE"/>, only the
-        /// columns that have been updated will be added to the <paramref name="data"/>.
+        /// Adds values to the <paramref name="data"/> by retriving the indexed columns of the index
+        /// and getting values from the <see cref="AlgoliaQueueItem.Node"/>. When the <see cref="AlgoliaQueueItem.TaskType"/>
+        /// is <see cref="AlgoliaTaskType.UPDATE"/>, only the <see cref="AlgoliaQueueItem.ChangedColumns"/>
+        /// will be added to the <paramref name="data"/>.
         /// </summary>
-        /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
-        /// <param name="data">The anonymous data that will be passed to Algolia.</param>
-        /// <param name="searchModelType">The class of the Algolia search model.</param>
-        /// <param name="taskType">The Algolia task being processed.</param>
-        private void MapChangedProperties(TreeNode node, JObject data, Type searchModelType, AlgoliaTaskType taskType)
+        private void MapChangedProperties(AlgoliaQueueItem queueItem, JObject data)
         {
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new DecimalPrecisionConverter());
 
             var columnsToUpdate = new List<string>();
-            var indexedColumns = GetIndexedColumnNames(searchModelType);
-            if (taskType == AlgoliaTaskType.CREATE)
+            var indexedColumns = GetIndexedColumnNames(queueItem.IndexName);
+            if (queueItem.TaskType == AlgoliaTaskType.CREATE)
             {
                 columnsToUpdate.AddRange(indexedColumns);
             }
-            else if (taskType == AlgoliaTaskType.UPDATE)
+            else if (queueItem.TaskType == AlgoliaTaskType.UPDATE)
             {
-                columnsToUpdate.AddRange(node.ChangedColumns().Intersect(indexedColumns));
+                columnsToUpdate.AddRange(queueItem.ChangedColumns.Intersect(indexedColumns));
             }
 
-            var properties = searchModelType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var algoliaIndex = IndexStore.Instance.Get(queueItem.IndexName);
+            var properties = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var prop in properties)
             {
-                object nodeValue = GetNodeValue(node, prop, searchModelType, columnsToUpdate);
+                object nodeValue = GetNodeValue(queueItem.Node, prop, algoliaIndex.Type, columnsToUpdate);
                 if (nodeValue == null)
                 {
                     continue;

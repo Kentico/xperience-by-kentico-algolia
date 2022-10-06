@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using CMS.DocumentEngine;
+﻿using CMS.DocumentEngine;
 
 using Kentico.Xperience.Algolia.Models;
 
@@ -12,20 +10,6 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     public interface IAlgoliaTaskLogger
     {
-        /// <summary>
-        /// Logs a single <see cref="AlgoliaQueueItem"/>.
-        /// </summary>
-        /// <param name="task">The task to log.</param>
-        void LogTask(AlgoliaQueueItem task);
-
-
-        /// <summary>
-        /// Logs multiple <see cref="AlgoliaQueueItem"/>s.
-        /// </summary>
-        /// <param name="tasks">The tasks to log.</param>
-        void LogTasks(IEnumerable<AlgoliaQueueItem> tasks);
-
-
         /// <summary>
         /// Loops through all registered Algolia indexes and logs a task if the passed
         /// <paramref name="node"/> is indexed.
