@@ -2,12 +2,12 @@
 
 using NUnit.Framework;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
     internal class TreeNodeExtensionsTests
     {
         [TestFixture]
-        internal class IsAlgoliaIndexedTests :AlgoliaTest
+        internal class IsAlgoliaIndexedTests : AlgoliaTests
         {
             [Test]
             public void IsAlgoliaIndexed_ReturnsIndexedState()
@@ -24,7 +24,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [TestFixture]
-        internal class IsIndexedByIndexTests : AlgoliaTest
+        internal class IsIndexedByIndexTests : AlgoliaTests
         {
             [Test]
             public void IsIndexedByIndex_ReturnsIndexedState()

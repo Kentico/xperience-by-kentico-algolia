@@ -1,11 +1,11 @@
 ﻿using Kentico.Xperience.Algolia.Attributes;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
     internal class TestSearchModels
     {
         [IncludedPath("/Articles/%", PageTypes = new string[] { FakeNodes.DOCTYPE_ARTICLE })]
-        public class ArticleEnSearchModel : ModelBaseClass
+        public class ArticleEnSearchModel : BaseSearchModel
         {
             public string DocumentName { get; set; }
 
@@ -20,7 +20,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [IncludedPath("/Products/%", PageTypes = new string[] { FakeNodes.DOCTYPE_PRODUCT })]
-        public class ProductsSearchModel : ModelBaseClass
+        public class ProductsSearchModel : BaseSearchModel
         {
             [Retrievable]
             public string RetrievableProperty { get; set; }
@@ -41,14 +41,14 @@ namespace Kentico.Xperience.Algolia.Test
 
         [IncludedPath("/Articles/%")]
         [IncludedPath("/Products/%")]
-        public class SplittingModel : ModelBaseClass
+        public class SplittingModel : BaseSearchModel
         {
             [Searchable]
             public string AttributeForDistinct { get; set; }
         }
 
 
-        public class InvalidFacetableModel : ModelBaseClass
+        public class InvalidFacetableModel : BaseSearchModel
         {
             [Facetable(FilterOnly = true, Searchable = true)]
             public string FacetableProperty { get; set; }
@@ -56,7 +56,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [IncludedPath("/Articles/%")]
-        public class OtherSiteModel : ModelBaseClass
+        public class OtherSiteModel : BaseSearchModel
         {
         }
     }

@@ -21,14 +21,14 @@ using NSubstitute;
 
 using NUnit.Framework;
 
-using static Kentico.Xperience.Algolia.Test.TestSearchModels;
+using static Kentico.Xperience.Algolia.Tests.TestSearchModels;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
-    internal class IAlgoliaClientTests
+    internal class DefaultAlgoliaClientTests
     {
         [TestFixture]
-        internal class DeletetRecordsTests : AlgoliaTest
+        internal class DeletetRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
             private IAlgoliaObjectGenerator algoliaObjectGenerator;
@@ -72,7 +72,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [TestFixture]
-        internal class ProcessAlgoliaTasksTests : AlgoliaTest
+        internal class ProcessAlgoliaTasksTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
 
@@ -110,7 +110,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [TestFixture]
-        internal class UpsertRecordsTests : AlgoliaTest
+        internal class UpsertRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
             private IAlgoliaObjectGenerator algoliaObjectGenerator;

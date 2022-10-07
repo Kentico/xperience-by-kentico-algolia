@@ -14,7 +14,7 @@ using Algolia.Search.Models.Search;
 using Algolia.Search.Models.Settings;
 using Algolia.Search.Models.Synonyms;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
     internal class MockSearchIndex : ISearchIndex
     {

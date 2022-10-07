@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Kentico.Xperience.Algolia.Test</RootNamespace>
+    <RootNamespace>Kentico.Xperience.Algolia.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
-	<LangVersion>latest</LangVersion>
+	  <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GitHubActionsTestLogger" Version="1.2.0" />
     <PackageReference Include="Kentico.Xperience.Core.Tests" Version="22.3.0" />
-	<PackageReference Include="Kentico.Xperience.WebApp" Version="22.3.0" />
+	  <PackageReference Include="Kentico.Xperience.WebApp" Version="22.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />

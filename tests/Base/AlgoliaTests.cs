@@ -1,5 +1,4 @@
-﻿using CMS;
-using CMS.DocumentEngine;
+﻿using CMS.DocumentEngine;
 using CMS.SiteProvider;
 using CMS.Tests;
 
@@ -9,11 +8,9 @@ using NUnit.Framework;
 
 using Tests.DocumentEngine;
 
-[assembly: Category("Algolia")]
-[assembly: AssemblyDiscoverable]
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
-    internal class AlgoliaTest : UnitTests
+    internal abstract class AlgoliaTests : UnitTests
     {
         [SetUp]
         public void SetUp()
@@ -24,15 +21,16 @@ namespace Kentico.Xperience.Algolia.Test
             Fake().DocumentType<TreeNode>(FakeNodes.DOCTYPE_ARTICLE);
             Fake().DocumentType<TreeNode>(FakeNodes.DOCTYPE_PRODUCT);
             Fake<SiteInfo, SiteInfoProvider>().WithData(
-            new SiteInfo
-            {
-                SiteName = FakeNodes.DEFAULT_SITE
-            },
-            new SiteInfo
-            {
-                SiteName = FakeNodes.FAKE_SITE
-            }
-            );
+                new SiteInfo
+                {
+                    SiteName = FakeNodes.DEFAULT_SITE,
+                    SiteDomainName = "defaultsite.com"
+                },
+                new SiteInfo
+                {
+                    SiteName = FakeNodes.FAKE_SITE,
+                    SiteDomainName = "fakesite.com"
+                });
 
             // Register indexes
             IndexStore.Instance

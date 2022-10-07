@@ -4,7 +4,7 @@ using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.SiteProvider;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
     internal static class FakeNodes
     {
@@ -28,7 +28,7 @@ namespace Kentico.Xperience.Algolia.Test
             {
                 if (mArticleEn == null)
                 {
-                    mArticleEn = MakeNode("/Articles/1");
+                    mArticleEn = CreateNode("/Articles/1");
                 }
 
                 return mArticleEn;
@@ -42,7 +42,7 @@ namespace Kentico.Xperience.Algolia.Test
             {
                 if (mArticleCz == null)
                 {
-                    mArticleCz = MakeNode("/Articles/2", culture: "cs-CZ");
+                    mArticleCz = CreateNode("/Articles/2", culture: "cs-CZ");
                 }
 
                 return mArticleCz;
@@ -56,7 +56,7 @@ namespace Kentico.Xperience.Algolia.Test
             {
                 if (mProductEn == null)
                 {
-                    mProductEn = MakeNode("/Products/1", DOCTYPE_PRODUCT);
+                    mProductEn = CreateNode("/Products/1", DOCTYPE_PRODUCT);
                 }
 
                 return mProductEn;
@@ -70,7 +70,7 @@ namespace Kentico.Xperience.Algolia.Test
             {
                 if (mOtherSite == null)
                 {
-                    mOtherSite = MakeNode("/Articles/1", site: FAKE_SITE);
+                    mOtherSite = CreateNode("/Articles/1", site: FAKE_SITE);
                 }
 
                 return mOtherSite;
@@ -84,7 +84,7 @@ namespace Kentico.Xperience.Algolia.Test
             {
                 if (mUnindexed == null)
                 {
-                    mUnindexed = MakeNode("/Unindexed/1");
+                    mUnindexed = CreateNode("/Unindexed/1");
                 }
 
                 return mUnindexed;
@@ -92,7 +92,7 @@ namespace Kentico.Xperience.Algolia.Test
         }
 
 
-        private static TreeNode MakeNode(string nodeAliasPath, string pageType = DOCTYPE_ARTICLE, string culture = "en-US", string site = DEFAULT_SITE)
+        private static TreeNode CreateNode(string nodeAliasPath, string pageType = DOCTYPE_ARTICLE, string culture = "en-US", string site = DEFAULT_SITE)
         {
             nodeCount++;
             var nodeSite = SiteInfo.Provider.Get(site);

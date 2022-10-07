@@ -6,9 +6,9 @@ using CMS.Helpers;
 using Kentico.Xperience.Algolia.Attributes;
 using Kentico.Xperience.Algolia.Models;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
-    internal class ModelBaseClass : AlgoliaSearchModel
+    internal abstract class BaseSearchModel : AlgoliaSearchModel
     {
         [Searchable]
         public string NodeAliasPath { get; set; }

@@ -1,4 +1,5 @@
 ﻿using CMS.Core;
+using CMS.DataEngine;
 using CMS.MediaLibrary;
 
 using Kentico.Content.Web.Mvc;
@@ -9,14 +10,14 @@ using NSubstitute;
 
 using NUnit.Framework;
 
-using static Kentico.Xperience.Algolia.Test.TestSearchModels;
+using static Kentico.Xperience.Algolia.Tests.TestSearchModels;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
-    internal class IAlgoliaObjectGeneratorTests
+    internal class DefaultAlgoliaObjectGeneratorTests
     {
         [TestFixture]
-        internal class GetTreeNodeDataTests : AlgoliaTest
+        internal class GetTreeNodeDataTests : AlgoliaTests
         {
             private IAlgoliaObjectGenerator algoliaObjectGenerator;
 

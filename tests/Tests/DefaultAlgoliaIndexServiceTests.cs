@@ -10,12 +10,12 @@ using NSubstitute;
 
 using NUnit.Framework;
 
-namespace Kentico.Xperience.Algolia.Test
+namespace Kentico.Xperience.Algolia.Tests
 {
-    internal class IAlgoliaIndexServiceTests
+    internal class DefaultAlgoliaIndexServiceTests
     {
         [TestFixture]
-        internal class GetIndexSettingsTests : AlgoliaTest
+        internal class GetIndexSettingsTests : AlgoliaTests
         {
             private DefaultAlgoliaIndexService algoliaIndexService;
 
@@ -70,7 +70,7 @@ namespace Kentico.Xperience.Algolia.Test
 
 
         [TestFixture]
-        internal class InitializeIndexTests : AlgoliaTest
+        internal class InitializeIndexTests : AlgoliaTests
         {
             private IAlgoliaIndexService algoliaIndexService;
 
