@@ -61,7 +61,7 @@ namespace Kentico.Xperience.Algolia.Extensions
                 if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {
                     var pathToMatch = TreePathUtils.EnsureSingleNodePath(includedPathAttribute.AliasPath);
-                    var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, false, false).ToHashSet();
+                    var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, true, false).ToHashSet();
 
                     return pathsOnPath.Contains(pathToMatch) && matchesPageType;
                 }
