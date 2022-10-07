@@ -30,6 +30,7 @@ namespace Kentico.Xperience.Algolia.Services
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         private readonly AlgoliaOptions algoliaOptions;
+        private readonly HttpClient httpClient = new();
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
@@ -61,6 +62,13 @@ namespace Kentico.Xperience.Algolia.Services
             this.eventLogService = eventLogService;
             this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
+
+            // Initialize HttpClient used for crawler requests if a crawler is registered
+            if (IndexStore.Instance.GetAllCrawlers().Any())
+            {
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
+            }
         }
 
 
@@ -297,40 +305,46 @@ namespace Kentico.Xperience.Algolia.Services
         {
             if (method == HttpMethod.Post && data == null)
             {
-                throw new InvalidOperationException("Data must be provided for the POST method.");
-            }
-
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
-
-            var url = $"{BASE_URL}/{path}";
-            HttpResponseMessage response = null;
-            if (method.Equals(HttpMethod.Get))
-            {
-                response = await client.GetAsync(url, cancellationToken);
-            }
-            else if (method.Equals(HttpMethod.Post))
-            {
-                // Algolia throws 415 if charset is specified
-                data.Headers.ContentType.CharSet = String.Empty;
-                response = await client.PostAsync(url, data, cancellationToken);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
-                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest),
-                    $"Request for {path} returned {response.StatusCode}: {content}");
-
+                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest), "Data must be provided for the POST method.");
                 return null;
             }
 
-            return response;
+            var url = $"{BASE_URL}/{path}";
+            HttpResponseMessage response = null;
+            try
+            {
+                if (method.Equals(HttpMethod.Get))
+                {
+                    response = await httpClient.GetAsync(url, cancellationToken);
+                }
+                else if (method.Equals(HttpMethod.Post))
+                {
+                    // Algolia throws 415 if charset is specified
+                    data.Headers.ContentType.CharSet = String.Empty;
+                    response = await httpClient.PostAsync(url, data, cancellationToken);
+                }
+                else
+                {
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest), $"Unsupported HTTP method {nameof(method)}");
+                    return null;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest),
+                        $"Request for {path} returned {response.StatusCode}: {content}");
+
+                    return null;
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaClient), nameof(SendRequest), ex);
+                return null;
+            }
         }
 
 

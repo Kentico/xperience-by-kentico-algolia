@@ -4,18 +4,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using CMS;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.WorkflowEngine;
 
 using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
 
 using Newtonsoft.Json.Linq;
 
-[assembly: RegisterImplementation(typeof(IAlgoliaTaskProcessor), typeof(DefaultAlgoliaTaskProcessor), Lifestyle = Lifestyle.Singleton, Priority = RegistrationPriority.SystemDefault)]
 namespace Kentico.Xperience.Algolia.Services
 {
     internal class DefaultAlgoliaTaskProcessor : IAlgoliaTaskProcessor
