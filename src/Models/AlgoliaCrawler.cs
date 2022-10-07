@@ -4,18 +4,8 @@
     /// The configuration of an Algolia crawler.
     /// </summary>
     /// <remarks>See <see href="https://www.algolia.com/doc/rest-api/crawler/#get-a-crawler"/>.</remarks>
-    public class AlgoliaCrawler
+    public sealed class AlgoliaCrawler
     {
-        /// <summary>
-        /// The crawler ID.
-        /// </summary>
-        public string Id
-        {
-            get;
-            set;
-        }
-
-
         /// <summary>
         /// The crawler name.
         /// </summary>

@@ -64,7 +64,7 @@ namespace Kentico.Xperience.Algolia.Models
 
 
         /// <summary>
-        /// The interval at which <see cref="AlgoliaCrawlerQueueWorker"/> runs.
+        /// The interval at which <see cref="AlgoliaCrawlerQueueWorker"/> runs, in milliseconds.
         /// </summary>
         public int CrawlerInterval
         {

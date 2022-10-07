@@ -20,7 +20,8 @@ namespace Kentico.Xperience.Algolia.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
         /// </summary>
-        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService) {
+        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService)
+        {
             this.eventLogService = eventLogService;
         }
 

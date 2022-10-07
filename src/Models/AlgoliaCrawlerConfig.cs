@@ -4,7 +4,7 @@
     /// An <see cref="AlgoliaCrawler"/>'s configuration.
     /// </summary>
     /// <remarks>See <see href="https://www.algolia.com/doc/tools/crawler/getting-started/quick-start/#default-configuration-file"/>.</remarks>
-    public class AlgoliaCrawlerConfig
+    public sealed class AlgoliaCrawlerConfig
     {
         /// <summary>
         /// A string prepended to all index names created by this crawler.

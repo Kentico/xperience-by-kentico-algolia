@@ -15,7 +15,7 @@ namespace Kentico.Xperience.Algolia
     {
         private static readonly Lazy<IndexStore> mInstance = new();
         private readonly List<AlgoliaIndex> registeredIndexes = new();
-        private readonly List<string> registeredCrawlers = new();
+        private readonly HashSet<string> registeredCrawlers = new();
 
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="index">The index to add.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public IndexStore AddIndex(AlgoliaIndex index)
+        public void AddIndex(AlgoliaIndex index)
         {
             if (index == null)
             {
@@ -55,8 +55,6 @@ namespace Kentico.Xperience.Algolia
 
             index.Identifier = registeredIndexes.Count + 1;
             registeredIndexes.Add(index);
-
-            return this;
         }
 
 
@@ -66,7 +64,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="crawlerId">The ID of the crawler to add.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public IndexStore AddCrawler(string crawlerId)
+        public void AddCrawler(string crawlerId)
         {
             if (String.IsNullOrEmpty(crawlerId))
             {
@@ -79,8 +77,6 @@ namespace Kentico.Xperience.Algolia
             }
 
             registeredCrawlers.Add(crawlerId);
-
-            return this;
         }
 
 
