@@ -102,7 +102,12 @@ namespace Kentico.Xperience.Algolia.Services
                 return Enumerable.Empty<string>();
             }
 
-            var assets = JsonDataTypeConverter.ConvertToModels<AssetRelatedItem>(strValue);
+            var dataType = DataTypeManager.GetDataType(typeof(IEnumerable<AssetRelatedItem>));
+            if (dataType.Convert(strValue, null, null) is not IEnumerable<AssetRelatedItem> assets)
+            {
+                return Enumerable.Empty<string>();
+            }
+
             var mediaFiles = mediaFileInfoProvider.Get().ForAssets(assets);
 
             return mediaFiles.Select(file => mediaFileUrlRetriever.Retrieve(file).RelativePath);
@@ -242,7 +247,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
         /// <param name="data">The dynamic data that will be passed to Algolia.</param>
-        private void MapCommonProperties(TreeNode node, JObject data)
+        private static void MapCommonProperties(TreeNode node, JObject data)
         {
             data["objectID"] = node.DocumentID.ToString();
             data[nameof(AlgoliaSearchModel.ClassName)] = node.ClassName;
