@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
+using Algolia.Search.Http;
 using Algolia.Search.Models.Common;
 
 using CMS.Core;
@@ -17,6 +18,8 @@ using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
+using Moq;
+
 using Newtonsoft.Json.Linq;
 
 using NSubstitute;
@@ -29,32 +32,39 @@ namespace Kentico.Xperience.Algolia.Tests
 {
     internal class DefaultAlgoliaClientTests
     {
-        private static ISearchIndex GetMockSearchIndex()
+        private static Mock<ISearchIndex> GetMockSearchIndex()
         {
-            var mockSearchIndex = Substitute.For<ISearchIndex>();
-            mockSearchIndex.DeleteObjectsAsync(Arg.Any<IEnumerable<string>>()).ReturnsForAnyArgs(args =>
-                Task.FromResult(new BatchIndexingResponse
+            var mockSearchIndex = new Mock<ISearchIndex>();
+            mockSearchIndex.Setup(service => service.DeleteObjectsAsync(It.IsAny<IEnumerable<string>>(), null, It.IsAny<CancellationToken>())).Verifiable();
+            mockSearchIndex.Setup(service =>service.DeleteObjectsAsync(It.IsAny<IEnumerable<string>>(), null, It.IsAny<CancellationToken>()))
+                .Returns((IEnumerable<string> objectIds, RequestOptions requestOptions, CancellationToken ct) =>
                 {
-                    Responses = new List<BatchResponse>
+                    return Task.FromResult(new BatchIndexingResponse
                     {
+                        Responses = new List<BatchResponse>
+                        {
                             new BatchResponse
                             {
-                                ObjectIDs = args.Arg<IEnumerable<string>>()
+                                ObjectIDs = objectIds
                             }
-                    }
-                })
+                        }
+                    });
+                }
             );
-            mockSearchIndex.PartialUpdateObjectsAsync(Arg.Any<IEnumerable<JObject>>()).ReturnsForAnyArgs(args =>
-                Task.FromResult(new BatchIndexingResponse
+            mockSearchIndex.Setup(service => service.PartialUpdateObjectsAsync(It.IsAny<IEnumerable<JObject>>(), null, It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+                .Returns((IEnumerable<JObject> data, RequestOptions requestOptions, CancellationToken ct, bool createIfNotExists) =>
                 {
-                    Responses = new List<BatchResponse>
+                    return Task.FromResult(new BatchIndexingResponse
                     {
+                        Responses = new List<BatchResponse>
+                        {
                             new BatchResponse
                             {
-                                ObjectIDs = new string[args.Arg<IEnumerable<JObject>>().Count()]
+                                ObjectIDs = new string[data.Count()]
                             }
-                    }
-                })
+                        }
+                    });
+                }
             );
 
             return mockSearchIndex;
@@ -66,16 +76,15 @@ namespace Kentico.Xperience.Algolia.Tests
         {
             private IAlgoliaClient algoliaClient;
             private IAlgoliaObjectGenerator algoliaObjectGenerator;
+            private readonly Mock<ISearchIndex> mockSearchIndex = GetMockSearchIndex();
 
 
             [SetUp]
             public void DeleteRecordsTestsSetUp()
             {
-                var mockSearchIndex = GetMockSearchIndex();
-                var mockIndexService = Substitute.For<IAlgoliaIndexService>();
-                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
-
                 var mockEventLogService = new MockEventLogService();
+                var mockIndexService = Substitute.For<IAlgoliaIndexService>();
+                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex.Object);
 
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
                     mockEventLogService,
@@ -102,6 +111,7 @@ namespace Kentico.Xperience.Algolia.Tests
                 var numProcessed = await algoliaClient.DeleteRecords(new string[] { objectIdEn, objectIdCz }, nameof(ArticleEnSearchModel), CancellationToken.None);
 
                 Assert.That(numProcessed, Is.EqualTo(2));
+                mockSearchIndex.Verify(service => service.DeleteObjectsAsync( new string[] { objectIdEn, objectIdCz }, null, It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -110,14 +120,14 @@ namespace Kentico.Xperience.Algolia.Tests
         internal class ProcessAlgoliaTasksTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
+            private readonly Mock<ISearchIndex> mockSearchIndex = GetMockSearchIndex();
 
 
             [SetUp]
             public void ProcessAlgoliaTasksTestsSetUp()
             {
-                var mockSearchIndex = GetMockSearchIndex();
                 var mockIndexService = Substitute.For<IAlgoliaIndexService>();
-                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
+                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex.Object);
                 algoliaClient = new DefaultAlgoliaClient(mockIndexService,
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
@@ -150,14 +160,14 @@ namespace Kentico.Xperience.Algolia.Tests
         {
             private IAlgoliaClient algoliaClient;
             private IAlgoliaObjectGenerator algoliaObjectGenerator;
+            private readonly Mock<ISearchIndex> mockSearchIndex = GetMockSearchIndex();
 
 
             [SetUp]
             public void UpsertRecordsTestsSetUp()
             {
-                var mockSearchIndex = GetMockSearchIndex();
                 var mockIndexService = Substitute.For<IAlgoliaIndexService>();
-                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
+                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex.Object);
 
                 var mockEventLogService = new MockEventLogService();
 
