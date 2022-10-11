@@ -47,8 +47,10 @@ namespace Kentico.Xperience.Algolia.Extensions
                 .AddSingleton<ISearchClient>(s =>
                 {
                     var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
+                    var configuration = new SearchConfig(options.Value.ApplicationId, options.Value.ApiKey);
+                    configuration.DefaultHeaders["User-Agent"] = "Kentico Xperience for Algolia (0.0.1)";
 
-                    return new SearchClient(options.Value.ApplicationId, options.Value.ApiKey);
+                    return new SearchClient(configuration);
                 });
         }
     }
