@@ -117,7 +117,7 @@ namespace Kentico.Xperience.Algolia.Tests
             
 
             [SetUp]
-            public void ProcessAlgoliaTasksTestsSetUp()
+            public void GetStatisticsTestsSetUp()
             {
                 mockSearchClient.ListIndicesAsync(null, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args => Task.FromResult(
                     new ListIndicesResponse
