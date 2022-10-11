@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,6 +104,52 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 Assert.That(numProcessed, Is.EqualTo(2));
                 await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(objectIds)), null, Arg.Any<CancellationToken>());
+            }
+        }
+
+
+        [TestFixture]
+        internal class GetStatisticsTests : AlgoliaTests
+        {
+            private IAlgoliaClient algoliaClient;
+            private readonly IProgressiveCache mockProgressiveCache = Substitute.For<IProgressiveCache>();
+            private readonly ISearchClient mockSearchClient = Substitute.For<ISearchClient>();
+            
+
+            [SetUp]
+            public void ProcessAlgoliaTasksTestsSetUp()
+            {
+                mockSearchClient.ListIndicesAsync(null, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args => Task.FromResult(
+                    new ListIndicesResponse
+                    {
+                        Items = new List<IndicesResponse>()
+                    }
+                ));
+                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
+                {
+                    // Execute the passed function
+                    await args.ArgAt<Func<CacheSettings, Task<List<IndicesResponse>>>>(0)(args.ArgAt<CacheSettings>(1));
+
+                    return null;
+                });
+
+                algoliaClient = new DefaultAlgoliaClient(Substitute.For<IAlgoliaIndexService>(),
+                    Substitute.For<IAlgoliaObjectGenerator>(),
+                    Substitute.For<ICacheAccessor>(),
+                    new MockEventLogService(),
+                    Substitute.For<IVersionHistoryInfoProvider>(),
+                    Substitute.For<IWorkflowStepInfoProvider>(),
+                    mockProgressiveCache,
+                    mockSearchClient);
+            }
+
+
+            [Test]
+            public async Task GetStatistics_CallsMethods()
+            {
+                await algoliaClient.GetStatistics(CancellationToken.None);
+                await mockSearchClient.Received(1).ListIndicesAsync(null, Arg.Any<CancellationToken>());
+                await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>());
             }
         }
 
