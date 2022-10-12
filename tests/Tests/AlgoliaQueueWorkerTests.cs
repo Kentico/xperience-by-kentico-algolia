@@ -32,17 +32,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [Test]
-            public void EnqueueAlgoliaQueueItem_InvalidIndex_ThrowsException_DoesntQueue()
-            {
-                Assert.Multiple(() => {
-                    Assert.Throws<InvalidOperationException>(() => AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(
-                        new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, "FAKE_INDEX")));
-                    Assert.That(AlgoliaQueueWorker.Current.ItemsInQueue, Is.EqualTo(0));
-                });
-            }
-
-
-            [Test]
             public async Task EnqueueAlgoliaQueueItem_ValidItems_ProcessesItems()
             {
                 var createTask = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel));
