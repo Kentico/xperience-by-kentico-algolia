@@ -111,7 +111,7 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <inheritdoc/>
         public override Task<PageValidationResult> ValidatePage()
         {
-            var index = IndexStore.Instance.Get(IndexIdentifier);
+            var index = IndexStore.Instance.GetIndex(IndexIdentifier);
             if (index == null)
             {
                 return Task.FromResult(new PageValidationResult {

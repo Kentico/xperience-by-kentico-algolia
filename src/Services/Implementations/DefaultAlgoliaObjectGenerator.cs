@@ -254,7 +254,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <param name="node">The <see cref="TreeNode"/> to load values from.</param>
         /// <param name="data">The dynamic data that will be passed to Algolia.</param>
-        private void MapCommonProperties(TreeNode node, JObject data)
+        private static void MapCommonProperties(TreeNode node, JObject data)
         {
             data["objectID"] = node.DocumentID.ToString();
             data[nameof(AlgoliaSearchModel.ClassName)] = node.ClassName;

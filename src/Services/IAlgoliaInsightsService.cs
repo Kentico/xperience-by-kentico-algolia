@@ -118,6 +118,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
         /// <param name="searchResponse">The full response of an Algolia search.</param>
+        /// <exception cref="InvalidOperationException" />
         void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel;
     }
 }

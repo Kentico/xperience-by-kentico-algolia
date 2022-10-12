@@ -36,7 +36,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc />
         public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
         {
-            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"Registered index with name '{indexName}' doesn't exist.");
@@ -104,7 +104,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private List<string> OrderSearchableProperties(IEnumerable<PropertyInfo> searchableProperties)
+        private static List<string> OrderSearchableProperties(IEnumerable<PropertyInfo> searchableProperties)
         {
             var propertiesWithAttribute = new Dictionary<string, SearchableAttribute>();
             foreach (var prop in searchableProperties)

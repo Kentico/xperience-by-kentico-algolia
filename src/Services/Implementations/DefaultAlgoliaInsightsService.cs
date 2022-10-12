@@ -36,7 +36,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly Regex queryParameterRegex = new ("^[a-fA-F0-9]{32}$");
         
 
-        private string ContactGUID
+        private static string ContactGUID
         {
             get
             {
@@ -55,8 +55,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                StringValues values;
-                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.ObjectIdParameterName, out values))
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.ObjectIdParameterName, out StringValues values))
                 {
                     return values.FirstOrDefault();
                 }
@@ -70,8 +69,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                StringValues values;
-                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.QueryIdParameterName, out values))
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.QueryIdParameterName, out StringValues values))
                 {
                     return values.FirstOrDefault();
                 }
@@ -85,8 +83,7 @@ namespace Kentico.Xperience.Algolia.Services
         {
             get
             {
-                StringValues values;
-                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.PositionParameterName, out values))
+                if (httpContextAccessor.HttpContext.Request.Query.TryGetValue(algoliaOptions.PositionParameterName, out StringValues values))
                 {
                     return Convert.ToUInt32(values.FirstOrDefault());
                 }
@@ -269,6 +266,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc />
         public void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel
         {
+            if (String.IsNullOrEmpty(searchResponse.QueryID)) {
+                throw new InvalidOperationException($"{nameof(SearchResponse<TModel>.QueryID)} is not set, please set {nameof(Query.ClickAnalytics)} to true in the query.");
+            }
+
             for (var i = 0; i < searchResponse.Hits.Count; i++)
             {
                 var position = i + 1 + (searchResponse.HitsPerPage * searchResponse.Page);
@@ -277,7 +278,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private InsightsResponse ExceptionResponse()
+        private static InsightsResponse ExceptionResponse()
         {
             return new InsightsResponse()
             {
@@ -310,7 +311,7 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private InsightsResponse InvalidParameterResponse()
+        private static InsightsResponse InvalidParameterResponse()
         {
             return new InsightsResponse()
             {

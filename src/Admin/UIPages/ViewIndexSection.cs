@@ -25,7 +25,7 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <inheritdoc/>
         public override Task<TemplateClientProperties> ConfigureTemplateProperties(TemplateClientProperties properties)
         {
-            var index = IndexStore.Instance.Get(IndexIdentifier);
+            var index = IndexStore.Instance.GetIndex(IndexIdentifier);
             if (index == null)
             {
                 throw new InvalidOperationException($"Unable to retrieve Algolia index with identifier '{IndexIdentifier}.'");

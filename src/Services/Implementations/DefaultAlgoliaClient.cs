@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,14 +11,15 @@ using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
 
 using CMS.Core;
-using CMS.DataEngine;
 using CMS.DocumentEngine;
 using CMS.Helpers;
 using CMS.Helpers.Caching.Abstractions;
-using CMS.WorkflowEngine;
 
 using Kentico.Xperience.Algolia.Models;
 
+using Microsoft.Extensions.Options;
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Services
@@ -25,15 +29,19 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
+        private readonly AlgoliaOptions algoliaOptions;
+        private readonly HttpClient httpClient = new();
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
-        private readonly IVersionHistoryInfoProvider versionHistoryInfoProvider;
-        private readonly IWorkflowStepInfoProvider workflowStepInfoProvider;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
+        private const string CACHEKEY_CRAWLER = "Algolia|Crawler|{0}";
+        private const string BASE_URL = "https://crawler.algolia.com/api/1";
+        private const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
+        private const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
 
 
         /// <summary>
@@ -43,19 +51,70 @@ namespace Kentico.Xperience.Algolia.Services
             IAlgoliaObjectGenerator algoliaObjectGenerator,
             ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
-            IVersionHistoryInfoProvider versionHistoryInfoProvider,
-            IWorkflowStepInfoProvider workflowStepInfoProvider,
             IProgressiveCache progressiveCache,
-            ISearchClient searchClient)
+            ISearchClient searchClient,
+            IOptions<AlgoliaOptions> options)
         {
+            algoliaOptions = options.Value;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
-            this.versionHistoryInfoProvider = versionHistoryInfoProvider;
-            this.workflowStepInfoProvider = workflowStepInfoProvider;
             this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
+
+            // Initialize HttpClient used for crawler requests if a crawler is registered
+            if (IndexStore.Instance.GetAllCrawlers().Any())
+            {
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
+            }
+        }
+
+
+        /// <inheritdoc/>
+        public Task<int> CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(nameof(crawlerId));
+            }
+
+            if (urls == null || !urls.Any())
+            {
+                throw new InvalidOperationException("No URLs were provided.");
+            }
+
+            return CrawlUrlsInternal(crawlerId, urls, cancellationToken);
+        }
+
+
+        /// <inheritdoc/>
+        public Task<int> DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(nameof(crawlerId));
+            }
+
+            if (urls == null || !urls.Any())
+            {
+                throw new InvalidOperationException("No URLs were provided.");
+            }
+
+            return DeleteUrlsInternal(crawlerId, urls, cancellationToken);
+        }
+
+
+        /// <inheritdoc/>
+        public Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(nameof(crawlerId));
+            }
+
+            return GetCrawlerInternal(crawlerId, cancellationToken);
         }
 
 
@@ -87,47 +146,6 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items, CancellationToken cancellationToken)
-        {
-            var successfulOperations = 0;
-
-            // Group queue items based on index name
-            var groups = items.GroupBy(item => item.IndexName);
-            foreach (var group in groups)
-            {
-                try
-                {
-                    var algoliaIndex = IndexStore.Instance.Get(group.Key);
-
-                    var deleteIds = new List<string>();
-                    var deleteTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.DELETE);
-                    deleteIds.AddRange(GetIdsToDelete(algoliaIndex, deleteTasks));
-
-                    var updateTasks = group.Where(queueItem => queueItem.TaskType == AlgoliaTaskType.UPDATE || queueItem.TaskType == AlgoliaTaskType.CREATE);
-                    var upsertData = new List<JObject>();
-                    foreach (var queueItem in updateTasks)
-                    {
-                        // There may be less fragments than previously indexed. Delete fragments created by the
-                        // previous version of the node
-                        deleteIds.AddRange(GetFragmentsToDelete(queueItem.Node, algoliaIndex, queueItem.TaskType));
-                        var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
-                        upsertData.AddRange(data);
-                    }
-
-                    successfulOperations += await DeleteRecords(deleteIds, group.Key, cancellationToken);
-                    successfulOperations += await UpsertRecords(upsertData, group.Key, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(ProcessAlgoliaTasks), ex.Message);
-                }
-            }
-
-            return successfulOperations;
-        }
-
-
-        /// <inheritdoc />
         public Task Rebuild(string indexName, CancellationToken cancellationToken)
         {
             if (String.IsNullOrEmpty(indexName))
@@ -135,7 +153,7 @@ namespace Kentico.Xperience.Algolia.Services
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
             if (algoliaIndex == null)
             {
                 throw new InvalidOperationException($"The index '{indexName}' is not registered.");
@@ -162,58 +180,39 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        /// <summary>
-        /// Gets the IDs of the fragments previously generated by a node update. Because the data that was split could
-        /// be smaller than previous updates, if they were not deleted during an update task, there would be orphaned
-        /// data in Algolia. When the <paramref name="taskType"/> is <see cref="AlgoliaTaskType.UPDATE"/>, we must check
-        /// for a previous version and delete the fragments generated by that version, before upserting new fragments.
-        /// </summary>
-        /// <param name="node">The node to get the previous version of.</param>
-        /// <param name="algoliaIndex">The index containing the <paramref name="node"/>.</param>
-        /// <param name="taskType">The task type that is being processed.</param>
-        /// <returns>A list of Algolia IDs that should be deleted, or an empty list.</returns>
-        /// <exception cref="ArgumentNullException" />
-        private IEnumerable<string> GetFragmentsToDelete(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
+        private async Task<int> CrawlUrlsInternal(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
         {
-            if (node == null)
+            var path = String.Format(PATH_CRAWL_URLS, crawlerId);
+            var body = new CrawlUrlsBody(urls);
+            var data = new StringContent(JsonConvert.SerializeObject(body), null, "application/json");
+            var response = await SendRequest(path, HttpMethod.Post, cancellationToken, data);
+            if (response == null)
             {
-                throw new ArgumentNullException(nameof(node));
+                return 0;
             }
 
-            if (algoliaIndex == null)
+            return urls.Count();
+        }
+
+
+        private async Task<int> DeleteUrlsInternal(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            var crawlerDetail = await GetCrawler(crawlerId, cancellationToken);
+            if (crawlerDetail == null)
             {
-                throw new ArgumentNullException(nameof(algoliaIndex));
+                return 0;
             }
 
-            if (taskType != AlgoliaTaskType.UPDATE || algoliaIndex.DistinctOptions == null)
+            var indexName = $"{crawlerDetail.Config.IndexPrefix}{crawlerDetail.Name}";
+            var searchIndex = searchClient.InitIndex(indexName);
+            var deletedCount = 0;
+            var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(urls, ct: cancellationToken);
+            foreach (var response in batchIndexingResponse.Responses)
             {
-                // Only split data on UPDATE tasks if splitting is enabled
-                return Enumerable.Empty<string>();
+                deletedCount += response.ObjectIDs.Count();
             }
 
-            var publishedStepId = workflowStepInfoProvider.Get()
-                .TopN(1)
-                .WhereEquals(nameof(WorkflowStepInfo.StepWorkflowID), node.WorkflowStep.StepWorkflowID)
-                .WhereEquals(nameof(WorkflowStepInfo.StepType), WorkflowStepTypeEnum.DocumentPublished)
-                .AsIDQuery()
-                .GetScalarResult<int>(0);
-            var previouslyPublishedVersionID = versionHistoryInfoProvider.Get()
-                .TopN(1)
-                .WhereEquals(nameof(VersionHistoryInfo.DocumentID), node.DocumentID)
-                .WhereEquals(nameof(VersionHistoryInfo.NodeSiteID), node.NodeSiteID)
-                .WhereEquals(nameof(VersionHistoryInfo.VersionWorkflowStepID), publishedStepId)
-                .OrderByDescending(nameof(VersionHistoryInfo.WasPublishedTo))
-                .AsIDQuery()
-                .GetScalarResult<int>(0);
-            if (previouslyPublishedVersionID == 0)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var previouslyPublishedNode = node.VersionManager.GetVersion(previouslyPublishedVersionID, node);
-            var previouslyPublishedNodeData = algoliaObjectGenerator.GetTreeNodeData(previouslyPublishedNode, algoliaIndex.Type, AlgoliaTaskType.CREATE);
-
-            return algoliaObjectGenerator.SplitData(previouslyPublishedNodeData, algoliaIndex).Select(obj => obj.Value<string>("objectID"));
+            return deletedCount;
         }
 
 
@@ -231,6 +230,36 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        private string GetBasicAuthentication()
+        {
+            if (String.IsNullOrEmpty(algoliaOptions.CrawlerUserId) || String.IsNullOrEmpty(algoliaOptions.CrawlerApiKey))
+            {
+                throw new InvalidOperationException("The Algolia crawler configuration is invalid.");
+            }
+
+            var bytes = Encoding.UTF8.GetBytes($"{algoliaOptions.CrawlerUserId}:{algoliaOptions.CrawlerApiKey}");
+            return Convert.ToBase64String(bytes);
+        }
+
+
+        private async Task<AlgoliaCrawler> GetCrawlerInternal(string crawlerId, CancellationToken cancellationToken)
+        {
+            return await progressiveCache.LoadAsync(async (cs) => {
+                var path = String.Format(PATH_GET_CRAWLER, crawlerId);
+                var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
+                if (response == null)
+                {
+                    cs.Cached = false;
+                    return null;
+                }
+
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
+            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId))).ConfigureAwait(false);
+        }
+
+
         private IEnumerable<JObject> GetDataToUpsert(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
         {
             if (algoliaIndex.DistinctOptions != null)
@@ -241,25 +270,6 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, taskType) };
-        }
-
-
-        private IEnumerable<string> GetIdsToDelete(AlgoliaIndex algoliaIndex, IEnumerable<AlgoliaQueueItem> deleteTasks)
-        {
-            if (algoliaIndex.DistinctOptions != null)
-            {
-                // Data has been split, get IDs of the smaller records
-                var ids = new List<string>();
-                foreach (var queueItem in deleteTasks)
-                {
-                    var data = GetDataToUpsert(queueItem.Node, algoliaIndex, queueItem.TaskType);
-                    ids.AddRange(data.Select(obj => obj.Value<string>("objectID")));
-                }
-
-                return ids;
-            }
-
-            return deleteTasks.Select(queueItem => queueItem.Node.DocumentID.ToString());
         }
 
 
@@ -288,6 +298,53 @@ namespace Kentico.Xperience.Algolia.Services
             indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(node, algoliaIndex, AlgoliaTaskType.CREATE)));
             var searchIndex = await algoliaIndexService.InitializeIndex(algoliaIndex.IndexName, cancellationToken);
             await searchIndex.ReplaceAllObjectsAsync(dataToUpsert, ct: cancellationToken).ConfigureAwait(false);
+        }
+
+
+        private async Task<HttpResponseMessage> SendRequest(string path, HttpMethod method, CancellationToken cancellationToken, HttpContent data = null)
+        {
+            if (method == HttpMethod.Post && data == null)
+            {
+                eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest), "Data must be provided for the POST method.");
+                return null;
+            }
+
+            var url = $"{BASE_URL}/{path}";
+            HttpResponseMessage response = null;
+            try
+            {
+                if (method.Equals(HttpMethod.Get))
+                {
+                    response = await httpClient.GetAsync(url, cancellationToken);
+                }
+                else if (method.Equals(HttpMethod.Post))
+                {
+                    // Algolia throws 415 if charset is specified
+                    data.Headers.ContentType.CharSet = String.Empty;
+                    response = await httpClient.PostAsync(url, data, cancellationToken);
+                }
+                else
+                {
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest), $"Unsupported HTTP method {nameof(method)}");
+                    return null;
+                }
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                    eventLogService.LogError(nameof(DefaultAlgoliaClient), nameof(SendRequest),
+                        $"Request for {path} returned {response.StatusCode}: {content}");
+
+                    return null;
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                eventLogService.LogException(nameof(DefaultAlgoliaClient), nameof(SendRequest), ex);
+                return null;
+            }
         }
 
 

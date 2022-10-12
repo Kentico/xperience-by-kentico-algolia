@@ -9,12 +9,13 @@ using Kentico.Xperience.Algolia.Models;
 namespace Kentico.Xperience.Algolia
 {
     /// <summary>
-    /// Represents a store of Algolia indexes.
+    /// Represents a store of Algolia indexes and crawlers.
     /// </summary>
     public sealed class IndexStore
     {
         private static readonly Lazy<IndexStore> mInstance = new();
         private readonly List<AlgoliaIndex> registeredIndexes = new();
+        private readonly HashSet<string> registeredCrawlers = new();
 
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="index">The index to add.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public IndexStore Add(AlgoliaIndex index)
+        public void AddIndex(AlgoliaIndex index)
         {
             if (index == null)
             {
@@ -54,8 +55,28 @@ namespace Kentico.Xperience.Algolia
 
             index.Identifier = registeredIndexes.Count + 1;
             registeredIndexes.Add(index);
+        }
 
-            return this;
+
+        /// <summary>
+        /// Adds a crawler to the store.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to add.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        public void AddCrawler(string crawlerId)
+        {
+            if (String.IsNullOrEmpty(crawlerId))
+            {
+                throw new ArgumentNullException(crawlerId);
+            }
+
+            if (registeredCrawlers.Any(id => id.Equals(crawlerId, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Attempted to register Algolia crawler with ID '{crawlerId},' but it is already registered.");
+            }
+
+            registeredCrawlers.Add(crawlerId);
         }
 
 
@@ -66,7 +87,7 @@ namespace Kentico.Xperience.Algolia
         /// <param name="indexName">The name of the index to retrieve.</param>
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="InvalidOperationException" />
-        public AlgoliaIndex Get(string indexName)
+        public AlgoliaIndex GetIndex(string indexName)
         {
             if (String.IsNullOrEmpty(indexName))
             {
@@ -80,13 +101,22 @@ namespace Kentico.Xperience.Algolia
         /// <summary>
         /// Gets all registered indexes.
         /// </summary>
-        public IEnumerable<AlgoliaIndex> GetAll()
+        public IEnumerable<AlgoliaIndex> GetAllIndexes()
         {
             return registeredIndexes;
         }
 
 
-        private void AddIncludedPaths(AlgoliaIndex index)
+        /// <summary>
+        /// Gets all registered crawlers.
+        /// </summary>
+        public IEnumerable<string> GetAllCrawlers()
+        {
+            return registeredCrawlers;
+        }
+
+
+        private static void AddIncludedPaths(AlgoliaIndex index)
         {
             var paths = index.Type.GetCustomAttributes<IncludedPathAttribute>(false);
             foreach (var path in paths)
@@ -98,7 +128,7 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        internal AlgoliaIndex Get(int id)
+        internal AlgoliaIndex GetIndex(int id)
         {
             return registeredIndexes.FirstOrDefault(i => i.Identifier == id);
         }
