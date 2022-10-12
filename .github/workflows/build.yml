@@ -37,4 +37,4 @@ jobs:
     - name: Build
       run: dotnet build src/Kentico.Xperience.Algolia.csproj --no-restore
     - name: Test
-      run: dotnet test tests/Kentico.Xperience.Algolia.Tests.csproj --no-build
+      run: dotnet test tests/Kentico.Xperience.Algolia.Tests.csproj --no-build --logger GitHubActions
