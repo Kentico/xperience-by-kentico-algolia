@@ -10,10 +10,40 @@ namespace Kentico.Xperience.Algolia.Tests
     internal class IndexStoreTests
     {
         [TestFixture]
-        internal class AddTests
+        internal class AddCrawlerTests
         {
             [Test]
-            public void Add_DuplicateIndex_Throws()
+            public void AddCrawler_DuplicateId_Throws()
+            {
+                IndexStore.Instance.AddCrawler("A");
+
+                Assert.Throws<InvalidOperationException>(() => IndexStore.Instance.AddCrawler("A"));
+            }
+
+
+            [Test]
+            public void AddCrawler_ValidId_StoresCrawler()
+            {
+                IndexStore.Instance.AddCrawler("A");
+                IndexStore.Instance.AddCrawler("B");
+
+                Assert.That(IndexStore.Instance.GetAllCrawlers().Count(), Is.EqualTo(2));
+            }
+
+
+            [TearDown]
+            public void AddCrawlerTestsTearDown()
+            {
+                IndexStore.Instance.ClearCrawlers();
+            }
+        }
+
+
+        [TestFixture]
+        internal class AddIndexTests
+        {
+            [Test]
+            public void AddIndex_DuplicateIndex_Throws()
             {
                 IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
 
@@ -23,7 +53,7 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [Test]
-            public void Add_InvalidFacetableAttribute_Throws()
+            public void AddIndex_InvalidFacetableAttribute_Throws()
             {
                 Assert.Throws<InvalidOperationException>(() =>
                     IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.InvalidFacetableModel), nameof(TestSearchModels.InvalidFacetableModel))));
@@ -31,7 +61,7 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [Test]
-            public void Add_ValidIndex_StoresIndex()
+            public void AddIndex_ValidIndex_StoresIndex()
             {
                 IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
                 IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
@@ -41,25 +71,46 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [TearDown]
-            public void AddTestsTearDown()
+            public void AddIndexTestsTearDown()
             {
-                IndexStore.Instance.Clear();
+                IndexStore.Instance.ClearIndexes();
             }
         }
 
 
         [TestFixture]
-        internal class GetTests : AlgoliaTests
+        internal class GetAllCrawlerTests
         {
             [Test]
-            public void Get_InvalidIndex_ReturnsNull()
+            public void GetAllCrawlers_ReturnsAllCrawlers()
+            {
+                IndexStore.Instance.AddCrawler("A");
+                IndexStore.Instance.AddCrawler("B");
+
+                Assert.That(IndexStore.Instance.GetAllCrawlers().Count(), Is.EqualTo(2));
+            }
+
+
+            [TearDown]
+            public void AddIndexTestsTearDown()
+            {
+                IndexStore.Instance.ClearIndexes();
+            }
+        }
+
+
+        [TestFixture]
+        internal class GetIndexTests : AlgoliaTests
+        {
+            [Test]
+            public void GetIndex_InvalidIndex_ReturnsNull()
             {
                 Assert.That(IndexStore.Instance.GetIndex("NO_INDEX"), Is.Null);
             }
 
 
             [Test]
-            public void Get_InvalidParameters_ThrowsException()
+            public void GetIndex_InvalidParameters_ThrowsException()
             {
                 Assert.Multiple(() => {
                     Assert.Throws<ArgumentNullException>(() => IndexStore.Instance.GetIndex(null));
@@ -69,7 +120,7 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [Test]
-            public void Get_ValidIndex_ReturnsIndex()
+            public void GetIndex_ValidIndex_ReturnsIndex()
             {
                 var index = IndexStore.Instance.GetIndex(nameof(TestSearchModels.ArticleEnSearchModel));
 
@@ -79,10 +130,10 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
         [TestFixture]
-        internal class GetAllTests
+        internal class GetAllIndexesTests
         {
             [Test]
-            public void GetAll_ReturnsAllIndexes()
+            public void GetAllIndexes_ReturnsAllIndexes()
             {
                 IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
                 IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
@@ -93,9 +144,9 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
             [TearDown]
-            public void GetAllTestsTearDown()
+            public void GetAllIndexesTestsTearDown()
             {
-                IndexStore.Instance.Clear();
+                IndexStore.Instance.ClearIndexes();
             }
         }
     }

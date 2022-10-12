@@ -89,7 +89,7 @@ namespace Kentico.Xperience.Algolia.Tests
             [TearDown]
             public void AddAlgoliaTearDown()
             {
-                IndexStore.Instance.Clear();
+                IndexStore.Instance.ClearIndexes();
             }
         }
     }

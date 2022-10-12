@@ -43,7 +43,7 @@ namespace Kentico.Xperience.Algolia.Tests
         [TearDown]
         public void TearDown()
         {
-            IndexStore.Instance.Clear();
+            IndexStore.Instance.ClearIndexes();
         }
     }
 }

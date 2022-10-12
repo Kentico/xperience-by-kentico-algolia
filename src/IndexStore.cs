@@ -126,9 +126,15 @@ namespace Kentico.Xperience.Algolia
 
             index.IncludedPaths = paths;
         }
+        
+
+        internal void ClearCrawlers()
+        {
+            registeredCrawlers.Clear();
+        }
 
 
-        internal void Clear()
+        internal void ClearIndexes()
         {
             registeredIndexes.Clear();
         }
