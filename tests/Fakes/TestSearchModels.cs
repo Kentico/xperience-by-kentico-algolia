@@ -53,11 +53,5 @@ namespace Kentico.Xperience.Algolia.Tests
             [Facetable(FilterOnly = true, Searchable = true)]
             public string FacetableProperty { get; set; }
         }
-
-
-        [IncludedPath("/Articles/%")]
-        public class OtherSiteModel : BaseSearchModel
-        {
-        }
     }
 }

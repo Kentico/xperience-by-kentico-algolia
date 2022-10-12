@@ -63,7 +63,7 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
         [TestFixture]
-        internal class DeletetRecordsTests : AlgoliaTests
+        internal class DeleteRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
             private IAlgoliaObjectGenerator algoliaObjectGenerator;

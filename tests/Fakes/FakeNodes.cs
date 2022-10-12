@@ -99,9 +99,9 @@ namespace Kentico.Xperience.Algolia.Tests
             var node = TreeNode.New(pageType).With(p =>
             {
                 p.DocumentCulture = culture;
+                p.DocumentName = Guid.NewGuid().ToString();
                 p.SetValue(nameof(TreeNode.DocumentID), nodeCount);
                 p.SetValue(nameof(TreeNode.NodeSiteID), nodeSite.SiteID);
-                p.SetValue(nameof(TreeNode.DocumentName), Guid.NewGuid().ToString());
                 p.SetValue(nameof(TreeNode.DocumentCreatedWhen), new DateTime(2022, 1, 1));
                 p.SetValue(nameof(TreeNode.NodeAliasPath), nodeAliasPath);
             });
