@@ -25,7 +25,7 @@ namespace Kentico.Xperience.Algolia.Tests
             public void GetTreeNodeDataTestsSetUp()
             {
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    new MockEventLogService(),
+                    Substitute.For<IEventLogService>(),
                     Substitute.For<IMediaFileInfoProvider>(),
                     Substitute.For<IMediaFileUrlRetriever>());
             }

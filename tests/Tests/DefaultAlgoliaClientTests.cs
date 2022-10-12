@@ -8,16 +8,16 @@ using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
 
 using CMS.Core;
-using CMS.DocumentEngine;
 using CMS.Helpers;
 using CMS.Helpers.Caching.Abstractions;
 using CMS.MediaLibrary;
-using CMS.WorkflowEngine;
 
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
+
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json.Linq;
 
 using NSubstitute;
@@ -73,18 +73,17 @@ namespace Kentico.Xperience.Algolia.Tests
             [SetUp]
             public void DeleteRecordsTestsSetUp()
             {
-                var mockEventLogService = new MockEventLogService();
                 var mockIndexService = Substitute.For<IAlgoliaIndexService>();
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    mockEventLogService,
+                    Substitute.For<IEventLogService>(),
                     Substitute.For<IMediaFileInfoProvider>(),
                     Substitute.For<IMediaFileUrlRetriever>());
                 algoliaClient = new DefaultAlgoliaClient(mockIndexService,
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
-                    mockEventLogService,
+                    Substitute.For<IEventLogService>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
                     Substitute.For<IOptions<AlgoliaOptions>>());
@@ -135,7 +134,7 @@ namespace Kentico.Xperience.Algolia.Tests
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<IAlgoliaIndexService>(),
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
-                    new MockEventLogService(),
+                    Substitute.For<IEventLogService>(),
                     mockProgressiveCache,
                     mockSearchClient,
                     Substitute.For<IOptions<AlgoliaOptions>>());
@@ -166,16 +165,14 @@ namespace Kentico.Xperience.Algolia.Tests
                 var mockIndexService = Substitute.For<IAlgoliaIndexService>();
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
-                var mockEventLogService = new MockEventLogService();
-
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    mockEventLogService,
+                    Substitute.For<IEventLogService>(),
                     Substitute.For<IMediaFileInfoProvider>(),
                     Substitute.For<IMediaFileUrlRetriever>());
                 algoliaClient = new DefaultAlgoliaClient(mockIndexService,
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
-                    mockEventLogService,
+                    Substitute.For<IEventLogService>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
                     Substitute.For<IOptions<AlgoliaOptions>>());
