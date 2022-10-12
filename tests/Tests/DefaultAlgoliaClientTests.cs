@@ -17,7 +17,7 @@ using CMS.WorkflowEngine;
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
-
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
 using NSubstitute;
@@ -85,10 +85,9 @@ namespace Kentico.Xperience.Algolia.Tests
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     mockEventLogService,
-                    Substitute.For<IVersionHistoryInfoProvider>(),
-                    Substitute.For<IWorkflowStepInfoProvider>(),
                     Substitute.For<IProgressiveCache>(),
-                    Substitute.For<ISearchClient>());
+                    Substitute.For<ISearchClient>(),
+                    Substitute.For<IOptions<AlgoliaOptions>>());
             }
 
 
@@ -137,10 +136,9 @@ namespace Kentico.Xperience.Algolia.Tests
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     new MockEventLogService(),
-                    Substitute.For<IVersionHistoryInfoProvider>(),
-                    Substitute.For<IWorkflowStepInfoProvider>(),
                     mockProgressiveCache,
-                    mockSearchClient);
+                    mockSearchClient,
+                    Substitute.For<IOptions<AlgoliaOptions>>());
             }
 
 
@@ -150,55 +148,6 @@ namespace Kentico.Xperience.Algolia.Tests
                 await algoliaClient.GetStatistics(CancellationToken.None);
                 await mockSearchClient.Received(1).ListIndicesAsync(null, Arg.Any<CancellationToken>());
                 await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>());
-            }
-        }
-
-
-        [TestFixture]
-        internal class ProcessAlgoliaTasksTests : AlgoliaTests
-        {
-            private IAlgoliaClient algoliaClient;
-            private IAlgoliaObjectGenerator algoliaObjectGenerator;
-            private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
-
-
-            [SetUp]
-            public void ProcessAlgoliaTasksTestsSetUp()
-            {
-                var mockIndexService = Substitute.For<IAlgoliaIndexService>();
-                mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
-                algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    new MockEventLogService(),
-                    Substitute.For<IMediaFileInfoProvider>(),
-                    Substitute.For<IMediaFileUrlRetriever>());
-                algoliaClient = new DefaultAlgoliaClient(mockIndexService,
-                    algoliaObjectGenerator,
-                    Substitute.For<ICacheAccessor>(),
-                    new MockEventLogService(),
-                    Substitute.For<IVersionHistoryInfoProvider>(),
-                    Substitute.For<IWorkflowStepInfoProvider>(),
-                    Substitute.For<IProgressiveCache>(),
-                    Substitute.For<ISearchClient>());
-            }
-
-
-            [Test]
-            public async Task ProcessAlgoliaTasks_ValidTasks_ReturnsProcessedCount()
-            {
-                var createQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel));
-                var deleteQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleCz, AlgoliaTaskType.DELETE, nameof(ArticleEnSearchModel));
-                var updateQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.UPDATE, nameof(ArticleEnSearchModel), new string[] { "DocumentName" });
-                var IdToDelete = algoliaObjectGenerator.GetTreeNodeData(deleteQueueItem).Value<string>("objectID");
-                var dataToUpsert = new JObject[] {
-                    algoliaObjectGenerator.GetTreeNodeData(createQueueItem),
-                    algoliaObjectGenerator.GetTreeNodeData(updateQueueItem)
-                };
-                var numProcessed = await algoliaClient.ProcessAlgoliaTasks(new AlgoliaQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, CancellationToken.None);
-                
-                Assert.That(numProcessed, Is.EqualTo(3));
-                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { IdToDelete })), null, Arg.Any<CancellationToken>());
-                await mockSearchIndex.Received(1).PartialUpdateObjectsAsync(
-                    Arg.Is<IEnumerable<JObject>>(arg => arg.SequenceEqual(dataToUpsert, new JObjectEqualityComparer())), createIfNotExists: true, ct: Arg.Any<CancellationToken>());
             }
         }
 
@@ -227,10 +176,9 @@ namespace Kentico.Xperience.Algolia.Tests
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     mockEventLogService,
-                    Substitute.For<IVersionHistoryInfoProvider>(),
-                    Substitute.For<IWorkflowStepInfoProvider>(),
                     Substitute.For<IProgressiveCache>(),
-                    Substitute.For<ISearchClient>());
+                    Substitute.For<ISearchClient>(),
+                    Substitute.For<IOptions<AlgoliaOptions>>());
             }
 
 

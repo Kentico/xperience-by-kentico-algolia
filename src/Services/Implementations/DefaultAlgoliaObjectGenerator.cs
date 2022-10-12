@@ -128,7 +128,7 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             // Don't include properties with SourceAttribute at first, check the sources and add to list after
-            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
             var indexedColumnNames = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(prop => !Attribute.IsDefined(prop, typeof(SourceAttribute))).Select(prop => prop.Name).ToList();
             var propertiesWithSourceAttribute = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -226,7 +226,7 @@ namespace Kentico.Xperience.Algolia.Services
                 columnsToUpdate.AddRange(queueItem.ChangedColumns.Intersect(indexedColumns));
             }
 
-            var algoliaIndex = IndexStore.Instance.Get(queueItem.IndexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(queueItem.IndexName);
             var properties = algoliaIndex.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var prop in properties)
             {

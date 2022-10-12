@@ -26,7 +26,7 @@ namespace Kentico.Xperience.Algolia.Extensions
                 throw new ArgumentNullException(nameof(node));
             }
 
-            return IndexStore.Instance.GetAll().Any(index => node.IsIndexedByIndex(index.IndexName));
+            return IndexStore.Instance.GetAllIndexes().Any(index => node.IsIndexedByIndex(index.IndexName));
         }
 
 
@@ -49,7 +49,7 @@ namespace Kentico.Xperience.Algolia.Extensions
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var algoliaIndex = IndexStore.Instance.Get(indexName);
+            var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
             if (algoliaIndex == null)
             {
                 Service.Resolve<IEventLogService>().LogError(nameof(TreeNodeExtensions), nameof(IsIndexedByIndex), $"Error loading registered Algolia index '{indexName}.'");

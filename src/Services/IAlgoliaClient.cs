@@ -17,6 +17,16 @@ namespace Kentico.Xperience.Algolia.Services
     public interface IAlgoliaClient
     {
         /// <summary>
+        /// Requests Algolia crawling of the specified <paramref name="urls"/>.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to update.</param>
+        /// <param name="urls">The URLs to crawl.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>The number of URLs crawled.</returns>
+        Task<int> CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+
+
+        /// <summary>
         /// Removes records from the Algolia index.
         /// </summary>
         /// <param name="objectIds">The Algolia internal IDs of the records to delete.</param>
@@ -30,6 +40,27 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <summary>
+        /// Deletes crawled URLs from the crawler's underlying index.
+        /// </summary>
+        /// <param name="crawlerId">The ID of the crawler to update.</param>
+        /// <param name="urls">The URLs to delete from the index.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>The number of records deleted.</returns>
+        Task<int> DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// Gets the full crawler details from Algolia's REST API.
+        /// </summary>
+        /// <remarks>See <see href="https://www.algolia.com/doc/rest-api/crawler/#get-a-crawler"/>.</remarks>
+        /// <param name="crawlerId">The ID of the crawler to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <returns>An <see cref="AlgoliaCrawler"/> with the <see cref="AlgoliaCrawler.Config"/> details, or
+        /// <c>null</c> if there was an error retrieving the crawler.</returns>
+        Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken);
+
+
+        /// <summary>
         /// Gets the indices of the Algolia application with basic statistics.
         /// </summary>
         /// <remarks>See <see href="https://www.algolia.com/doc/api-reference/api-methods/list-indices/#response"/>.</remarks>
@@ -38,16 +69,6 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ObjectDisposedException" />
         Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken);
 
-
-        /// <summary>
-        /// Processes multiple queue items from all Algolia indexes in batches. Algolia
-        /// automatically applies batching in multiples of 1,000 when using their API,
-        /// so all queue items are forwarded to the API.
-        /// </summary>
-        /// <param name="items">The items to process.</param>
-        /// <param name="cancellationToken">The cancellation token for the task.</param>
-        /// <returns>The number of items processed.</returns>
-        Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> items, CancellationToken cancellationToken);
 
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace Kentico.Xperience.Algolia
     /// </summary>
     internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQueueWorker>
     {
-        private readonly IAlgoliaClient algoliaClient;
+        private readonly IAlgoliaTaskProcessor algoliaTaskProcessor;
 
 
         /// <inheritdoc />
@@ -24,13 +24,13 @@ namespace Kentico.Xperience.Algolia
 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AlgoliaQueueItem"/> class. Should
-        /// not be called directly- the worker should be initialized during startup using
+        /// Initializes a new instance of the <see cref="AlgoliaQueueWorker"/> class.
+        /// Should not be called directly- the worker should be initialized during startup using
         /// <see cref="ThreadWorker{T}.EnsureRunningThread"/>.
         /// </summary>
         public AlgoliaQueueWorker()
         {
-            algoliaClient = Service.Resolve<IAlgoliaClient>();
+            algoliaTaskProcessor = Service.Resolve<IAlgoliaTaskProcessor>();
         }
 
 
@@ -39,7 +39,7 @@ namespace Kentico.Xperience.Algolia
         /// </summary>
         /// <param name="queueItem">The item to be added to the queue.</param>
         /// <exception cref="InvalidOperationException" />
-        public void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
+        public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
         {
             if (queueItem == null || queueItem.Node == null || String.IsNullOrEmpty(queueItem.IndexName))
             {
@@ -51,7 +51,7 @@ namespace Kentico.Xperience.Algolia
                 return;
             }
 
-            if (IndexStore.Instance.Get(queueItem.IndexName) == null)
+            if (IndexStore.Instance.GetIndex(queueItem.IndexName) == null)
             {
                 throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
             }
@@ -67,16 +67,16 @@ namespace Kentico.Xperience.Algolia
         }
 
 
-        /// <inheritdoc />
-        protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
-        {
-            return algoliaClient.ProcessAlgoliaTasks(items, CancellationToken.None).Result;
-        }
-
-
         /// <inheritdoc/>
         protected override void ProcessItem(AlgoliaQueueItem item)
         {
+        }
+
+
+        /// <inheritdoc />
+        protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
+        {
+            return algoliaTaskProcessor.ProcessAlgoliaTasks(items, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

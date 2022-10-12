@@ -82,7 +82,7 @@ namespace Kentico.Xperience.Algolia.Tests
                     new AlgoliaIndex(typeof(ProductsSearchModel), nameof(ProductsSearchModel))
                 });
 
-                Assert.That(IndexStore.Instance.GetAll().Count(), Is.EqualTo(2));
+                Assert.That(IndexStore.Instance.GetAllIndexes().Count(), Is.EqualTo(2));
             }
 
 

@@ -48,7 +48,7 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public void GetIndexSettings_DistinctOptions_ReturnsOptions()
             {
-                var algoliaIndex = IndexStore.Instance.Get(nameof(TestSearchModels.SplittingModel));
+                var algoliaIndex = IndexStore.Instance.GetIndex(nameof(TestSearchModels.SplittingModel));
                 var indexSettings = algoliaIndexService.GetIndexSettings(algoliaIndex);
 
                 Assert.Multiple(() => {

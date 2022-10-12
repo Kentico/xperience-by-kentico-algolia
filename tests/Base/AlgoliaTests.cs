@@ -33,10 +33,9 @@ namespace Kentico.Xperience.Algolia.Tests
                 });
 
             // Register indexes
-            IndexStore.Instance
-                .Add(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)))
-                .Add(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)))
-                .Add(new AlgoliaIndex(typeof(TestSearchModels.SplittingModel), nameof(TestSearchModels.SplittingModel),
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.SplittingModel), nameof(TestSearchModels.SplittingModel),
                     new DistinctOptions(nameof(TestSearchModels.SplittingModel.AttributeForDistinct), 1)));
         }
 

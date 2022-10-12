@@ -15,10 +15,10 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public void Add_DuplicateIndex_Throws()
             {
-                IndexStore.Instance.Add(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
 
                 Assert.Throws<InvalidOperationException>(() =>
-                    IndexStore.Instance.Add(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel))));
+                    IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel))));
             }
 
 
@@ -26,17 +26,17 @@ namespace Kentico.Xperience.Algolia.Tests
             public void Add_InvalidFacetableAttribute_Throws()
             {
                 Assert.Throws<InvalidOperationException>(() =>
-                    IndexStore.Instance.Add(new AlgoliaIndex(typeof(TestSearchModels.InvalidFacetableModel), nameof(TestSearchModels.InvalidFacetableModel))));
+                    IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.InvalidFacetableModel), nameof(TestSearchModels.InvalidFacetableModel))));
             }
 
 
             [Test]
             public void Add_ValidIndex_StoresIndex()
             {
-                IndexStore.Instance.Add(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
-                IndexStore.Instance.Add(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
 
-                Assert.That(IndexStore.Instance.GetAll().Count(), Is.EqualTo(2));
+                Assert.That(IndexStore.Instance.GetAllIndexes().Count(), Is.EqualTo(2));
             }
 
 
@@ -54,7 +54,7 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public void Get_InvalidIndex_ReturnsNull()
             {
-                Assert.That(IndexStore.Instance.Get("NO_INDEX"), Is.Null);
+                Assert.That(IndexStore.Instance.GetIndex("NO_INDEX"), Is.Null);
             }
 
 
@@ -62,8 +62,8 @@ namespace Kentico.Xperience.Algolia.Tests
             public void Get_InvalidParameters_ThrowsException()
             {
                 Assert.Multiple(() => {
-                    Assert.Throws<ArgumentNullException>(() => IndexStore.Instance.Get(null));
-                    Assert.Throws<ArgumentNullException>(() => IndexStore.Instance.Get(String.Empty));
+                    Assert.Throws<ArgumentNullException>(() => IndexStore.Instance.GetIndex(null));
+                    Assert.Throws<ArgumentNullException>(() => IndexStore.Instance.GetIndex(String.Empty));
                 });
             }
 
@@ -71,7 +71,7 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public void Get_ValidIndex_ReturnsIndex()
             {
-                var index = IndexStore.Instance.Get(nameof(TestSearchModels.ArticleEnSearchModel));
+                var index = IndexStore.Instance.GetIndex(nameof(TestSearchModels.ArticleEnSearchModel));
 
                 Assert.That(index.IndexName, Is.EqualTo(nameof(TestSearchModels.ArticleEnSearchModel)));
             }
@@ -84,12 +84,11 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public void GetAll_ReturnsAllIndexes()
             {
-                IndexStore.Instance
-                    .Add(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)))
-                    .Add(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)))
-                    .Add(new AlgoliaIndex(typeof(TestSearchModels.SplittingModel), nameof(TestSearchModels.SplittingModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
+                IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.SplittingModel), nameof(TestSearchModels.SplittingModel)));
 
-                Assert.That(IndexStore.Instance.GetAll().Count(), Is.EqualTo(3));
+                Assert.That(IndexStore.Instance.GetAllIndexes().Count(), Is.EqualTo(3));
             }
 
 

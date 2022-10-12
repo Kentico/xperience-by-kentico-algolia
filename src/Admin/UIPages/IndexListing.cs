@@ -48,7 +48,7 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <inheritdoc/>
         public override Task ConfigurePage()
         {
-            if (!IndexStore.Instance.GetAll().Any())
+            if (!IndexStore.Instance.GetAllIndexes().Any())
             {
                 PageConfiguration.Callouts = new List<CalloutConfiguration>
                 {
@@ -97,7 +97,7 @@ namespace Kentico.Xperience.Algolia.Admin
         public async Task<ICommandResponse<RowActionResult>> Rebuild(int id, CancellationToken cancellationToken)
         {
             var result = new RowActionResult(false);
-            var index = IndexStore.Instance.Get(id);
+            var index = IndexStore.Instance.GetIndex(id);
             if (index == null)
             {
                 return ResponseFrom(result)
@@ -114,7 +114,7 @@ namespace Kentico.Xperience.Algolia.Admin
             {
                 EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
                 return ResponseFrom(result)
-                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror", index.IndexName)));
+                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror"), index.IndexName));
             }
             
         }
@@ -132,7 +132,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
                 // Remove statistics for indexes that are not registered in this instance
                 var filteredStatistics = statistics.Where(stat =>
-                    IndexStore.Instance.GetAll().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
+                    IndexStore.Instance.GetAllIndexes().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
 
                 var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
                 var orderedStatistics = SortStatistics(searchedStatistics, settings);
@@ -156,9 +156,9 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
+        private static void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
         {
-            foreach (var indexName in IndexStore.Instance.GetAll().Select(i => i.IndexName))
+            foreach (var indexName in IndexStore.Instance.GetAllIndexes().Select(i => i.IndexName))
             {
                 if (!statistics.Any(stat => stat.Name.Equals(indexName, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -187,7 +187,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
         private Row GetRow(IndicesResponse statistics)
         {
-            var algoliaIdex = IndexStore.Instance.Get(statistics.Name);
+            var algoliaIdex = IndexStore.Instance.GetIndex(statistics.Name);
             if (algoliaIdex == null)
             {
                 throw new InvalidOperationException($"Unable to retrieve Algolia index with name '{statistics.Name}.'");
