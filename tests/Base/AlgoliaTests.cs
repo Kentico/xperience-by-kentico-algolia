@@ -8,6 +8,8 @@ using NUnit.Framework;
 
 using Tests.DocumentEngine;
 
+using static Kentico.Xperience.Algolia.Tests.TestSearchModels;
+
 namespace Kentico.Xperience.Algolia.Tests
 {
     internal abstract class AlgoliaTests : UnitTests
@@ -33,10 +35,11 @@ namespace Kentico.Xperience.Algolia.Tests
                 });
 
             // Register indexes
-            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ArticleEnSearchModel), nameof(TestSearchModels.ArticleEnSearchModel)));
-            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.ProductsSearchModel), nameof(TestSearchModels.ProductsSearchModel)));
-            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(TestSearchModels.SplittingModel), nameof(TestSearchModels.SplittingModel),
-                    new DistinctOptions(nameof(TestSearchModels.SplittingModel.AttributeForDistinct), 1)));
+            IndexStore.Instance.AddCrawler(CRAWLER_ID);
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(ArticleEnSearchModel), nameof(ArticleEnSearchModel)));
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(ProductsSearchModel), nameof(ProductsSearchModel)));
+            IndexStore.Instance.AddIndex(new AlgoliaIndex(typeof(SplittingModel), nameof(SplittingModel),
+                    new DistinctOptions(nameof(SplittingModel.AttributeForDistinct), 1)));
         }
 
 

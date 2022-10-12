@@ -77,13 +77,20 @@ namespace Kentico.Xperience.Algolia.Tests
                 var mockIndexService = Substitute.For<IAlgoliaIndexService>();
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
+                var mockOptions = Substitute.For<IOptions<AlgoliaOptions>>();
+                mockOptions.Value.Returns(new AlgoliaOptions
+                {
+                    CrawlerUserId = "CRAWLER_USER",
+                    CrawlerApiKey = "CRAWLER_KEY"
+                });
+
                 var mockAlgoliaClient = new DefaultAlgoliaClient(mockIndexService,
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
-                    Substitute.For<IOptions<AlgoliaOptions>>());
+                    mockOptions);
 
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
                     Substitute.For<IEventLogService>(),

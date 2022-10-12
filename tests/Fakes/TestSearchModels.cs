@@ -4,6 +4,9 @@ namespace Kentico.Xperience.Algolia.Tests
 {
     internal class TestSearchModels
     {
+        public const string CRAWLER_ID = "crawler";
+
+
         [IncludedPath("/Articles/%", PageTypes = new string[] { FakeNodes.DOCTYPE_ARTICLE })]
         public class ArticleEnSearchModel : BaseSearchModel
         {
