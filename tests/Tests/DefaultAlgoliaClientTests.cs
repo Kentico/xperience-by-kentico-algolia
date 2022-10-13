@@ -124,9 +124,12 @@ namespace Kentico.Xperience.Algolia.Tests
         internal class DeleteRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
-            private IAlgoliaObjectGenerator algoliaObjectGenerator;
             private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
+            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
+                Substitute.For<IEventLogService>(),
+                Substitute.For<IMediaFileInfoProvider>(),
+                Substitute.For<IMediaFileUrlRetriever>());
 
 
             [SetUp]
@@ -134,10 +137,6 @@ namespace Kentico.Xperience.Algolia.Tests
             {
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
-                algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    Substitute.For<IEventLogService>(),
-                    Substitute.For<IMediaFileInfoProvider>(),
-                    Substitute.For<IMediaFileUrlRetriever>());
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
                     algoliaObjectGenerator,
@@ -308,20 +307,18 @@ namespace Kentico.Xperience.Algolia.Tests
         internal class UpsertRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
-            private IAlgoliaObjectGenerator algoliaObjectGenerator;
             private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
+            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
+                Substitute.For<IEventLogService>(),
+                Substitute.For<IMediaFileInfoProvider>(),
+                Substitute.For<IMediaFileUrlRetriever>());
 
 
             [SetUp]
             public void UpsertRecordsTestsSetUp()
             {
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
-
-                algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    Substitute.For<IEventLogService>(),
-                    Substitute.For<IMediaFileInfoProvider>(),
-                    Substitute.For<IMediaFileUrlRetriever>());
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,

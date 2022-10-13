@@ -68,8 +68,11 @@ namespace Kentico.Xperience.Algolia.Tests
         internal class ProcessAlgoliaTasksTests : AlgoliaTests
         {
             private IAlgoliaTaskProcessor algoliaTaskProcessor;
-            private IAlgoliaObjectGenerator algoliaObjectGenerator;
             private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
+            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
+                Substitute.For<IEventLogService>(),
+                Substitute.For<IMediaFileInfoProvider>(),
+                Substitute.For<IMediaFileUrlRetriever>());
 
 
             [SetUp]
@@ -93,11 +96,6 @@ namespace Kentico.Xperience.Algolia.Tests
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
                     mockOptions);
-
-                algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                    Substitute.For<IEventLogService>(),
-                    Substitute.For<IMediaFileInfoProvider>(),
-                    Substitute.For<IMediaFileUrlRetriever>());
 
                 algoliaTaskProcessor = new DefaultAlgoliaTaskProcessor(mockAlgoliaClient,
                     Substitute.For<IEventLogService>(),
@@ -132,13 +130,12 @@ namespace Kentico.Xperience.Algolia.Tests
         internal class ProcessCrawlerTasksTests
         {
             private IAlgoliaTaskProcessor algoliaTaskProcessor;
-            private IAlgoliaClient mockAlgoliaClient;
+            private readonly IAlgoliaClient mockAlgoliaClient = Substitute.For<IAlgoliaClient>();
 
 
             [SetUp]
             public void ProcessCrawlerTasksTestsSetUp()
             {
-                mockAlgoliaClient = Substitute.For<IAlgoliaClient>();
                 mockAlgoliaClient.CrawlUrls(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args =>
                     Task.FromResult(args.Arg<IEnumerable<string>>().Count()));
                 mockAlgoliaClient.DeleteUrls(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args =>
