@@ -23,6 +23,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="urls">The URLs to crawl.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <returns>The number of URLs crawled.</returns>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        /// <exception cref="FormatException" />
+        /// <exception cref="OverflowException" />
         Task<int> CrawlUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
 
 
@@ -35,6 +39,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
+        /// <exception cref="OverflowException" />
         /// <returns>The number of records deleted.</returns>
         Task<int> DeleteRecords(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken);
 
@@ -46,6 +51,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="urls">The URLs to delete from the index.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <returns>The number of records deleted.</returns>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        /// <exception cref="FormatException" />
+        /// <exception cref="OverflowException" />
         Task<int> DeleteUrls(string crawlerId, IEnumerable<string> urls, CancellationToken cancellationToken);
 
 
@@ -57,6 +66,9 @@ namespace Kentico.Xperience.Algolia.Services
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <returns>An <see cref="AlgoliaCrawler"/> with the <see cref="AlgoliaCrawler.Config"/> details, or
         /// <c>null</c> if there was an error retrieving the crawler.</returns>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        /// <exception cref="FormatException" />
         Task<AlgoliaCrawler> GetCrawler(string crawlerId, CancellationToken cancellationToken);
 
 
@@ -81,6 +93,7 @@ namespace Kentico.Xperience.Algolia.Services
         /// <exception cref="ArgumentNullException" />
         /// <exception cref="OperationCanceledException" />
         /// <exception cref="ObjectDisposedException" />
+        /// <exception cref="OverflowException" />
         /// <returns>The number of objects processed.</returns>
         Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken);
 

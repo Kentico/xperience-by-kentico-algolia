@@ -17,14 +17,7 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class GetIndexSettingsTests : AlgoliaTests
         {
-            private DefaultAlgoliaIndexService algoliaIndexService;
-
-
-            [SetUp]
-            public void GetIndexSettingsTestsSetUp()
-            {
-                algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
-            }
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
 
 
             [TestCase(typeof(TestSearchModels.ArticleEnSearchModel), ExpectedResult = new string[] { "filterOnly(FacetableProperty)", "searchable(ClassName)" })]
@@ -70,16 +63,30 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
         [TestFixture]
+        internal class InitializeCrawlerTests : AlgoliaTests
+        {
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
+
+
+            [Test]
+            public void InitializeCrawler_InvalidConfiguration_Throws()
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.Throws<ArgumentNullException>(() => algoliaIndexService.InitializeCrawler(null));
+                    Assert.Throws<InvalidOperationException>(() => algoliaIndexService.InitializeCrawler(new AlgoliaCrawler
+                    {
+                        Name = String.Empty
+                    }));
+                });
+            }
+        }
+
+
+        [TestFixture]
         internal class InitializeIndexTests : AlgoliaTests
         {
-            private IAlgoliaIndexService algoliaIndexService;
-
-
-            [SetUp]
-            public void InitializeIndexTestsTestsSetUp()
-            {
-                algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
-            }
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
 
 
             [Test]

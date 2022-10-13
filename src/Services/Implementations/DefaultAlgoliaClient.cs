@@ -209,9 +209,8 @@ namespace Kentico.Xperience.Algolia.Services
                 return 0;
             }
 
-            var indexName = $"{crawlerDetail.Config.IndexPrefix}{crawlerDetail.Name}";
-            var searchIndex = searchClient.InitIndex(indexName);
             var deletedCount = 0;
+            var searchIndex = algoliaIndexService.InitializeCrawler(crawlerDetail);
             var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(urls, ct: cancellationToken);
             foreach (var response in batchIndexingResponse.Responses)
             {

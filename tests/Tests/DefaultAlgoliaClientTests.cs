@@ -167,6 +167,62 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
         [TestFixture]
+        internal class DeleteUrlsTests : AlgoliaTests
+        {
+            private IAlgoliaClient algoliaClient;
+            private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
+            private readonly IProgressiveCache mockProgressiveCache = Substitute.For<IProgressiveCache>();
+            private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
+            private readonly MockHttpMessageHandler mockHttpMessageHandler = Substitute.ForPartsOf<MockHttpMessageHandler>();
+
+
+            [SetUp]
+            public void DeleteUrlsTestsSetUp()
+            {
+                mockIndexService.InitializeCrawler(Arg.Any<AlgoliaCrawler>()).ReturnsForAnyArgs(mockSearchIndex);
+                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
+                {
+                    // Execute the passed function
+                    return await args.ArgAt<Func<CacheSettings, Task<AlgoliaCrawler>>>(0)(args.ArgAt<CacheSettings>(1));
+                });
+                var httpClient = new HttpClient(mockHttpMessageHandler)
+                {
+                    BaseAddress = new Uri(DefaultAlgoliaClient.BASE_URL)
+                };
+
+                algoliaClient = new DefaultAlgoliaClient(httpClient,
+                    mockIndexService,
+                    Substitute.For<IAlgoliaObjectGenerator>(),
+                    Substitute.For<ICacheAccessor>(),
+                    Substitute.For<IEventLogService>(),
+                    mockProgressiveCache,
+                    Substitute.For<ISearchClient>(),
+                    GetMockAlgoliaOptions());
+            }
+
+
+            [Test]
+            public async Task DeleteUrls_ReturnsProcessedCount()
+            {
+                var deletedUrls = new string[] { "https://test" };
+                var expectedUrl = String.Format(DefaultAlgoliaClient.BASE_URL + DefaultAlgoliaClient.PATH_GET_CRAWLER, CRAWLER_ID);
+                var numProcessed = await algoliaClient.DeleteUrls(CRAWLER_ID, deletedUrls, CancellationToken.None);
+
+                Assert.That(numProcessed, Is.EqualTo(1));
+                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(deletedUrls)), null, Arg.Any<CancellationToken>());
+                mockIndexService.Received(1).InitializeCrawler(Arg.Is<AlgoliaCrawler>(arg =>
+                    arg.Name.Equals(MockHttpMessageHandler.TestCrawlerResponse.Name, StringComparison.OrdinalIgnoreCase) &&
+                    arg.Config.IndexPrefix.Equals(MockHttpMessageHandler.TestCrawlerResponse.Config.IndexPrefix, StringComparison.OrdinalIgnoreCase)
+                ));
+                mockHttpMessageHandler.Received(1).MockSend(Arg.Is<HttpRequestMessage>(arg =>
+                    arg.Method == HttpMethod.Get &&
+                    arg.RequestUri.AbsoluteUri.Equals(expectedUrl, StringComparison.OrdinalIgnoreCase)
+                ), Arg.Any<CancellationToken>());
+            }
+        }
+
+
+        [TestFixture]
         internal class GetStatisticsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
@@ -181,9 +237,7 @@ namespace Kentico.Xperience.Algolia.Tests
                 mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
                 {
                     // Execute the passed function
-                    await args.ArgAt<Func<CacheSettings, Task<List<IndicesResponse>>>>(0)(args.ArgAt<CacheSettings>(1));
-
-                    return null;
+                    return await args.ArgAt<Func<CacheSettings, Task<List<IndicesResponse>>>>(0)(args.ArgAt<CacheSettings>(1));
                 });
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),

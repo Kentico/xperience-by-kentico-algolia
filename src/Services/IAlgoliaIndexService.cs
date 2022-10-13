@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
 
+using Kentico.Xperience.Algolia.Models;
+
 namespace Kentico.Xperience.Algolia.Services
 {
     /// <summary>
@@ -11,6 +13,16 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     public interface IAlgoliaIndexService
     {
+        /// <summary>
+        /// Initializes a new <see cref="ISearchIndex" /> to manage the underlying Algolia index for
+        /// the provided <paramref name="crawler"/>.
+        /// </summary>
+        /// <param name="crawler">The crawler definition as retrieved by <see cref="IAlgoliaClient.GetCrawler"/>.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        ISearchIndex InitializeCrawler(AlgoliaCrawler crawler);
+
+
         /// <summary>
         /// Initializes a new <see cref="ISearchIndex" /> for the given <paramref name="indexName" />
         /// and calls <see cref="ISearchIndex.SetSettings"/>.

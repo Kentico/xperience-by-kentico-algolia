@@ -33,6 +33,23 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc/>
+        public ISearchIndex InitializeCrawler(AlgoliaCrawler crawler)
+        {
+            if (crawler == null)
+            {
+                throw new ArgumentNullException(nameof(crawler));
+            }
+
+            if (String.IsNullOrEmpty(crawler.Name))
+            {
+                throw new InvalidOperationException("The crawler name cannot be empty.");
+            }
+
+            return searchClient.InitIndex($"{crawler.Config.IndexPrefix}{crawler.Name}");
+        }
+
+
         /// <inheritdoc />
         public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
         {
