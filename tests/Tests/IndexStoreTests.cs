@@ -21,16 +21,6 @@ namespace Kentico.Xperience.Algolia.Tests
             }
 
 
-            [Test]
-            public void AddCrawler_ValidId_StoresCrawler()
-            {
-                IndexStore.Instance.AddCrawler("A");
-                IndexStore.Instance.AddCrawler("B");
-
-                Assert.That(IndexStore.Instance.GetAllCrawlers().Count(), Is.EqualTo(2));
-            }
-
-
             [TearDown]
             public void AddCrawlerTestsTearDown()
             {

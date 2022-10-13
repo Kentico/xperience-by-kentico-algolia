@@ -17,7 +17,7 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class GetIndexSettingsTests : AlgoliaTests
         {
-            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new(Substitute.For<ISearchClient>());
 
 
             [TestCase(typeof(TestSearchModels.ArticleEnSearchModel), ExpectedResult = new string[] { "filterOnly(FacetableProperty)", "searchable(ClassName)" })]
@@ -65,7 +65,7 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class InitializeCrawlerTests : AlgoliaTests
         {
-            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new(Substitute.For<ISearchClient>());
 
 
             [Test]
@@ -86,7 +86,7 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class InitializeIndexTests : AlgoliaTests
         {
-            private readonly DefaultAlgoliaIndexService algoliaIndexService = new DefaultAlgoliaIndexService(Substitute.For<ISearchClient>());
+            private readonly DefaultAlgoliaIndexService algoliaIndexService = new(Substitute.For<ISearchClient>());
 
 
             [Test]
