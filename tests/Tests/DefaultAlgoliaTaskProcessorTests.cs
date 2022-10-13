@@ -127,5 +127,43 @@ namespace Kentico.Xperience.Algolia.Tests
             }
         }
 
+
+        [TestFixture]
+        internal class ProcessCrawlerTasksTests
+        {
+            private IAlgoliaTaskProcessor algoliaTaskProcessor;
+            private IAlgoliaClient mockAlgoliaClient;
+
+
+            [SetUp]
+            public void ProcessCrawlerTasksTestsSetUp()
+            {
+                mockAlgoliaClient = Substitute.For<IAlgoliaClient>();
+                mockAlgoliaClient.CrawlUrls(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args =>
+                    Task.FromResult(args.Arg<IEnumerable<string>>().Count()));
+                mockAlgoliaClient.DeleteUrls(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args =>
+                    Task.FromResult(args.Arg<IEnumerable<string>>().Count()));
+
+                algoliaTaskProcessor = new DefaultAlgoliaTaskProcessor(mockAlgoliaClient,
+                    Substitute.For<IEventLogService>(),
+                    Substitute.For<IWorkflowStepInfoProvider>(),
+                    Substitute.For<IVersionHistoryInfoProvider>(),
+                    Substitute.For<IAlgoliaObjectGenerator>());
+            }
+
+
+            [Test]
+            public async Task ProcessCrawlerTasks_ValidTasks_ReturnsProcessedCount()
+            {
+                var createQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test1", AlgoliaTaskType.CREATE);
+                var updateQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test2", AlgoliaTaskType.UPDATE);
+                var deleteQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test3", AlgoliaTaskType.DELETE);
+                var numProcessed = await algoliaTaskProcessor.ProcessCrawlerTasks(new AlgoliaCrawlerQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, CancellationToken.None);
+
+                Assert.That(numProcessed, Is.EqualTo(3));
+                await mockAlgoliaClient.Received(1).CrawlUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test1", "https://test2" })), Arg.Any<CancellationToken>());
+                await mockAlgoliaClient.Received(1).DeleteUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test3" })), Arg.Any<CancellationToken>());
+            }
+        }
     }
 }
