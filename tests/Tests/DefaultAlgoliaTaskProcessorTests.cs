@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -84,7 +85,8 @@ namespace Kentico.Xperience.Algolia.Tests
                     CrawlerApiKey = "CRAWLER_KEY"
                 });
 
-                var mockAlgoliaClient = new DefaultAlgoliaClient(mockIndexService,
+                var mockAlgoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
+                    mockIndexService,
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),

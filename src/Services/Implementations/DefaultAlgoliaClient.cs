@@ -29,8 +29,13 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
+        public const string BASE_URL = "https://crawler.algolia.com/api/1/";
+        public const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
+        public const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
+
+
         private readonly AlgoliaOptions algoliaOptions;
-        private readonly HttpClient httpClient = new();
+        private readonly HttpClient httpClient;
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
@@ -39,15 +44,13 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
         private const string CACHEKEY_CRAWLER = "Algolia|Crawler|{0}";
-        private const string BASE_URL = "https://crawler.algolia.com/api/1";
-        private const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
-        private const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
-        public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
+        public DefaultAlgoliaClient(HttpClient httpClient,
+            IAlgoliaIndexService algoliaIndexService,
             IAlgoliaObjectGenerator algoliaObjectGenerator,
             ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
@@ -55,6 +58,9 @@ namespace Kentico.Xperience.Algolia.Services
             ISearchClient searchClient,
             IOptions<AlgoliaOptions> options)
         {
+            httpClient.BaseAddress = new Uri(BASE_URL);
+            this.httpClient = httpClient;
+
             algoliaOptions = options.Value;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
@@ -310,19 +316,18 @@ namespace Kentico.Xperience.Algolia.Services
                 return null;
             }
 
-            var url = $"{BASE_URL}/{path}";
             HttpResponseMessage response = null;
             try
             {
                 if (method.Equals(HttpMethod.Get))
                 {
-                    response = await httpClient.GetAsync(url, cancellationToken);
+                    response = await httpClient.GetAsync(path, cancellationToken);
                 }
                 else if (method.Equals(HttpMethod.Post))
                 {
                     // Algolia throws 415 if charset is specified
                     data.Headers.ContentType.CharSet = String.Empty;
-                    response = await httpClient.PostAsync(url, data, cancellationToken);
+                    response = await httpClient.PostAsync(path, data, cancellationToken);
                 }
                 else
                 {

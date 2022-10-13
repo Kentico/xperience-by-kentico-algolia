@@ -51,7 +51,7 @@ namespace Kentico.Xperience.Algolia.Services
                     continue;
                 }
 
-                LogIndexTask(new AlgoliaQueueItem(node, taskType, indexName));
+                LogIndexTask(new AlgoliaQueueItem(node, taskType, indexName, node.ChangedColumns()));
             }
         }
 

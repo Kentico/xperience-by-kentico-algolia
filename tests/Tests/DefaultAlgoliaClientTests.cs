@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +18,7 @@ using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
 using Microsoft.Extensions.Options;
-
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using NSubstitute;
@@ -30,6 +31,19 @@ namespace Kentico.Xperience.Algolia.Tests
 {
     internal class DefaultAlgoliaClientTests
     {
+        private static IOptions<AlgoliaOptions> GetMockAlgoliaOptions()
+        {
+            var mockOptions = Substitute.For<IOptions<AlgoliaOptions>>();
+            mockOptions.Value.Returns(new AlgoliaOptions
+            {
+                CrawlerUserId = "CRAWLER_USER",
+                CrawlerApiKey = "CRAWLER_KEY"
+            });
+
+            return mockOptions;
+        }
+
+
         private static ISearchIndex GetMockSearchIndex()
         {
             var mockSearchIndex = Substitute.For<ISearchIndex>();
@@ -63,6 +77,50 @@ namespace Kentico.Xperience.Algolia.Tests
 
 
         [TestFixture]
+        internal class CrawlUrlsTests : AlgoliaTests
+        {
+            private IAlgoliaClient algoliaClient;
+            private readonly MockHttpMessageHandler mockHttpMessageHandler = Substitute.ForPartsOf<MockHttpMessageHandler>();
+
+
+            [SetUp]
+            public void CrawlUrlsTestsSetUp()
+            {
+                var httpClient = new HttpClient(mockHttpMessageHandler)
+                {
+                    BaseAddress = new Uri(DefaultAlgoliaClient.BASE_URL)
+                };
+
+                algoliaClient = new DefaultAlgoliaClient(httpClient,
+                    Substitute.For<IAlgoliaIndexService>(),
+                    Substitute.For<IAlgoliaObjectGenerator>(),
+                    Substitute.For<ICacheAccessor>(),
+                    Substitute.For<IEventLogService>(),
+                    Substitute.For<IProgressiveCache>(),
+                    Substitute.For<ISearchClient>(),
+                    GetMockAlgoliaOptions());
+            }
+
+
+            [Test]
+            public async Task CrawlUrls_HttpClientReceivesParameters()
+            {
+                var crawledUrls = new string[] { "https://test" };
+                var expectedContent = JsonConvert.SerializeObject(new CrawlUrlsBody(crawledUrls));
+                var expectedUrl = String.Format(DefaultAlgoliaClient.BASE_URL + DefaultAlgoliaClient.PATH_CRAWL_URLS, CRAWLER_ID);
+
+                await algoliaClient.CrawlUrls(CRAWLER_ID, crawledUrls, CancellationToken.None);
+
+                mockHttpMessageHandler.Received(1).MockSend(Arg.Is<HttpRequestMessage>(arg =>
+                    arg.Method == HttpMethod.Post &&
+                    arg.RequestUri.AbsoluteUri.Equals(expectedUrl, StringComparison.OrdinalIgnoreCase) &&
+                    arg.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult().Equals(expectedContent, StringComparison.OrdinalIgnoreCase)
+                ), Arg.Any<CancellationToken>());
+            }
+        }
+
+
+        [TestFixture]
         internal class DeleteRecordsTests : AlgoliaTests
         {
             private IAlgoliaClient algoliaClient;
@@ -76,24 +134,18 @@ namespace Kentico.Xperience.Algolia.Tests
             {
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
-                var mockOptions = Substitute.For<IOptions<AlgoliaOptions>>();
-                mockOptions.Value.Returns(new AlgoliaOptions
-                {
-                    CrawlerUserId = "CRAWLER_USER",
-                    CrawlerApiKey = "CRAWLER_KEY"
-                });
-
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IMediaFileInfoProvider>(),
                     Substitute.For<IMediaFileUrlRetriever>());
-                algoliaClient = new DefaultAlgoliaClient(mockIndexService,
+                algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
+                    mockIndexService,
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
-                    mockOptions);
+                    GetMockAlgoliaOptions());
             }
 
 
@@ -134,20 +186,14 @@ namespace Kentico.Xperience.Algolia.Tests
                     return null;
                 });
 
-                var mockOptions = Substitute.For<IOptions<AlgoliaOptions>>();
-                mockOptions.Value.Returns(new AlgoliaOptions
-                {
-                    CrawlerUserId = "CRAWLER_USER",
-                    CrawlerApiKey = "CRAWLER_KEY"
-                });
-
-                algoliaClient = new DefaultAlgoliaClient(Substitute.For<IAlgoliaIndexService>(),
+                algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
+                    Substitute.For<IAlgoliaIndexService>(),
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     mockProgressiveCache,
                     mockSearchClient,
-                    mockOptions);
+                    GetMockAlgoliaOptions());
             }
 
 
@@ -175,25 +221,19 @@ namespace Kentico.Xperience.Algolia.Tests
             {
                 mockIndexService.InitializeIndex(Arg.Any<string>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(mockSearchIndex);
 
-                var mockOptions = Substitute.For<IOptions<AlgoliaOptions>>();
-                mockOptions.Value.Returns(new AlgoliaOptions
-                {
-                    CrawlerUserId = "CRAWLER_USER",
-                    CrawlerApiKey = "CRAWLER_KEY"
-                });
-
                 algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IMediaFileInfoProvider>(),
                     Substitute.For<IMediaFileUrlRetriever>());
 
-                algoliaClient = new DefaultAlgoliaClient(mockIndexService,
+                algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
+                    mockIndexService,
                     algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
-                    mockOptions);
+                    GetMockAlgoliaOptions());
             }
 
 
