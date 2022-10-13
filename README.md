@@ -260,9 +260,9 @@ namespace DancingGoat.Algolia
           this.defaultImplementation = defaultImplementation;
       }
 
-      public JObject GetTreeNodeData(TreeNode node, Type searchModelType, AlgoliaTaskType taskType)
+      public JObject GetTreeNodeData(AlgoliaQueueItem queueItem)
       {
-          return defaultImplementation.GetTreeNodeData(node, searchModelType, taskType);
+          return defaultImplementation.GetTreeNodeData(queueItem);
       }
 
       public IEnumerable<JObject> SplitData(JObject originalData, AlgoliaIndex algoliaIndex)
