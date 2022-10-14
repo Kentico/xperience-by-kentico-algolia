@@ -29,11 +29,6 @@ namespace Kentico.Xperience.Algolia.Services
     /// </summary>
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
-        public const string BASE_URL = "https://crawler.algolia.com/api/1/";
-        public const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
-        public const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
-
-
         private readonly AlgoliaOptions algoliaOptions;
         private readonly HttpClient httpClient;
         private readonly IAlgoliaIndexService algoliaIndexService;
@@ -44,6 +39,11 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
         private const string CACHEKEY_CRAWLER = "Algolia|Crawler|{0}";
+
+
+        internal const string BASE_URL = "https://crawler.algolia.com/api/1/";
+        internal const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
+        internal const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
 
 
         /// <summary>

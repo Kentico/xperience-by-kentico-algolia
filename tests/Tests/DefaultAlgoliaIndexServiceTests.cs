@@ -65,7 +65,15 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class InitializeCrawlerTests : AlgoliaTests
         {
-            private readonly DefaultAlgoliaIndexService algoliaIndexService = new(Substitute.For<ISearchClient>());
+            private IAlgoliaIndexService algoliaIndexService;
+            private readonly ISearchClient mockSearchClient = Substitute.For<ISearchClient>();
+
+
+            [SetUp]
+            public void InitializeCrawlerTestsSetUp()
+            {
+                algoliaIndexService = new DefaultAlgoliaIndexService(mockSearchClient);
+            }
 
 
             [Test]
@@ -79,6 +87,22 @@ namespace Kentico.Xperience.Algolia.Tests
                         Name = String.Empty
                     }));
                 });
+            }
+
+
+            [Test]
+            public void InitializeCrawler_ValidName_CallsMethods()
+            {
+                algoliaIndexService.InitializeCrawler(new AlgoliaCrawler
+                {
+                    Name = "TEST",
+                    Config = new AlgoliaCrawlerConfig
+                    {
+                        IndexPrefix = "PREFIX_"
+                    }
+                });
+
+                mockSearchClient.Received(1).InitIndex("PREFIX_TEST");
             }
         }
 
