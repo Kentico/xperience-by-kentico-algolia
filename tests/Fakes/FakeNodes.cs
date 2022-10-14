@@ -10,7 +10,6 @@ namespace Kentico.Xperience.Algolia.Tests
     {
         public const string DEFAULT_SITE = "TestSite";
         public const string FAKE_SITE = "FAKE_SITE";
-        public const string DOCTYPE_ARTICLE = "Test.Article";
         public const string DOCTYPE_PRODUCT = "Test.Product";
 
 
@@ -92,7 +91,7 @@ namespace Kentico.Xperience.Algolia.Tests
         }
 
 
-        private static TreeNode CreateNode(string nodeAliasPath, string pageType = DOCTYPE_ARTICLE, string culture = "en-US", string site = DEFAULT_SITE)
+        private static TreeNode CreateNode(string nodeAliasPath, string pageType = Article.CLASS_NAME, string culture = "en-US", string site = DEFAULT_SITE)
         {
             nodeCount++;
             var nodeSite = SiteInfo.Provider.Get(site);

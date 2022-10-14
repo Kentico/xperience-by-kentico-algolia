@@ -1,4 +1,6 @@
-﻿using Kentico.Xperience.Algolia.Attributes;
+﻿using System.Collections.Generic;
+
+using Kentico.Xperience.Algolia.Attributes;
 
 namespace Kentico.Xperience.Algolia.Tests
 {
@@ -7,7 +9,7 @@ namespace Kentico.Xperience.Algolia.Tests
         public const string CRAWLER_ID = "crawler";
 
 
-        [IncludedPath("/Articles/%", PageTypes = new string[] { FakeNodes.DOCTYPE_ARTICLE })]
+        [IncludedPath("/Articles/%", PageTypes = new string[] { Article.CLASS_NAME })]
         public class ArticleEnSearchModel : BaseSearchModel
         {
             public string DocumentName { get; set; }
@@ -48,6 +50,10 @@ namespace Kentico.Xperience.Algolia.Tests
         {
             [Searchable]
             public string AttributeForDistinct { get; set; }
+
+
+            [MediaUrls]
+            public IEnumerable<string> ArticleTeaser { get; set; }
         }
 
 

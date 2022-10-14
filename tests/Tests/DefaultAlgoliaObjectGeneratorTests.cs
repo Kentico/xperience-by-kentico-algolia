@@ -1,5 +1,13 @@
-﻿using CMS.Core;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using CMS.Core;
+using CMS.DataEngine;
+using CMS.DocumentEngine;
+using CMS.Helpers;
 using CMS.MediaLibrary;
+using CMS.SiteProvider;
 
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
@@ -18,10 +26,51 @@ namespace Kentico.Xperience.Algolia.Tests
         [TestFixture]
         internal class GetTreeNodeDataTests : AlgoliaTests
         {
-            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                Substitute.For<IEventLogService>(),
-                Substitute.For<IMediaFileInfoProvider>(),
-                Substitute.For<IMediaFileUrlRetriever>());
+            private IAlgoliaObjectGenerator algoliaObjectGenerator;
+            private readonly Guid mediaFileGuid = Guid.NewGuid();
+            private readonly IMediaFileInfoProvider mediaFileInfoProvider = Substitute.For<IMediaFileInfoProvider>();
+            private readonly IMediaFileUrlRetriever mediaFileUrlRetriever = Substitute.For<IMediaFileUrlRetriever>();
+
+
+            [SetUp]
+            public void GetTreeNodeDataSetUp()
+            {
+                ModuleManager.GetModule(ModuleName.MEDIALIBRARY).Init();
+                
+                var site = SiteInfo.Provider.Get(FakeNodes.DEFAULT_SITE);
+                Fake<MediaFileInfo, MediaFileInfoProvider>().WithData(
+                    new MediaFileInfo
+                    {
+                        FileGUID = mediaFileGuid,
+                        FileSiteID = site.SiteID
+                    });
+
+                mediaFileInfoProvider.Get().ReturnsForAnyArgs(new ObjectQuery<MediaFileInfo>());
+                algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(new ConversionService(),
+                    Substitute.For<IEventLogService>(),
+                    mediaFileInfoProvider,
+                    mediaFileUrlRetriever);
+            }
+
+
+            [Test]
+            public void GetTreeNodeData_AssetUrlsRetrieved()
+            {
+                var assetRelatedItem = new AssetRelatedItem
+                {
+                    Identifier = mediaFileGuid
+                };
+                var dataType = DataTypeManager.GetDataType(typeof(IEnumerable<AssetRelatedItem>));
+                var mediaDbValue = dataType.ConvertToDbType(new AssetRelatedItem[] { assetRelatedItem }, null, Enumerable.Empty<AssetRelatedItem>());
+                var articleWithAsset = TreeNode.New<Article>().With(node =>
+                {
+                    node.ArticleTeaser = mediaDbValue.ToString();
+                });
+                var queueItem = new AlgoliaQueueItem(articleWithAsset, AlgoliaTaskType.CREATE, nameof(SplittingModel));
+                algoliaObjectGenerator.GetTreeNodeData(queueItem);
+
+                mediaFileUrlRetriever.Received(1).Retrieve(Arg.Is<MediaFileInfo>(file => file.FileGUID.Equals(mediaFileGuid)));
+            }
 
 
             [Test]
@@ -32,7 +81,7 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 Assert.Multiple(() => {
                     Assert.That(articleEnData.Value<string>("NodeAliasPath"), Is.EqualTo(FakeNodes.ArticleEn.NodeAliasPath));
-                    Assert.That(articleEnData.Value<string>("ClassName"), Is.EqualTo(FakeNodes.DOCTYPE_ARTICLE));
+                    Assert.That(articleEnData.Value<string>("ClassName"), Is.EqualTo(Article.CLASS_NAME));
                     Assert.That(articleEnData.Value<string>("DocumentName"), Is.EqualTo(FakeNodes.ArticleEn.DocumentName.ToUpper()));
                     Assert.That(articleEnData.Value<int>("objectID"), Is.EqualTo(FakeNodes.ArticleEn.DocumentID));
                 });
