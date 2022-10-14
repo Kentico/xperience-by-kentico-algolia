@@ -93,6 +93,7 @@ namespace Kentico.Xperience.Algolia.Tests
                     Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
+                    Substitute.For<IPageRetriever>(),
                     Substitute.For<IProgressiveCache>(),
                     Substitute.For<ISearchClient>(),
                     mockOptions);

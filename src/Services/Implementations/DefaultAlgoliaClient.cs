@@ -14,7 +14,7 @@ using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.Helpers;
 using CMS.Helpers.Caching.Abstractions;
-
+using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 
 using Microsoft.Extensions.Options;
@@ -35,6 +35,7 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
+        private readonly IPageRetriever pageRetriever;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
         private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
@@ -54,24 +55,25 @@ namespace Kentico.Xperience.Algolia.Services
             IAlgoliaObjectGenerator algoliaObjectGenerator,
             ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
+            IPageRetriever pageRetriever,
             IProgressiveCache progressiveCache,
             ISearchClient searchClient,
             IOptions<AlgoliaOptions> options)
         {
-            httpClient.BaseAddress = new Uri(BASE_URL);
-            this.httpClient = httpClient;
-
             algoliaOptions = options.Value;
+            this.httpClient = httpClient;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
+            this.pageRetriever = pageRetriever;
             this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
 
             // Initialize HttpClient used for crawler requests if a crawler is registered
             if (IndexStore.Instance.GetAllCrawlers().Any())
             {
+                httpClient.BaseAddress = new Uri(BASE_URL);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
             }
@@ -287,17 +289,19 @@ namespace Kentico.Xperience.Algolia.Services
             var indexedNodes = new List<TreeNode>();
             foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
             {
-                var query = new MultiDocumentQuery()
-                    .Path(includedPathAttribute.AliasPath)
-                    .PublishedVersion()
-                    .WithCoupledColumns();
-
-                if (includedPathAttribute.PageTypes.Length > 0)
+                var nodes = await pageRetriever.RetrieveMultipleAsync(q =>
                 {
-                    query.Types(includedPathAttribute.PageTypes);
-                }
+                    if (includedPathAttribute.PageTypes.Length > 0)
+                    {
+                        q.Types(includedPathAttribute.PageTypes);
+                    }
 
-                indexedNodes.AddRange(query.TypedResult);
+                    q.Path(includedPathAttribute.AliasPath)
+                        .PublishedVersion()
+                        .WithCoupledColumns();
+                });
+                    
+                indexedNodes.AddRange(nodes);
             }
 
             var dataToUpsert = new List<JObject>();
