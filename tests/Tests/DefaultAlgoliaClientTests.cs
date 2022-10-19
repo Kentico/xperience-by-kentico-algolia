@@ -314,6 +314,7 @@ namespace Kentico.Xperience.Algolia.Tests
         {
             private IAlgoliaClient algoliaClient;
             private readonly ISearchIndex mockSearchIndex = GetMockSearchIndex();
+            private readonly ICacheAccessor mockCacheAccessor = Substitute.For<ICacheAccessor>();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
             private readonly IPageRetriever mockPageRetriever = Substitute.For<IPageRetriever>();
             private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
@@ -332,7 +333,7 @@ namespace Kentico.Xperience.Algolia.Tests
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
                     algoliaObjectGenerator,
-                    Substitute.For<ICacheAccessor>(),
+                    mockCacheAccessor,
                     Substitute.For<IEventLogService>(),
                     mockPageRetriever,
                     Substitute.For<IProgressiveCache>(),
@@ -358,7 +359,8 @@ namespace Kentico.Xperience.Algolia.Tests
                 var articleEnData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel)));
                 await algoliaClient.Rebuild(nameof(ArticleEnSearchModel), CancellationToken.None);
 
-                await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>());
+                mockCacheAccessor.Received(1).Remove(DefaultAlgoliaClient.CACHEKEY_STATISTICS);
+                await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, Arg.Any<CancellationToken>());
                 await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), Arg.Any<CancellationToken>());
                 await mockSearchIndex.Received(1).ReplaceAllObjectsAsync(Arg.Is<IEnumerable<JObject>>(arg =>
                     arg.SequenceEqual(new JObject[] { articleEnData }, new JObjectEqualityComparer())), null, Arg.Any<CancellationToken>(), Arg.Any<bool>());
