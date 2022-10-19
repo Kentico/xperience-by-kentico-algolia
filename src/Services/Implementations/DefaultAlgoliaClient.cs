@@ -14,6 +14,7 @@ using CMS.Core;
 using CMS.DocumentEngine;
 using CMS.Helpers;
 using CMS.Helpers.Caching.Abstractions;
+
 using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 

@@ -3,6 +3,7 @@ using System.Linq;
 
 using CMS.Core;
 using CMS.DocumentEngine;
+using CMS.SiteProvider;
 
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
@@ -32,10 +33,13 @@ namespace Kentico.Xperience.Algolia.Services
             var taskType = GetTaskType(node, eventName);
 
             // Check crawlers
-            foreach (var crawlerId in IndexStore.Instance.GetAllCrawlers())
+            if (node.Site.SiteStatus == SiteStatusEnum.Running)
             {
-                var url = DocumentURLProvider.GetAbsoluteUrl(node);
-                LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, taskType));
+                foreach (var crawlerId in IndexStore.Instance.GetAllCrawlers())
+                {
+                    var url = DocumentURLProvider.GetAbsoluteUrl(node);
+                    LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, taskType));
+                }
             }
 
             // Check standard indexes

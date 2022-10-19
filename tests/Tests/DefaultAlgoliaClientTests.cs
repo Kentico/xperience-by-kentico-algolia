@@ -72,8 +72,6 @@ namespace Kentico.Xperience.Algolia.Tests
                     }
                 }
             ));
-            //mockSearchIndex.ReplaceAllObjectsAsync(Arg.Any<IEnumerable<JObject>>(), null, Arg.Any<CancellationToken>(), Arg.Any<bool>())
-                //.ReturnsForAnyArgs(args => Task.FromResult(new MultiResponse()));
 
             return mockSearchIndex;
         }

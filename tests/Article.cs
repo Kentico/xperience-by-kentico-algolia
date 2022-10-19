@@ -11,7 +11,7 @@ namespace Kentico.Xperience.Algolia.Tests
 	/// <summary>
 	/// Represents a content item of type Article.
 	/// </summary>
-	public partial class Article : TreeNode
+	public class Article : TreeNode
 	{
 		#region "Constants and variables"
 
