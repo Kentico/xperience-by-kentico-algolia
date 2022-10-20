@@ -147,10 +147,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc/>
         public async Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
         {
-            return await progressiveCache.LoadAsync(async (cs) => {
-                var response = await searchClient.ListIndicesAsync(ct: cancellationToken).ConfigureAwait(false);
+            return await progressiveCache.LoadAsync(async (cs, ct) => {
+                var response = await searchClient.ListIndicesAsync(ct: ct).ConfigureAwait(false);
                 return response.Items;
-            }, new CacheSettings(20, CACHEKEY_STATISTICS)).ConfigureAwait(false);
+            }, new CacheSettings(20, CACHEKEY_STATISTICS), cancellationToken).ConfigureAwait(false);
         }
 
 
@@ -252,19 +252,19 @@ namespace Kentico.Xperience.Algolia.Services
 
         private async Task<AlgoliaCrawler> GetCrawlerInternal(string crawlerId, CancellationToken cancellationToken)
         {
-            return await progressiveCache.LoadAsync(async (cs) => {
+            return await progressiveCache.LoadAsync(async (cs, ct) => {
                 var path = String.Format(PATH_GET_CRAWLER, crawlerId);
-                var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
+                var response = await SendRequest(path, HttpMethod.Get, ct);
                 if (response == null)
                 {
                     cs.Cached = false;
                     return null;
                 }
 
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                var content = await response.Content.ReadAsStringAsync(ct);
 
                 return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
-            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId))).ConfigureAwait(false);
+            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId)), cancellationToken).ConfigureAwait(false);
         }
 
 

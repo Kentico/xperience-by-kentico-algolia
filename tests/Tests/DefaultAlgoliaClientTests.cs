@@ -154,16 +154,17 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task DeleteRecords_ValidIndex_ReturnsProcessedCount()
             {
+                var cancellationToken = new CancellationToken();
                 var enQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.DELETE, nameof(ArticleEnSearchModel));
                 var objectIdEn = algoliaObjectGenerator.GetTreeNodeData(enQueueItem).Value<string>("objectID");
                 var czQueueItem = new AlgoliaQueueItem( FakeNodes.ArticleCz, AlgoliaTaskType.DELETE, nameof(ArticleEnSearchModel));
                 var objectIdCz = algoliaObjectGenerator.GetTreeNodeData(czQueueItem).Value<string>("objectID");
                 var objectIds = new string[] { objectIdEn, objectIdCz };
-                var numProcessed = await algoliaClient.DeleteRecords(objectIds, nameof(ArticleEnSearchModel), CancellationToken.None);
+                var numProcessed = await algoliaClient.DeleteRecords(objectIds, nameof(ArticleEnSearchModel), cancellationToken);
 
                 Assert.That(numProcessed, Is.EqualTo(2));
-                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), Arg.Any<CancellationToken>());
-                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(objectIds)), null, Arg.Any<CancellationToken>());
+                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
+                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(objectIds)), null, cancellationToken);
             }
         }
 
@@ -182,10 +183,11 @@ namespace Kentico.Xperience.Algolia.Tests
             public void DeleteUrlsTestsSetUp()
             {
                 mockIndexService.InitializeCrawler(Arg.Any<AlgoliaCrawler>()).ReturnsForAnyArgs(mockSearchIndex);
-                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
+                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, CancellationToken, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(async args =>
                 {
                     // Execute the passed function
-                    return await args.ArgAt<Func<CacheSettings, Task<AlgoliaCrawler>>>(0)(args.ArgAt<CacheSettings>(1));
+                    var func = args.ArgAt<Func<CacheSettings, CancellationToken, Task<AlgoliaCrawler>>>(0);
+                    return await func(args.ArgAt<CacheSettings>(1), args.ArgAt<CancellationToken>(2));
                 });
                 var httpClient = new HttpClient(mockHttpMessageHandler)
                 {
@@ -207,11 +209,12 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task DeleteUrls_ReturnsProcessedCount()
             {
+                var cancellationToken = new CancellationToken();
                 var deletedUrls = new string[] { "https://test" };
-                var numProcessed = await algoliaClient.DeleteUrls(CRAWLER_ID, deletedUrls, CancellationToken.None);
+                var numProcessed = await algoliaClient.DeleteUrls(CRAWLER_ID, deletedUrls, cancellationToken);
 
                 Assert.That(numProcessed, Is.EqualTo(1));
-                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(deletedUrls)), null, Arg.Any<CancellationToken>());
+                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(deletedUrls)), null, cancellationToken);
                 mockIndexService.Received(1).InitializeCrawler(Arg.Is<AlgoliaCrawler>(arg =>
                     arg.Name.Equals(MockHttpMessageHandler.TestCrawlerResponse.Name, StringComparison.OrdinalIgnoreCase) &&
                     arg.Config.IndexPrefix.Equals(MockHttpMessageHandler.TestCrawlerResponse.Config.IndexPrefix, StringComparison.OrdinalIgnoreCase)
@@ -231,10 +234,11 @@ namespace Kentico.Xperience.Algolia.Tests
             [SetUp]
             public void GetCrawlerTestsSetUp()
             {
-                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
+                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, CancellationToken, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(async args =>
                 {
                     // Execute the passed function
-                    return await args.ArgAt<Func<CacheSettings, Task<AlgoliaCrawler>>>(0)(args.ArgAt<CacheSettings>(1));
+                    var func = args.ArgAt<Func<CacheSettings, CancellationToken, Task <AlgoliaCrawler>>>(0);
+                    return await func(args.ArgAt<CacheSettings>(1), args.ArgAt<CancellationToken>(2));
                 });
                 var httpClient = new HttpClient(mockHttpMessageHandler)
                 {
@@ -256,11 +260,12 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task GetCrawler_CallsMethods()
             {
+                var cancellationToken = new CancellationToken();
                 var expectedUrl = String.Format(DefaultAlgoliaClient.BASE_URL + DefaultAlgoliaClient.PATH_GET_CRAWLER, CRAWLER_ID);
-                var crawler = await algoliaClient.GetCrawler(CRAWLER_ID, CancellationToken.None);
+                var crawler = await algoliaClient.GetCrawler(CRAWLER_ID, cancellationToken);
 
                 Assert.That(crawler, Is.Not.Null);
-                await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>());
+                await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, CancellationToken, Task<AlgoliaCrawler>>>(), Arg.Any<CacheSettings>(), cancellationToken);
                 mockHttpMessageHandler.Received(1).MockSend(Arg.Is<HttpRequestMessage>(arg =>
                     arg.Method == HttpMethod.Get &&
                     arg.RequestUri.AbsoluteUri.Equals(expectedUrl, StringComparison.OrdinalIgnoreCase)
@@ -281,10 +286,11 @@ namespace Kentico.Xperience.Algolia.Tests
             public void GetStatisticsTestsSetUp()
             {
                 mockSearchClient.ListIndicesAsync(null, Arg.Any<CancellationToken>()).ReturnsForAnyArgs(args => Task.FromResult(new ListIndicesResponse()));
-                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>()).ReturnsForAnyArgs(async args =>
+                mockProgressiveCache.LoadAsync(Arg.Any<Func<CacheSettings, CancellationToken, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(async args =>
                 {
                     // Execute the passed function
-                    return await args.ArgAt<Func<CacheSettings, Task<List<IndicesResponse>>>>(0)(args.ArgAt<CacheSettings>(1));
+                    var func = args.ArgAt<Func<CacheSettings, CancellationToken, Task<List<IndicesResponse>>>>(0);
+                    return await func(args.ArgAt<CacheSettings>(1), args.ArgAt<CancellationToken>(2));
                 });
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
@@ -302,9 +308,11 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task GetStatistics_CallsMethods()
             {
-                await algoliaClient.GetStatistics(CancellationToken.None);
-                await mockSearchClient.Received(1).ListIndicesAsync(null, Arg.Any<CancellationToken>());
-                await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>());
+                var cancellationToken = new CancellationToken();
+
+                await algoliaClient.GetStatistics(cancellationToken);
+                await mockSearchClient.Received(1).ListIndicesAsync(null, cancellationToken);
+                await mockProgressiveCache.Received(1).LoadAsync(Arg.Any<Func<CacheSettings, CancellationToken, Task<List<IndicesResponse>>>>(), Arg.Any<CacheSettings>(), cancellationToken);
             }
         }
 
@@ -356,14 +364,15 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task Rebuild_ValidIndex_CallsMethods()
             {
+                var cancellationToken = new CancellationToken();
                 var articleEnData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel)));
-                await algoliaClient.Rebuild(nameof(ArticleEnSearchModel), CancellationToken.None);
+                await algoliaClient.Rebuild(nameof(ArticleEnSearchModel), cancellationToken);
 
                 mockCacheAccessor.Received(1).Remove(DefaultAlgoliaClient.CACHEKEY_STATISTICS);
-                await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, Arg.Any<CancellationToken>());
-                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), Arg.Any<CancellationToken>());
+                await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, cancellationToken);
+                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
                 await mockSearchIndex.Received(1).ReplaceAllObjectsAsync(Arg.Is<IEnumerable<JObject>>(arg =>
-                    arg.SequenceEqual(new JObject[] { articleEnData }, new JObjectEqualityComparer())), null, Arg.Any<CancellationToken>(), Arg.Any<bool>());
+                    arg.SequenceEqual(new JObject[] { articleEnData }, new JObjectEqualityComparer())), null, cancellationToken, Arg.Any<bool>());
             }
         }
 
@@ -400,18 +409,19 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task UpsertRecords_ValidIndex_ReturnsProcessedCount()
             {
+                var cancellationToken = new CancellationToken();
                 var enQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel));
                 var czQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleCz, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel));
                 var dataToUpsert = new JObject[] {
                     algoliaObjectGenerator.GetTreeNodeData(enQueueItem),
                     algoliaObjectGenerator.GetTreeNodeData(czQueueItem)
                 };
-                var numProcessed = await algoliaClient.UpsertRecords(dataToUpsert, nameof(ArticleEnSearchModel), CancellationToken.None);
+                var numProcessed = await algoliaClient.UpsertRecords(dataToUpsert, nameof(ArticleEnSearchModel), cancellationToken);
 
                 Assert.That(numProcessed, Is.EqualTo(2));
-                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), Arg.Any<CancellationToken>());
+                await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
                 await mockSearchIndex.Received(1).PartialUpdateObjectsAsync(
-                    Arg.Is<IEnumerable<JObject>>(arg => arg.SequenceEqual(dataToUpsert, new JObjectEqualityComparer())), createIfNotExists: true, ct: Arg.Any<CancellationToken>());
+                    Arg.Is<IEnumerable<JObject>>(arg => arg.SequenceEqual(dataToUpsert, new JObjectEqualityComparer())), createIfNotExists: true, ct: cancellationToken);
             }
         }
     }

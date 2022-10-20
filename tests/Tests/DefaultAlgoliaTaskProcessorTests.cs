@@ -109,6 +109,7 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task ProcessAlgoliaTasks_ValidTasks_ProcessesTasks()
             {
+                var cancellationToken = new CancellationToken();
                 var createQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel));
                 var deleteQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleCz, AlgoliaTaskType.DELETE, nameof(ArticleEnSearchModel));
                 var updateQueueItem = new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.UPDATE, nameof(ArticleEnSearchModel), new string[] { "DocumentName" });
@@ -117,12 +118,12 @@ namespace Kentico.Xperience.Algolia.Tests
                     algoliaObjectGenerator.GetTreeNodeData(createQueueItem),
                     algoliaObjectGenerator.GetTreeNodeData(updateQueueItem)
                 };
-                var numProcessed = await algoliaTaskProcessor.ProcessAlgoliaTasks(new AlgoliaQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, CancellationToken.None);
+                var numProcessed = await algoliaTaskProcessor.ProcessAlgoliaTasks(new AlgoliaQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, cancellationToken);
 
                 Assert.That(numProcessed, Is.EqualTo(3));
-                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { IdToDelete })), null, Arg.Any<CancellationToken>());
+                await mockSearchIndex.Received(1).DeleteObjectsAsync(Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { IdToDelete })), null, cancellationToken);
                 await mockSearchIndex.Received(1).PartialUpdateObjectsAsync(
-                    Arg.Is<IEnumerable<JObject>>(arg => arg.SequenceEqual(dataToUpsert, new JObjectEqualityComparer())), createIfNotExists: true, ct: Arg.Any<CancellationToken>());
+                    Arg.Is<IEnumerable<JObject>>(arg => arg.SequenceEqual(dataToUpsert, new JObjectEqualityComparer())), createIfNotExists: true, ct: cancellationToken);
             }
         }
 
@@ -153,14 +154,15 @@ namespace Kentico.Xperience.Algolia.Tests
             [Test]
             public async Task ProcessCrawlerTasks_ValidTasks_ReturnsProcessedCount()
             {
+                var cancellationToken = new CancellationToken();
                 var createQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test1", AlgoliaTaskType.CREATE);
                 var updateQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test2", AlgoliaTaskType.UPDATE);
                 var deleteQueueItem = new AlgoliaCrawlerQueueItem(CRAWLER_ID, "https://test3", AlgoliaTaskType.DELETE);
-                var numProcessed = await algoliaTaskProcessor.ProcessCrawlerTasks(new AlgoliaCrawlerQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, CancellationToken.None);
+                var numProcessed = await algoliaTaskProcessor.ProcessCrawlerTasks(new AlgoliaCrawlerQueueItem[] { createQueueItem, updateQueueItem, deleteQueueItem }, cancellationToken);
 
                 Assert.That(numProcessed, Is.EqualTo(3));
-                await mockAlgoliaClient.Received(1).CrawlUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test1", "https://test2" })), Arg.Any<CancellationToken>());
-                await mockAlgoliaClient.Received(1).DeleteUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test3" })), Arg.Any<CancellationToken>());
+                await mockAlgoliaClient.Received(1).CrawlUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test1", "https://test2" })), cancellationToken);
+                await mockAlgoliaClient.Received(1).DeleteUrls(CRAWLER_ID, Arg.Is<IEnumerable<string>>(arg => arg.SequenceEqual(new string[] { "https://test3" })), cancellationToken);
             }
         }
     }
