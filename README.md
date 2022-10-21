@@ -1183,13 +1183,12 @@ In the below example we've only registered a single crawler, so we can use `Firs
 ```cs
 public async Task<IActionResult> Search([FromQuery] string searchText, CancellationToken cancellationToken)
 {
-    // Get index name
+    // Get crawler
     var crawlerId = IndexStore.Instance.GetAllCrawlers().FirstOrDefault();
     var crawler = await algoliaClient.GetCrawler(crawlerId, cancellationToken);
-    var indexName = $"{crawler.Config.IndexPrefix}{crawler.Name}";
 
     // Search
-    var searchIndex = searchClient.InitIndex(indexName);
+    var searchIndex = algoliaIndexService.InitializeCrawler(crawler);
     var query = new Query(searchText) {
         Filters = "path:coffees AND fileType:html"
     };
