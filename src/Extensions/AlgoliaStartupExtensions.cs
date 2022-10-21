@@ -36,6 +36,8 @@ namespace Kentico.Xperience.Algolia.Extensions
                 Array.ForEach(crawlers, crawlerId => IndexStore.Instance.AddCrawler(crawlerId));
             }
 
+            services.AddHttpClient();
+
             return services
                 .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME))
                 .AddSingleton<IInsightsClient>(s =>

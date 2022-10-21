@@ -9,7 +9,7 @@ namespace Kentico.Xperience.Algolia.Services
     /// <summary>
     /// Processes tasks from <see cref="AlgoliaQueueWorker"/> and <see cref="AlgoliaCrawlerQueueWorker"/>.
     /// </summary>
-    internal interface IAlgoliaTaskProcessor
+    public interface IAlgoliaTaskProcessor
     {
         /// <summary>
         /// Processes multiple queue items from all Algolia indexes in batches. Algolia

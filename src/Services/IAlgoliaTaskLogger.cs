@@ -11,7 +11,7 @@ namespace Kentico.Xperience.Algolia.Services
     public interface IAlgoliaTaskLogger
     {
         /// <summary>
-        /// Logs a <see cref="AlgoliaCrawlerQueueItem"/> for each registered crawler. Then, loops
+        /// Logs an <see cref="AlgoliaCrawlerQueueItem"/> for each registered crawler. Then, loops
         /// through all registered Algolia indexes and logs a task if the passed <paramref name="node"/> is indexed.
         /// </summary>
         /// <param name="node">The <see cref="TreeNode"/> that triggered the event.</param>

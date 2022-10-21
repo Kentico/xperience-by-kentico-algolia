@@ -33,6 +33,23 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
+        /// <inheritdoc/>
+        public ISearchIndex InitializeCrawler(AlgoliaCrawler crawler)
+        {
+            if (crawler == null)
+            {
+                throw new ArgumentNullException(nameof(crawler));
+            }
+
+            if (String.IsNullOrEmpty(crawler.Name))
+            {
+                throw new InvalidOperationException("The crawler name cannot be empty.");
+            }
+
+            return searchClient.InitIndex($"{crawler.Config.IndexPrefix}{crawler.Name}");
+        }
+
+
         /// <inheritdoc />
         public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
         {
@@ -68,39 +85,6 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return property.Name;
-        }
-
-
-        /// <summary>
-        /// Gets the <see cref="IndexSettings"/> of the Algolia index.
-        /// </summary>
-        /// <param name="algoliaIndex">The index to retrieve settings for.</param>
-        /// <returns>The index settings.</returns>
-        /// <exception cref="ArgumentNullException" />
-        private IndexSettings GetIndexSettings(AlgoliaIndex algoliaIndex)
-        {
-            if (algoliaIndex == null)
-            {
-                throw new ArgumentNullException(nameof(algoliaIndex));
-            }
-
-            var searchableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
-            var retrievableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
-            var facetableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
-            var indexSettings = new IndexSettings()
-            {
-                SearchableAttributes = OrderSearchableProperties(searchableProperties),
-                AttributesToRetrieve = retrievableProperties.Select(p => p.Name).ToList(),
-                AttributesForFaceting = facetableProperties.Select(GetFilterablePropertyName).ToList()
-            };
-
-            if (algoliaIndex.DistinctOptions != null)
-            {
-                indexSettings.Distinct = algoliaIndex.DistinctOptions.DistinctLevel;
-                indexSettings.AttributeForDistinct = algoliaIndex.DistinctOptions.DistinctAttribute;
-            }
-
-            return indexSettings;
         }
 
 
@@ -143,6 +127,39 @@ namespace Kentico.Xperience.Algolia.Services
             }
 
             return searchableAttributes;
+        }
+
+
+        /// <summary>
+        /// Gets the <see cref="IndexSettings"/> of the Algolia index.
+        /// </summary>
+        /// <param name="algoliaIndex">The index to retrieve settings for.</param>
+        /// <returns>The index settings.</returns>
+        /// <exception cref="ArgumentNullException" />
+        internal IndexSettings GetIndexSettings(AlgoliaIndex algoliaIndex)
+        {
+            if (algoliaIndex == null)
+            {
+                throw new ArgumentNullException(nameof(algoliaIndex));
+            }
+
+            var searchableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(SearchableAttribute)));
+            var retrievableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(RetrievableAttribute)));
+            var facetableProperties = algoliaIndex.Type.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(FacetableAttribute)));
+            var indexSettings = new IndexSettings()
+            {
+                SearchableAttributes = OrderSearchableProperties(searchableProperties),
+                AttributesToRetrieve = retrievableProperties.Select(p => p.Name).ToList(),
+                AttributesForFaceting = facetableProperties.Select(GetFilterablePropertyName).ToList()
+            };
+
+            if (algoliaIndex.DistinctOptions != null)
+            {
+                indexSettings.Distinct = algoliaIndex.DistinctOptions.DistinctLevel;
+                indexSettings.AttributeForDistinct = algoliaIndex.DistinctOptions.DistinctAttribute;
+            }
+
+            return indexSettings;
         }
     }
 }

@@ -4,7 +4,7 @@
     /// A queued item to be processed by <see cref="AlgoliaCrawlerQueueWorker"/> which
     /// represents a change made to a page in the content tree.
     /// </summary>
-    internal class AlgoliaCrawlerQueueItem
+    public sealed class AlgoliaCrawlerQueueItem
     {
         /// <summary>
         /// The ID of the crawler to update.

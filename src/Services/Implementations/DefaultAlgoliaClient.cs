@@ -15,6 +15,7 @@ using CMS.DocumentEngine;
 using CMS.Helpers;
 using CMS.Helpers.Caching.Abstractions;
 
+using Kentico.Content.Web.Mvc;
 using Kentico.Xperience.Algolia.Models;
 
 using Microsoft.Extensions.Options;
@@ -30,42 +31,50 @@ namespace Kentico.Xperience.Algolia.Services
     internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         private readonly AlgoliaOptions algoliaOptions;
-        private readonly HttpClient httpClient = new();
+        private readonly HttpClient httpClient;
         private readonly IAlgoliaIndexService algoliaIndexService;
         private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
+        private readonly IPageRetriever pageRetriever;
         private readonly IProgressiveCache progressiveCache;
         private readonly ISearchClient searchClient;
-        private const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
         private const string CACHEKEY_CRAWLER = "Algolia|Crawler|{0}";
-        private const string BASE_URL = "https://crawler.algolia.com/api/1";
-        private const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
-        private const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
+
+
+        internal const string BASE_URL = "https://crawler.algolia.com/api/1/";
+        internal const string PATH_CRAWL_URLS = "crawlers/{0}/urls/crawl";
+        internal const string PATH_GET_CRAWLER = "crawlers/{0}?withConfig=true";
+        internal const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
         /// </summary>
-        public DefaultAlgoliaClient(IAlgoliaIndexService algoliaIndexService,
+        public DefaultAlgoliaClient(HttpClient httpClient,
+            IAlgoliaIndexService algoliaIndexService,
             IAlgoliaObjectGenerator algoliaObjectGenerator,
             ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
+            IPageRetriever pageRetriever,
             IProgressiveCache progressiveCache,
             ISearchClient searchClient,
             IOptions<AlgoliaOptions> options)
         {
             algoliaOptions = options.Value;
+            this.httpClient = httpClient;
             this.algoliaIndexService = algoliaIndexService;
             this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
+            this.pageRetriever = pageRetriever;
             this.progressiveCache = progressiveCache;
             this.searchClient = searchClient;
 
             // Initialize HttpClient used for crawler requests if a crawler is registered
             if (IndexStore.Instance.GetAllCrawlers().Any())
             {
+                httpClient.BaseAddress = new Uri(BASE_URL);
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Basic {GetBasicAuthentication()}");
             }
@@ -138,10 +147,10 @@ namespace Kentico.Xperience.Algolia.Services
         /// <inheritdoc/>
         public async Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken)
         {
-            return await progressiveCache.LoadAsync(async (cs) => {
-                var response = await searchClient.ListIndicesAsync(ct: cancellationToken).ConfigureAwait(false);
+            return await progressiveCache.LoadAsync(async (cs, ct) => {
+                var response = await searchClient.ListIndicesAsync(ct: ct).ConfigureAwait(false);
                 return response.Items;
-            }, new CacheSettings(20, CACHEKEY_STATISTICS)).ConfigureAwait(false);
+            }, new CacheSettings(20, CACHEKEY_STATISTICS), cancellationToken).ConfigureAwait(false);
         }
 
 
@@ -203,9 +212,8 @@ namespace Kentico.Xperience.Algolia.Services
                 return 0;
             }
 
-            var indexName = $"{crawlerDetail.Config.IndexPrefix}{crawlerDetail.Name}";
-            var searchIndex = searchClient.InitIndex(indexName);
             var deletedCount = 0;
+            var searchIndex = algoliaIndexService.InitializeCrawler(crawlerDetail);
             var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(urls, ct: cancellationToken);
             foreach (var response in batchIndexingResponse.Responses)
             {
@@ -244,32 +252,33 @@ namespace Kentico.Xperience.Algolia.Services
 
         private async Task<AlgoliaCrawler> GetCrawlerInternal(string crawlerId, CancellationToken cancellationToken)
         {
-            return await progressiveCache.LoadAsync(async (cs) => {
+            return await progressiveCache.LoadAsync(async (cs, ct) => {
                 var path = String.Format(PATH_GET_CRAWLER, crawlerId);
-                var response = await SendRequest(path, HttpMethod.Get, cancellationToken);
+                var response = await SendRequest(path, HttpMethod.Get, ct);
                 if (response == null)
                 {
                     cs.Cached = false;
                     return null;
                 }
 
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                var content = await response.Content.ReadAsStringAsync(ct);
 
                 return JsonConvert.DeserializeObject<AlgoliaCrawler>(content);
-            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId))).ConfigureAwait(false);
+            }, new CacheSettings(20, String.Format(CACHEKEY_CRAWLER, crawlerId)), cancellationToken).ConfigureAwait(false);
         }
 
 
-        private IEnumerable<JObject> GetDataToUpsert(TreeNode node, AlgoliaIndex algoliaIndex, AlgoliaTaskType taskType)
+        private IEnumerable<JObject> GetDataToUpsert(AlgoliaQueueItem queueItem)
         {
+            var algoliaIndex = IndexStore.Instance.GetIndex(queueItem.IndexName);
             if (algoliaIndex.DistinctOptions != null)
             {
                 // If the data is split, force CREATE type to push all data to Algolia
-                var nodeData = algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, AlgoliaTaskType.CREATE);
+                var nodeData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(queueItem.Node, AlgoliaTaskType.CREATE, queueItem.IndexName));
                 return algoliaObjectGenerator.SplitData(nodeData, algoliaIndex);
             }
 
-            return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(node, algoliaIndex.Type, taskType) };
+            return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(queueItem) };
         }
 
 
@@ -281,21 +290,23 @@ namespace Kentico.Xperience.Algolia.Services
             var indexedNodes = new List<TreeNode>();
             foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
             {
-                var query = new MultiDocumentQuery()
-                    .Path(includedPathAttribute.AliasPath)
-                    .PublishedVersion()
-                    .WithCoupledColumns();
-
-                if (includedPathAttribute.PageTypes.Length > 0)
+                var nodes = await pageRetriever.RetrieveMultipleAsync(q =>
                 {
-                    query.Types(includedPathAttribute.PageTypes);
-                }
+                    if (includedPathAttribute.PageTypes.Length > 0)
+                    {
+                        q.Types(includedPathAttribute.PageTypes);
+                    }
 
-                indexedNodes.AddRange(query.TypedResult);
+                    q.Path(includedPathAttribute.AliasPath)
+                        .PublishedVersion()
+                        .WithCoupledColumns();
+                }, cancellationToken: cancellationToken);
+                    
+                indexedNodes.AddRange(nodes);
             }
 
             var dataToUpsert = new List<JObject>();
-            indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(node, algoliaIndex, AlgoliaTaskType.CREATE)));
+            indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(new AlgoliaQueueItem(node, AlgoliaTaskType.CREATE, algoliaIndex.IndexName))));
             var searchIndex = await algoliaIndexService.InitializeIndex(algoliaIndex.IndexName, cancellationToken);
             await searchIndex.ReplaceAllObjectsAsync(dataToUpsert, ct: cancellationToken).ConfigureAwait(false);
         }
@@ -309,19 +320,18 @@ namespace Kentico.Xperience.Algolia.Services
                 return null;
             }
 
-            var url = $"{BASE_URL}/{path}";
             HttpResponseMessage response = null;
             try
             {
                 if (method.Equals(HttpMethod.Get))
                 {
-                    response = await httpClient.GetAsync(url, cancellationToken);
+                    response = await httpClient.GetAsync(path, cancellationToken);
                 }
                 else if (method.Equals(HttpMethod.Post))
                 {
                     // Algolia throws 415 if charset is specified
                     data.Headers.ContentType.CharSet = String.Empty;
-                    response = await httpClient.PostAsync(url, data, cancellationToken);
+                    response = await httpClient.PostAsync(path, data, cancellationToken);
                 }
                 else
                 {
