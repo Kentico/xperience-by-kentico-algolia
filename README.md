@@ -1176,7 +1176,7 @@ public class CrawlerHitModel
 }
 ```
 
-To perform a search against the crawler and return the `CrawlerHitModel` results, you must obtain the full index name from the crawler's configuration. Because the crawler's configuration contains a name and optional prefix that is added to the underlying index name, use `IAlgoliaClient.GetCrawler()` to retrieve the configuration, and combine the prefix and name.
+To perform a search against the crawler and return the `CrawlerHitModel` results, you must obtain the full index name from the crawler's configuration. Because the crawler's configuration contains a name and optional prefix that is added to the underlying index name, use `IAlgoliaClient.GetCrawler()` to retrieve the configuration, then use `IAlgoliaIndexService.InitializeCrawler()` to retrieve the search index.
 
 In the below example we've only registered a single crawler, so we can use `FirstOrDefault()` to get the crawler ID. In cases where there are multiple crawlers registered, your developers will need to create a mapping to identify which crawler should be used in a particular search. We are also using the `path` and `fileType` attributes to only return pages under the /coffees path:
 
