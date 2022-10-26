@@ -1198,6 +1198,20 @@ public async Task<IActionResult> Search([FromQuery] string searchText, Cancellat
 }
 ```
 
+## :computer: Algolia application for administration interface
+
+After [installing](#rocket-installation) the NuGet package in your Xperience by Kentico project, a new _Algolia_ application will be available in the __Development__ menu. When you open the application, you will see a table of all registered Algolia indexes with information about the number of records, build time, and last update:
+
+![Algolia main menu](/img/main-menu.png)
+
+You can use the __Rebuild__ action on the right side of the table to re-index the pages of the Algolia index, which completely removes the existing records and replaces them with the most up-to-date page data. This could be especially useful after enabling the [data splitting](#scissors-splitting-large-content) feature. If you click on a row in this table you will navigate to a page detailing the indexed paths and properties of the Algolia index:
+
+![Algolia indexed content menu](/img/indexed-content-menu.png)
+
+The __Indexed properties__ table lists each property defined in the search model and the [attributes](#memo-configuring-algolia-attributes) of that property. The __Indexed paths__ table displays the search model's [`IncludedPathAttribute`s](#determining-which-pages-to-index), including the paths and page types of each attribute. If you click on a row in this table, a dialog will appear which displays each page type included in the indexed path:
+
+![Path detail menu](/img/path-detail-menu.png)
+
 ## Questions & Support
 
 See the [Kentico home repository](https://github.com/Kentico/Home/blob/master/README.md) for more information about the product(s) and general advice on submitting questions.
