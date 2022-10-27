@@ -1,4 +1,4 @@
-![build](https://github.com/Kentico/kentico-xperience-algolia/actions/workflows/build.yml/badge.svg)
+![build](https://github.com/Kentico/xperience-by-kentico-algolia/actions/workflows/build.yml/badge.svg)
 [![Nuget](https://img.shields.io/nuget/v/Kentico.Xperience.Algolia)](https://www.nuget.org/packages/Kentico.Xperience.Algolia)
 [![Kentico.Xperience.WebApp 22.3.0](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.3.0-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
 [![Algolia.Search 6.13.0](https://img.shields.io/badge/Algolia.Search-v6.13.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
@@ -126,7 +126,7 @@ public override object OnIndexingProperty(TreeNode node, string propertyName, st
             {
                 var text = new StringBuilder();
                 var aboutUsSections = node.Children.WithAllData.Where(child => child.ClassName == AboutUsSection.CLASS_NAME);
-                foreach (var aboutUsSection in aboutUsSections)
+                foreach (AboutUsSection aboutUsSection in aboutUsSections)
                 {
                     text.Append(aboutUsSection.AboutUsSectionText);
                 }
@@ -753,8 +753,8 @@ Now, when you display the search results using the `Url` property, it will look 
 @inject IAlgoliaInsightsService _insightsService
 
 @{
-    await _insightsService.LogSearchResultClicked("Search result clicked", SiteSearchModel.IndexName);
-    await _insightsService.LogSearchResultConversion("Search result converted", SiteSearchModel.IndexName);
+    await _insightsService.LogSearchResultClicked("Search result clicked", SiteSearchModel.IndexName, CancellationToken.None);
+    await _insightsService.LogSearchResultConversion("Search result converted", SiteSearchModel.IndexName, CancellationToken.None);
 }
 ```
 
@@ -771,7 +771,7 @@ public async Task<IActionResult> Detail([FromServices] ArticleRepository article
 {
     var article = articleRepository.GetCurrent();
 
-    await _insightsService.LogPageConversion(article.DocumentID, "Article viewed", SiteSearchModel.IndexName);
+    await _insightsService.LogPageConversion(article.DocumentID, "Article viewed", SiteSearchModel.IndexName, CancellationToken.None);
 
     return new TemplateResult(article);
 }
@@ -784,7 +784,7 @@ public async Task<IActionResult> Detail([FromServices] ArticleRepository article
 {
     var article = articleRepository.GetCurrent();
 
-    await _insightsService.LogPageViewed(article.DocumentID, "Article viewed", SiteSearchModel.IndexName);
+    await _insightsService.LogPageViewed(article.DocumentID, "Article viewed", SiteSearchModel.IndexName, CancellationToken.None);
 
     return new TemplateResult(article);
 }
@@ -799,7 +799,7 @@ Or, in the _\_Details.cshtml_ view for products, you can log a _Product viewed_ 
 @{
     if(_pageDataContextRetriever.TryRetrieve<TreeNode>(out var context))
     {
-        await _insightsService.LogPageViewed(context.Page.DocumentID, "Product viewed", SiteSearchModel.IndexName);
+        await _insightsService.LogPageViewed(context.Page.DocumentID, "Product viewed", SiteSearchModel.IndexName, CancellationToken.None);
     }
 }
 ```
@@ -860,8 +860,8 @@ public async Task<ActionResult> FacetClicked(string facet)
         return BadRequest();
     }
 
-    await _insightsService.LogFacetClicked(facet, "Store facet clicked", AlgoliaSiteSearchModel.IndexName);
-    await _insightsService.LogFacetConverted(facet, "Store facet converted", AlgoliaSiteSearchModel.IndexName);
+    await _insightsService.LogFacetClicked(facet, "Store facet clicked", AlgoliaSiteSearchModel.IndexName, CancellationToken.None);
+    await _insightsService.LogFacetConverted(facet, "Store facet converted", AlgoliaSiteSearchModel.IndexName, CancellationToken.None);
     return Ok();
 }
 ```
