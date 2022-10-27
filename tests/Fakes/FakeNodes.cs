@@ -91,11 +91,11 @@ namespace Kentico.Xperience.Algolia.Tests
         }
 
 
-        private static TreeNode CreateNode(string nodeAliasPath, string pageType = Article.CLASS_NAME, string culture = "en-US", string site = DEFAULT_SITE)
+        private static TreeNode CreateNode(string nodeAliasPath, string contentType = Article.CLASS_NAME, string culture = "en-US", string site = DEFAULT_SITE)
         {
             nodeCount++;
             var nodeSite = SiteInfo.Provider.Get(site);
-            var node = TreeNode.New(pageType).With(p =>
+            var node = TreeNode.New(contentType).With(p =>
             {
                 p.DocumentCulture = culture;
                 p.DocumentName = Guid.NewGuid().ToString();

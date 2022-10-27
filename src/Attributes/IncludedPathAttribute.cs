@@ -3,7 +3,7 @@
 namespace Kentico.Xperience.Algolia.Attributes
 {
     /// <summary>
-    /// A class attribute applied to an Algolia search model indicating that the specified path, page
+    /// A class attribute applied to an Algolia search model indicating that the specified path, content
     /// type(s), and cultures are included in the index.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
@@ -20,10 +20,10 @@ namespace Kentico.Xperience.Algolia.Attributes
 
 
         /// <summary>
-        /// A list of page types under the specified <see cref="AliasPath"/> that will be indexed.
-        /// If empty, all page types are indexed.
+        /// A list of content types under the specified <see cref="AliasPath"/> that will be indexed.
+        /// If empty, all content types are indexed.
         /// </summary>
-        public string[] PageTypes
+        public string[] ContentTypes
         {
             get;
             set;

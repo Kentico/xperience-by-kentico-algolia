@@ -93,7 +93,7 @@ namespace Kentico.Xperience.Algolia.Services
             var field = formInfo.GetFormField(columnName);
             if (field == null)
             {
-                eventLogService.LogError(nameof(DefaultAlgoliaObjectGenerator), nameof(GetAssetUrlsForColumn), $"Unable to load field definition for page type '{node.ClassName}' column name '{columnName}.'");
+                eventLogService.LogError(nameof(DefaultAlgoliaObjectGenerator), nameof(GetAssetUrlsForColumn), $"Unable to load field definition for content type '{node.ClassName}' column name '{columnName}.'");
                 return Enumerable.Empty<string>();
             }
 

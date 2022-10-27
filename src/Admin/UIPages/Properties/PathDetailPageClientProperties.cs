@@ -20,7 +20,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
 
         /// <summary>
-        /// The columns to display in the page type table.
+        /// The columns to display in the content type table.
         /// </summary>
         public IEnumerable<Column> Columns
         {

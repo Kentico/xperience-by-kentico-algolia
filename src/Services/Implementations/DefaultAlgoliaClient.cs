@@ -292,9 +292,9 @@ namespace Kentico.Xperience.Algolia.Services
             {
                 var nodes = await pageRetriever.RetrieveMultipleAsync(q =>
                 {
-                    if (includedPathAttribute.PageTypes.Length > 0)
+                    if (includedPathAttribute.ContentTypes.Length > 0)
                     {
-                        q.Types(includedPathAttribute.PageTypes);
+                        q.Types(includedPathAttribute.ContentTypes);
                     }
 
                     q.Path(includedPathAttribute.AliasPath)

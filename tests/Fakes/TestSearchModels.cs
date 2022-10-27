@@ -9,7 +9,7 @@ namespace Kentico.Xperience.Algolia.Tests
         public const string CRAWLER_ID = "crawler";
 
 
-        [IncludedPath("/Articles/%", PageTypes = new string[] { Article.CLASS_NAME })]
+        [IncludedPath("/Articles/%", ContentTypes = new string[] { Article.CLASS_NAME })]
         public class ArticleEnSearchModel : BaseSearchModel
         {
             public string DocumentName { get; set; }
@@ -24,7 +24,7 @@ namespace Kentico.Xperience.Algolia.Tests
         }
 
 
-        [IncludedPath("/Products/%", PageTypes = new string[] { FakeNodes.DOCTYPE_PRODUCT })]
+        [IncludedPath("/Products/%", ContentTypes = new string[] { FakeNodes.DOCTYPE_PRODUCT })]
         public class ProductsSearchModel : BaseSearchModel
         {
             [Retrievable]

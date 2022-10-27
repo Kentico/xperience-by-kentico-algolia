@@ -99,8 +99,8 @@ namespace Kentico.Xperience.Algolia.Admin
                         Name = NamedComponentCellComponentNames.TAG_COMPONENT,
                         ComponentProps = new TagTableCellComponentProps
                         {
-                            Label = GetPageTypeLabel(attribute),
-                            Color = GetPageTypeColor(attribute)
+                            Label = GetContentTypeLabel(attribute),
+                            Color = GetContentTypeColor(attribute)
                         }
                     }
                 }
@@ -238,13 +238,13 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private static Color GetPageTypeColor(IncludedPathAttribute attribute)
+        private static Color GetContentTypeColor(IncludedPathAttribute attribute)
         {
-            if (!attribute.PageTypes.Any())
+            if (!attribute.ContentTypes.Any())
             {
                 return Color.BackgroundTagGrey;
             }
-            else if (attribute.PageTypes.Length == 1)
+            else if (attribute.ContentTypes.Length == 1)
             {
                 return Color.BackgroundTagUltramarineBlue;
             }
@@ -253,21 +253,21 @@ namespace Kentico.Xperience.Algolia.Admin
         }
 
 
-        private string GetPageTypeLabel(IncludedPathAttribute attribute)
+        private string GetContentTypeLabel(IncludedPathAttribute attribute)
         {
-            if (!attribute.PageTypes.Any())
+            if (!attribute.ContentTypes.Any())
             {
                 var allTypes = DocumentTypeHelper.GetDocumentTypeClasses()
                     .OnSite(SiteService.CurrentSite?.SiteID)
                     .GetCount();
                 return String.Format(LocalizationService.GetString("integrations.algolia.content.alltypes"), allTypes);
             }
-            else if (attribute.PageTypes.Length == 1)
+            else if (attribute.ContentTypes.Length == 1)
             {
                 return LocalizationService.GetString("integrations.algolia.content.singletype");
             }
 
-            return String.Format(LocalizationService.GetString("integrations.algolia.content.multipletypes"), attribute.PageTypes.Length);
+            return String.Format(LocalizationService.GetString("integrations.algolia.content.multipletypes"), attribute.ContentTypes.Length);
         }
 
 

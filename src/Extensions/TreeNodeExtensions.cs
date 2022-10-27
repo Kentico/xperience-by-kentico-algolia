@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 
 using CMS.Core;
 using CMS.DocumentEngine;
@@ -57,17 +56,17 @@ namespace Kentico.Xperience.Algolia.Extensions
             }
 
             return algoliaIndex.IncludedPaths.Any(includedPathAttribute => {
-                var matchesPageType = (includedPathAttribute.PageTypes.Length == 0 || includedPathAttribute.PageTypes.Contains(node.ClassName));
+                var matchesContentType = includedPathAttribute.ContentTypes.Length == 0 || includedPathAttribute.ContentTypes.Contains(node.ClassName);
                 if (includedPathAttribute.AliasPath.EndsWith("/%"))
                 {
                     var pathToMatch = TreePathUtils.EnsureSingleNodePath(includedPathAttribute.AliasPath);
                     var pathsOnPath = TreePathUtils.GetNodeAliasPathsOnPath(node.NodeAliasPath, true, false).ToHashSet();
 
-                    return pathsOnPath.Contains(pathToMatch) && matchesPageType;
+                    return pathsOnPath.Contains(pathToMatch) && matchesContentType;
                 }
                 else
                 {
-                    return node.NodeAliasPath.Equals(includedPathAttribute.AliasPath, StringComparison.OrdinalIgnoreCase) && matchesPageType;
+                    return node.NodeAliasPath.Equals(includedPathAttribute.AliasPath, StringComparison.OrdinalIgnoreCase) && matchesContentType;
                 }
             });
         }

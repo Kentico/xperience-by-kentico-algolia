@@ -14,7 +14,7 @@ using Kentico.Xperience.Algolia.Models;
 namespace Kentico.Xperience.Algolia.Admin
 {
     /// <summary>
-    /// An admin UI dialog page which displays the page types included in an indexed path.
+    /// An admin UI dialog page which displays the content types included in an indexed path.
     /// </summary>
     [UIBreadcrumbs(false)]
     [UIPageLocation(PageLocationEnum.Dialog)]
@@ -65,7 +65,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
 
         /// <summary>
-        /// Returns the data to display in the page type table and the number of total items.
+        /// Returns the data to display in the content type table and the number of total items.
         /// </summary>
         /// <param name="args">Command arguments provided by client.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -74,17 +74,17 @@ namespace Kentico.Xperience.Algolia.Admin
         {
             try
             {
-                var includedPageTypes = pathToDisplay.PageTypes;
-                if (!includedPageTypes.Any())
+                var includedContentTypes = pathToDisplay.ContentTypes;
+                if (!includedContentTypes.Any())
                 {
-                    includedPageTypes = DocumentTypeHelper.GetDocumentTypeClasses()
+                    includedContentTypes = DocumentTypeHelper.GetDocumentTypeClasses()
                         .OnSite(SiteService.CurrentSite?.SiteID)
                         .AsSingleColumn(nameof(DataClassInfo.ClassName))
                         .GetListResult<string>()
                         .ToArray();
                 }
 
-                var rows = includedPageTypes.Select(type => new Row
+                var rows = includedContentTypes.Select(type => new Row
                 {
                     Cells = new Cell[] {
                     new StringCell
@@ -96,7 +96,7 @@ namespace Kentico.Xperience.Algolia.Admin
                 .Chunk(args.PageSize)
                 .ElementAtOrDefault(args.CurrentPage - 1);
 
-                return Task.FromResult(ResponseFrom(new LoadDataResult() { Rows = rows, TotalCount = includedPageTypes.Length }));
+                return Task.FromResult(ResponseFrom(new LoadDataResult() { Rows = rows, TotalCount = includedContentTypes.Length }));
             }
             catch (Exception ex)
             {

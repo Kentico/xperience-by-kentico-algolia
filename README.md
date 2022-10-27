@@ -96,15 +96,15 @@ builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
 While the above sample code will create an Algolia index, pages in the content tree will not be indexed until one or more [`IncludedPathAttribute`](https://github.com/Kentico/xperience-algolia/blob/master/src/Attributes/IncludedPathAttribute.cs) attributes are applied to the class. The `IncludedPathAttribute` has two properties to configure:
 
 - __AliasPath__: The path of the content tree to index. Use wildcard "/%"  to index all children of a page.
-- __PageTypes__ (optional): The code names of the page types under the specified `AliasPath` to index. If not provided, all page types are indexed.
+- __ContentTypes__ (optional): The code names of the page types under the specified `AliasPath` to index. If not provided, all page types are indexed.
 
 > :bulb: We recommend using the generated [Xperience page type code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) to reference page type class names.
 
 Below is an example of using multiple `IncludedPathAttribute`s to includes multiple paths and page types in an index:
 
 ```cs
-[IncludedPath("/Articles/%", PageTypes = new string[] { Article.CLASS_NAME })]
-[IncludedPath("/Coffee/%", PageTypes = new string[] { Coffee.CLASS_NAME })]
+[IncludedPath("/Articles/%", ContentTypes = new string[] { Article.CLASS_NAME })]
+[IncludedPath("/Coffee/%", ContentTypes = new string[] { Coffee.CLASS_NAME })]
 public class SiteSearchModel : AlgoliaSearchModel
 ```
 
