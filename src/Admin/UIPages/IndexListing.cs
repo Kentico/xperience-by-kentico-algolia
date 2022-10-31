@@ -28,6 +28,7 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <inheritdoc/>
         public override ListingConfiguration PageConfiguration { get; set; } = new ListingConfiguration()
         {
+            Caption = "List of indexes",
             ColumnConfigurations = new List<ColumnConfiguration>(),
             TableActions = new List<ActionConfiguration>(),
             HeaderActions = new List<ActionConfiguration>(),

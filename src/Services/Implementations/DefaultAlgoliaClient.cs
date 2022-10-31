@@ -268,20 +268,6 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private IEnumerable<JObject> GetDataToUpsert(AlgoliaQueueItem queueItem)
-        {
-            var algoliaIndex = IndexStore.Instance.GetIndex(queueItem.IndexName);
-            if (algoliaIndex.DistinctOptions != null)
-            {
-                // If the data is split, force CREATE type to push all data to Algolia
-                var nodeData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(queueItem.Node, AlgoliaTaskType.CREATE, queueItem.IndexName));
-                return algoliaObjectGenerator.SplitData(nodeData, algoliaIndex);
-            }
-
-            return new JObject[] { algoliaObjectGenerator.GetTreeNodeData(queueItem) };
-        }
-
-
         private async Task RebuildInternal(AlgoliaIndex algoliaIndex, CancellationToken cancellationToken)
         {
             // Clear statistics cache so listing displays updated data after rebuild
@@ -305,10 +291,10 @@ namespace Kentico.Xperience.Algolia.Services
                 indexedNodes.AddRange(nodes);
             }
 
-            var dataToUpsert = new List<JObject>();
-            indexedNodes.ForEach(node => dataToUpsert.AddRange(GetDataToUpsert(new AlgoliaQueueItem(node, AlgoliaTaskType.CREATE, algoliaIndex.IndexName))));
             var searchIndex = await algoliaIndexService.InitializeIndex(algoliaIndex.IndexName, cancellationToken);
-            await searchIndex.ReplaceAllObjectsAsync(dataToUpsert, ct: cancellationToken).ConfigureAwait(false);
+            await searchIndex.ClearObjectsAsync(ct: cancellationToken);
+
+            indexedNodes.ForEach(node => AlgoliaQueueWorker.EnqueueAlgoliaQueueItem(new AlgoliaQueueItem(node, AlgoliaTaskType.CREATE, algoliaIndex.IndexName)));
         }
 
 

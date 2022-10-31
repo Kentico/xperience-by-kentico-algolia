@@ -17,6 +17,7 @@ A single class (created by your developers) contains the Algolia index attribute
   - search
   - addObject
   - deleteObject
+  - deleteIndex
   - editSettings
   - listIndexes
 4. In the Xperience project's `appsettings.json`, add the following section with your API key values:

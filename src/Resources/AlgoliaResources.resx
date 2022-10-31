@@ -130,7 +130,7 @@
     <value>Facetable</value>
   </data>
   <data name="integrations.algolia.content.columns.pagetypes" xml:space="preserve">
-    <value>Page types</value>
+    <value>Content types</value>
   </data>
   <data name="integrations.algolia.content.columns.path" xml:space="preserve">
     <value>Path</value>
@@ -151,10 +151,10 @@
     <value>URL</value>
   </data>
   <data name="integrations.algolia.content.multipletypes" xml:space="preserve">
-    <value>{0} page types</value>
+    <value>{0} content types</value>
   </data>
   <data name="integrations.algolia.content.singletype" xml:space="preserve">
-    <value>1 page type</value>
+    <value>1 content type</value>
   </data>
   <data name="integrations.algolia.error.noindex" xml:space="preserve">
     <value>Error loading Algolia index with identifier {0}.</value>
@@ -178,7 +178,7 @@
     <value>Last update</value>
   </data>
   <data name="integrations.algolia.listing.commands.rebuild" xml:space="preserve">
-    <value>Rebuild</value>
+    <value>Build index</value>
   </data>
   <data name="integrations.algolia.listing.messages.rebuilderror" xml:space="preserve">
     <value>Errors occurred while rebuilding the '{0}' index. Please check the Event Log for more details.</value>

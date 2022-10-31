@@ -331,6 +331,14 @@ namespace Kentico.Xperience.Algolia.Tests
                 Substitute.For<IMediaFileUrlRetriever>());
 
 
+            protected override void RegisterTestServices()
+            {
+                base.RegisterTestServices();
+
+                Service.Use<IAlgoliaTaskProcessor>(Substitute.For<IAlgoliaTaskProcessor>());
+            }
+
+
             [SetUp]
             public void RebuildTestsSetUp()
             {
@@ -365,14 +373,12 @@ namespace Kentico.Xperience.Algolia.Tests
             public async Task Rebuild_ValidIndex_CallsMethods()
             {
                 var cancellationToken = new CancellationToken();
-                var articleEnData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel)));
                 await algoliaClient.Rebuild(nameof(ArticleEnSearchModel), cancellationToken);
 
                 mockCacheAccessor.Received(1).Remove(DefaultAlgoliaClient.CACHEKEY_STATISTICS);
                 await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, cancellationToken);
                 await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
-                await mockSearchIndex.Received(1).ReplaceAllObjectsAsync(Arg.Is<IEnumerable<JObject>>(arg =>
-                    arg.SequenceEqual(new JObject[] { articleEnData }, new JObjectEqualityComparer())), null, cancellationToken, Arg.Any<bool>());
+                await mockSearchIndex.Received(1).ClearObjectsAsync(ct: cancellationToken);
             }
         }
 
