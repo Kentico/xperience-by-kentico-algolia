@@ -104,7 +104,7 @@ Below is an example of using multiple `IncludedPathAttribute`s to includes multi
 
 ```cs
 [IncludedPath("/Articles/%", ContentTypes = new string[] { Article.CLASS_NAME })]
-[IncludedPath("/Coffee/%", ContentTypes = new string[] { Coffee.CLASS_NAME })]
+[IncludedPath("/Coffees/%", ContentTypes = new string[] { Coffee.CLASS_NAME })]
 public class SiteSearchModel : AlgoliaSearchModel
 ```
 
