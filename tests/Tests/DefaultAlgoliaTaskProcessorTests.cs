@@ -90,7 +90,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 var mockAlgoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),

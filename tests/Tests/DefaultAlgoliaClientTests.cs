@@ -94,7 +94,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -141,7 +140,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -196,7 +194,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     mockIndexService,
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -247,7 +244,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -295,7 +291,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -325,10 +320,6 @@ namespace Kentico.Xperience.Algolia.Tests
             private readonly ICacheAccessor mockCacheAccessor = Substitute.For<ICacheAccessor>();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
             private readonly IPageRetriever mockPageRetriever = Substitute.For<IPageRetriever>();
-            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                Substitute.For<IEventLogService>(),
-                Substitute.For<IMediaFileInfoProvider>(),
-                Substitute.For<IMediaFileUrlRetriever>());
 
 
             protected override void RegisterTestServices()
@@ -348,7 +339,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     mockCacheAccessor,
                     Substitute.For<IEventLogService>(),
                     mockPageRetriever,
@@ -402,7 +392,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),

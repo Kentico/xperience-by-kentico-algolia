@@ -33,7 +33,6 @@ namespace Kentico.Xperience.Algolia.Services
         private readonly AlgoliaOptions algoliaOptions;
         private readonly HttpClient httpClient;
         private readonly IAlgoliaIndexService algoliaIndexService;
-        private readonly IAlgoliaObjectGenerator algoliaObjectGenerator;
         private readonly ICacheAccessor cacheAccessor;
         private readonly IEventLogService eventLogService;
         private readonly IPageRetriever pageRetriever;
@@ -53,7 +52,6 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         public DefaultAlgoliaClient(HttpClient httpClient,
             IAlgoliaIndexService algoliaIndexService,
-            IAlgoliaObjectGenerator algoliaObjectGenerator,
             ICacheAccessor cacheAccessor,
             IEventLogService eventLogService,
             IPageRetriever pageRetriever,
@@ -64,7 +62,6 @@ namespace Kentico.Xperience.Algolia.Services
             algoliaOptions = options.Value;
             this.httpClient = httpClient;
             this.algoliaIndexService = algoliaIndexService;
-            this.algoliaObjectGenerator = algoliaObjectGenerator;
             this.cacheAccessor = cacheAccessor;
             this.eventLogService = eventLogService;
             this.pageRetriever = pageRetriever;
