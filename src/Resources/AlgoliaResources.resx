@@ -165,6 +165,9 @@
   <data name="integrations.algolia.listing" xml:space="preserve">
     <value>List of indexes</value>
   </data>
+  <data name="integrations.algolia.listing.caption" xml:space="preserve">
+    <value>List of indexes</value>
+  </data>
   <data name="integrations.algolia.listing.columns.buildtime" xml:space="preserve">
     <value>Build time (seconds)</value>
   </data>

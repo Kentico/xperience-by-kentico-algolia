@@ -23,17 +23,34 @@ namespace Kentico.Xperience.Algolia.Admin
     {
         private readonly IAlgoliaClient algoliaClient;
         private readonly IPageUrlGenerator pageUrlGenerator;
+        private ListingConfiguration mPageConfiguration;
 
 
         /// <inheritdoc/>
-        public override ListingConfiguration PageConfiguration { get; set; } = new ListingConfiguration()
+        public override ListingConfiguration PageConfiguration
         {
-            Caption = "List of indexes",
-            ColumnConfigurations = new List<ColumnConfiguration>(),
-            TableActions = new List<ActionConfiguration>(),
-            HeaderActions = new List<ActionConfiguration>(),
-            PageSizes = new List<int> { 10, 25 }
-        };
+            get
+            {
+                if (mPageConfiguration == null)
+                {
+                    mPageConfiguration = new ListingConfiguration()
+                    {
+                        Caption = LocalizationService.GetString("integrations.algolia.listing.caption"),
+                        ColumnConfigurations = new List<ColumnConfiguration>(),
+                        TableActions = new List<ActionConfiguration>(),
+                        HeaderActions = new List<ActionConfiguration>(),
+                        PageSizes = new List<int> { 10, 25 }
+                    };
+                }
+
+                return mPageConfiguration;
+                
+            }
+            set
+            {
+                mPageConfiguration = value;
+            }
+        }
 
 
         /// <summary>

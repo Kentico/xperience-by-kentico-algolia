@@ -320,13 +320,14 @@ namespace Kentico.Xperience.Algolia.Tests
             private readonly ICacheAccessor mockCacheAccessor = Substitute.For<ICacheAccessor>();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
             private readonly IPageRetriever mockPageRetriever = Substitute.For<IPageRetriever>();
+            private readonly IAlgoliaTaskProcessor mockTaskProcessor = Substitute.For<IAlgoliaTaskProcessor>();
 
 
             protected override void RegisterTestServices()
             {
                 base.RegisterTestServices();
 
-                Service.Use<IAlgoliaTaskProcessor>(Substitute.For<IAlgoliaTaskProcessor>());
+                Service.Use<IAlgoliaTaskProcessor>(mockTaskProcessor);
             }
 
 
@@ -369,6 +370,13 @@ namespace Kentico.Xperience.Algolia.Tests
                 await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, cancellationToken);
                 await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
                 await mockSearchIndex.Received(1).ClearObjectsAsync(ct: cancellationToken);
+                await mockTaskProcessor.Received(1).ProcessAlgoliaTasks(Arg.Is<IEnumerable<AlgoliaQueueItem>>(arg =>
+                    arg.Count() == 1 &&
+                    arg.FirstOrDefault().ChangedColumns == null &&
+                    arg.FirstOrDefault().Node == FakeNodes.ArticleEn &&
+                    arg.FirstOrDefault().TaskType == AlgoliaTaskType.CREATE &&
+                    arg.FirstOrDefault().IndexName.Equals(nameof(ArticleEnSearchModel), StringComparison.OrdinalIgnoreCase)),
+                cancellationToken);
             }
         }
 
