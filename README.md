@@ -131,7 +131,7 @@ In some cases, you may want to customize the values that are sent to Algolia dur
 
 To customize the indexing process, you can override the `OnIndexingProperty()` that is defined in the search model base class `AlgoliaSearchModel`. This method is called during the indexing of a page for each property defined in your search model. You can use the function parameters such as the page being indexed, the value that would be indexed, the search model property name, and the name of the database column the value was retrieved from.
 
-We can use the [generated code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) of a content type to retrieve the text from the linked content items. Then we can store the text from the linked content items and store the text in our "Content" field:
+We can use the [generated code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) of a content type to retrieve the text from the linked content items. If we return the combined text from the linked content types, it will be stored in our "Content" field:
 
 ```cs
 public override object OnIndexingProperty(TreeNode node, string propertyName, string usedColumn, object foundValue)
