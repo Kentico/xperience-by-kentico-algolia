@@ -5,13 +5,15 @@
 
 # Xperience by Kentico Algolia Search Integration
 
-This integration enables the creating of [Algolia](https://www.algolia.com/) search indexes and the indexing of Xperience content tree pages using a code-first approach. Developers can use the [.NET API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/csharp/?client=csharp), [JavaScript API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/javascript/?client=javascript), or [InstantSearch.js](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) to provide a search interface on their live site.
+This integration enables you to create [Algolia](https://www.algolia.com/) search indexes to index content of pages ([content types](https://docs.xperience.io/x/gYHWCQ) with the 'Page' feature enabled) from the Xperience content tree using a code-first approach. To provide a search interface for the indexed content, developers can use the [.NET API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/csharp/?client=csharp), [JavaScript API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/javascript/?client=javascript), or the [InstantSearch.js](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) library.
 
-A single class (created by your developers) contains the Algolia index attributes and the individual attribute configurations, which can be registered during application startup. As a result, your developers can utilize Algolia's [POCO philosophy](https://www.algolia.com/doc/api-client/getting-started/install/csharp/?client=csharp#poco-types-and-jsonnet) while creating the search interface.
+A single class (created by the developers) contains the Algolia index attributes and the individual attribute configurations, which are registered during application startup. As a result, your developers can utilize Algolia's [POCO philosophy](https://www.algolia.com/doc/api-client/getting-started/install/csharp/?client=csharp#poco-types-and-jsonnet) while creating the search interface.
+
+> :bulb: Certain code examples in this article reference and work with values and types from the Dancing Goat project. Dancing Goat is a sample project that demonstrates the content management and digital marketing features of the Xperience platform. Feel free to [install the project](https://docs.xperience.io/x/DQKQC) from a .NET template and follow along with the examples.
 
 ## :rocket: Installation
 
-1. Install the [Kentico.Xperience.Algolia](https://www.nuget.org/packages/Kentico.Xperience.Algolia) NuGet package in the Xperience by Kentico project.
+1. Install the [Kentico.Xperience.Algolia](https://www.nuget.org/packages/Kentico.Xperience.Algolia) NuGet package into your project.
 2. On the [Algolia dashboard](https://www.algolia.com/dashboard), open your application, navigate to __Settings → API keys__ and note the _Search API key_ value.
 3. On the __All API keys__ tab, create a new "Indexing" API key which will be used for indexing and performing searches in the Xperience application. The key must have at least the following ACLs:
   - search
@@ -34,16 +36,22 @@ A single class (created by your developers) contains the Algolia index attribute
 5. In `Program.cs`, register the Algolia integration:
 
 ```cs
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+...
+builder.Services.AddKentico();
 builder.Services.AddAlgolia(builder.Configuration);
 ```
 
 ## Limitations
 
-It's important to note that Algolia has [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of your records. If you are indexing content that may contain large amounts of data, we recommend splitting your records into smaller "fragments." Follow the instructions in the [Splitting large content](#scissors-splitting-large-content) section.
+Note that Algolia has [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of your records. If you are indexing content that may contain large amounts of data, we recommend splitting your records into smaller "fragments." Follow the instructions in the [Splitting large content](#scissors-splitting-large-content) section.
 
 ## :gear: Creating and registering an Algolia index
 
-An Algolia index and its attributes are defined within a single class file, in which your custom class extends the [`AlgoliaSearchModel`](/src/Models/AlgoliaSearchModel.cs) class. Within the class, you define the attributes of the index by creating properties which match the names of Xperience page fields to index. The Xperience fields available may come from the `TreeNode` object or any custom page type fields.
+An Algolia index and its attributes are defined within a single class, which must inherit from [`AlgoliaSearchModel`](/src/Models/AlgoliaSearchModel.cs). 
+
+Within the class, define the attributes of the index by creating properties that match the names of the content type fields to index. The index supports fields from the `TreeNode` object and any custom fields defined using the [field editor](https://docs.xperience.io/x/RIXWCQ).
 
 ```cs
 public class SiteSearchModel : AlgoliaSearchModel
@@ -70,21 +78,30 @@ public class SiteSearchModel : AlgoliaSearchModel
 }
 ```
 
-> :ab: The property names (and names used in the [SourceAttribute](#source-attribute)) are __case-insensitive__. This means that your search model can contain an "articletext" property, or an "ArticleText" property- both will work.
+> :ab: The property names (and names used in the [SourceAttribute](#source-attribute)) are __case-insensitive__. This means that your search model can contain an "articletext" property, or an "ArticleText" property - both will work.
 
-Indexes must be registered during application startup in the Xperience application. To register an index, you can modify the `AddAlgolia()` method called in __Program.cs__. This method accepts a list of [`AlgoliaIndex`](/src/Models/AlgoliaIndex.cs), so you can create and register as many indexes as needed:
+Indexes must be registered during application startup. To register an index, modify the `AddAlgolia()` method called in __Program.cs__. This method accepts a list of [`AlgoliaIndex`](/src/Models/AlgoliaIndex.cs) instances, allowing you to create and register as many indexes as needed:
 
 ```cs
 builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
 {
     new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName),
-    // more indexes...
+    // Additional index registrations as needed...
 });
 ```
 
-If you're developing your search solution in multiple environments (e.g. "DEV" and "STG"), it is recommended that you create a unique Algolia index per environment. With this approach, the search functionality can be tested in each environment individually and changes to the index structure or content will not affect other environments. This can be implemented any way you'd like, including some custom service which transforms the index names. The simplest approach would be to prepend some environment name to the index, which is stored in the application settings:
+If you're developing your search solution in multiple environments (e.g. "DEV" and "STG"), we recommended that you create a unique Algolia index per environment. With this approach, the search functionality can be tested in each environment individually and changes to the index structure or content will not affect other environments. This can be implemented any way you'd like, including some custom service which transforms the index names. The simplest approach is to prepend the environment name, stored in the application settings, to the index:
+
+```json
+--- appsettings.json ---
+
+// Stores the name of the current environment
+"Environment": "DEV",
+```
 
 ```cs
+--- Program.cs ---
+
 var environment = builder.Configuration["Environment"];
 builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
 {
@@ -97,11 +114,11 @@ builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
 While the above sample code will create an Algolia index, pages in the content tree will not be indexed until one or more [`IncludedPathAttribute`](https://github.com/Kentico/xperience-algolia/blob/master/src/Attributes/IncludedPathAttribute.cs) attributes are applied to the class. The `IncludedPathAttribute` has two properties to configure:
 
 - __AliasPath__: The path of the content tree to index. Use wildcard "/%"  to index all children of a page.
-- __ContentTypes__ (optional): The code names of the page types under the specified `AliasPath` to index. If not provided, all page types are indexed.
+- __ContentTypes__ (optional): The code names of the Page content types under the specified [`AliasPath`](https://docs.xperience.io/x/4obWCQ#Retrievepagecontent-Pagepathexpressions) to index. If not provided, all content types are indexed.
 
-> :bulb: We recommend using the generated [Xperience page type code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) to reference page type class names.
+> :bulb: We recommend using [generated code files](https://docs.xperience.io/x/5IbWCQ) to reference Page content type class names.
 
-Below is an example of using multiple `IncludedPathAttribute`s to includes multiple paths and page types in an index:
+The code sample below demonstrates using `IncludedPathAttribute` to include multiple paths and Page content types in an index:
 
 ```cs
 [IncludedPath("/Articles/%", ContentTypes = new string[] { Article.CLASS_NAME })]
@@ -111,38 +128,39 @@ public class SiteSearchModel : AlgoliaSearchModel
 
 ### Customizing the indexing process
 
-In some cases, you may want to customize the values that are sent to Algolia during page indexing. For example, in the search model above there is a `Content` property which retrieves its value from the `ArticleText` or `CoffeeDescription` columns. However, if we are indexing the "About Us" page in Dancing Goat, the content of the page actually comes from the child pages.
+In some cases, you may want to customize the values that are sent to Algolia during the indexing process. For example, the [sample `SiteSearchModel`](#gear-creating-and-registering-an-algolia-index) search model above contains the `Content` property which retrieves its value from the `ArticleText` or `CoffeeDescription` fields. However, the content of your pages may be retrieved from [linked content items](https://docs.xperience.io/xp/developers-and-admins/development/content-modeling/content-types#Contenttypes-Addoptiontolinkcontentitems) instead.
 
 To customize the indexing process, you can override the `OnIndexingProperty()` that is defined in the search model base class `AlgoliaSearchModel`. This method is called during the indexing of a page for each property defined in your search model. You can use the function parameters such as the page being indexed, the value that would be indexed, the search model property name, and the name of the database column the value was retrieved from.
 
-To index the data from the child pages and store it in the "About Us" record in Algolia, we can use this method to loop through the child pages and retrieve text from their fields:
+We can use the [generated code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) of a content type to retrieve the text from the linked content items. If we return the combined text from the linked content types, it will be stored in our "Content" field:
 
 ```cs
 public override object OnIndexingProperty(TreeNode node, string propertyName, string usedColumn, object foundValue)
 {
-    switch (propertyName)
-    {
-        case nameof(Content):
-            if (node.DocumentName == "About Us")
+   switch (propertyName)
+   {
+      case nameof(Content):
+         if (node.ClassName.Equals(Parent.CLASS_NAME, System.StringComparison.OrdinalIgnoreCase))
+         {
+            var text = new StringBuilder();
+            var parentPage = node as Parent;
+            foreach (var section in parentPage.Fields.Sections)
             {
-                var text = new StringBuilder();
-                var aboutUsSections = node.Children.WithAllData.Where(child => child.ClassName == AboutUsSection.CLASS_NAME);
-                foreach (AboutUsSection aboutUsSection in aboutUsSections)
-                {
-                    text.Append(aboutUsSection.AboutUsSectionText);
-                }
-                return text.ToString();
+	       var sectionText = section.GetStringValue(nameof(Section.SectionText), String.Empty);
+	       text.Append(sectionText);
             }
-            break;
-    }
+            return text.ToString();
+         }
+         break;
+   }
 
-    return foundValue;
+   return base.OnIndexingProperty(node, propertyName, usedColumn, foundValue);
 }
 ```
 
 ## :memo: Configuring Algolia attributes
 
-This package includes five attributes which can be applied to each individual Algolia attribute to further configure the Algolia index:
+The integration package includes five attributes which can be applied to individual Algolia index attributes to further configure the Algolia index:
 
 - [`Searchable`](#searchable-attribute)
 - [`Facetable`](#facetable-attribute)
@@ -152,9 +170,9 @@ This package includes five attributes which can be applied to each individual Al
 
 ### __Searchable__ attribute
 
-This attribute indicates that an Algolia attribute is [searchable](https://www.algolia.com/doc/api-reference/api-parameters/searchableAttributes/#how-to-use). You can define optional attribute properties to adjust the performance of your searchable attributes:
+This attribute indicates that an Algolia index attribute is [searchable](https://www.algolia.com/doc/api-reference/api-parameters/searchableAttributes/#how-to-use). You can define optional attribute properties to adjust the performance of your searchable index attributes:
 
-- __Order__ (optional): Attributes with lower `Order` will be given priority when searching for text. Attributes without `Order` set will be added to the end of the list (making them lower priority), while attributes with the same `Order` will be added with the same priority and are automatically `Unordered`.
+- __Order__ (optional): Index attributes with lower `Order` will be given priority when searching for text. Index attributes without `Order` set will be added to the end of the list (making them lowest priority), while attributes with the same `Order` will be added with the same priority and are automatically `Unordered`.
 - __Unordered__ (optional): By default, matches at the beginning of a text are more relevant than matches at the end of the text. If set to `true`, the position of the matched text in the attribute content is irrelevant.
 
 ```cs
@@ -170,7 +188,7 @@ public string DocumentName { get; set; }
 
 ### __Facetable__ attribute
 
-This attribute indicates that an Algolia attribute is a [facet or filter](https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting/#how-to-use). By creating facets, your developers are able to create a [faceted search](https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/) interface on the front-end application. Optional attribute properties can be defined to change the functionality of your faceted attributes:
+This attribute indicates that an Algolia index attribute is a [facet or filter](https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting/#how-to-use). By creating facets, your developers are able to create a [faceted search](https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/) interface on the front-end application. Optional attribute properties can be defined to change the functionality of your faceted index attributes:
 
 - __FilterOnly__ (optional): Defines the attribute as a filter and not a facet. If you do not need facets, defining an attribute as a filter reduces the size of the index and improves the speed of the search.
 
@@ -193,30 +211,35 @@ public string CoffeeProcessing { get; set; }
 
 ### __Retrievable__ attribute
 
-This attribute determines which Algolia attributes to [retrieve when searching](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/#how-to-use). Reducing the amount of attributes retrieved will help improve the speed of your searches, without impacting the search functionality.
+This attribute determines which Algolia index attributes to [retrieve when searching](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/#how-to-use). Reducing the number of retrieved index attributes helps improve the speed of your searches without impacting the search functionality.
 
 ```cs
-[Searchable, Retrievable] // Used during searching and retrieved
+[Searchable, Retrievable] // Used during search and retrieval
 public string DocumentName { get; set; }
 
-[Searchable] // Used in searching but not retrieved
+[Searchable] // Used when searching but not during retrieval
 public string ArticleText { get; set; }
 ```
 
 ### __Source__ attribute
 
-This attribute can be used to alter the page field that the attribute value is retrieved from. This can be useful in indexes which include multiple page types, but the different page type fields should be stored in the same Algolia attribute. For example, your index should contain a "Content" attribute containing the page's text, but the text for each page type is stored in different page fields.
+You can use the `Source` attribute to specify which content type fields are stored in a given Algolia index attribute.
 
-Columns specified in the `Source` attribute are parsed in the order they appear, until a non-empty string and non-null value is found, which is then indexed. We recommend referencing standard page fields and custom page type fields using `nameof()` to avoid typos.
+By default, the value stored in the index attribute is retrieved from the content type field that matches the name of the declared property in the search model class. 
+
+In certain cases however, you may wish to include content from multiple fields under a single index attribute. For example, if your project doesn't use uniform field naming conventions across content types, or you need to index multiple fields from a single content type under one index attribute.
 
 ```cs
+// Ensures the 'Content' index attribute contains values from both the 'ArticleText' and 'CoffeeDescription' fields 
 [Searchable, Source(new string[] { nameof(Article.ArticleText), nameof(Coffee.CoffeeDescription) })]
 public string Content { get; set; }
 ```
 
+Fields specified in the `Source` attribute are parsed in the order they appear, until a non-empty string and non-null value is found, which is then indexed. When referencing content type fields, use the `nameof()` expression to avoid typos.
+
 ### __MediaUrls__ attribute
 
-This attribute can be used for fields that use the Xperience "Media files" data type. When the page is indexed, the files will be converted into a list of live-site URLs.
+This attribute is intended for fields that use the Xperience ["Media files" data type](https://docs.xperience.io/x/RoXWCQ). When the page is indexed, the files are converted into a list of live-site URLs.
 
 ```cs
 [MediaUrls, Retrievable]
@@ -244,7 +267,7 @@ The `DistinctOptions` constructor accepts two parameters:
   - __distinctAttribute__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct). This is a property of the search model whose value will remain constant for all fragments, and is used to identify fragments during de-duplication. Fragments of a search result are "grouped" together according to this attribute's value, then a certain number of fragments per-group are returned, depending on the `distinctLevel` setting. In most cases, this will be a property like `DocumentName` or `NodeAliasPath`.
   - __distinctLevel__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/distinct). A value of zero disables de-duplication and grouping, while positive values determine how many fragments will be returned by a search. This is generally set to "1" so that only one fragment is returned from each grouping.
 
-To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the below example. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs should _not_ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
+To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the example below. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs ___must not___ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
 
 In the following example, we have large articles on our website which can be split into smaller fragments by splitting text on the `<p>` tag. Note that each fragment still contains all of the original data- only the "Content" property is modified.
 
@@ -339,9 +362,9 @@ public async Task<ActionResult> Search(string searchText, CancellationToken canc
 }
 ```
 
-The `Hits` object of the [search response](https://www.algolia.com/doc/api-reference/api-methods/search/?client=csharp#response) will be a list of the strongly typed objects defined by your search model (`SiteSearchModel` in the above example). Other helpful properties of the results are `NbPages` and `NbHits`.
+The `Hits` object of the [search response](https://www.algolia.com/doc/api-reference/api-methods/search/?client=csharp#response) is a list of strongly typed objects defined by your search model (`SiteSearchModel` in the example above). Other helpful properties of the results object are `NbPages` and `NbHits`.
 
-The properties of each hit will be populated from the Algolia index, but be sure to check for `null` values! For example, a property that does _not_ have the [`Retrievable`](#retrievable-attribute) attribute will not be returned and custom page type fields will only be present for results of that type. That is, a property named "ArticleText" will be `null` for the coffee pages in Dancing Goat. You can reference the [`SiteSearchModel.ClassName`](/src/Models/AlgoliaSearchModel.cs) property present on all indexes to check the type of the returned hit.
+The properties of each hit are populated from the Algolia index, but be sure not to omit `null` checks when working with the results. For example, a property that does _not_ have the [`Retrievable`](#retrievable-attribute) attribute is not returned and custom content type fields are only present for results of that type. That is, a property named "ArticleText" will be `null` for the coffee pages in Dancing Goat. You can reference the [`SiteSearchModel.ClassName`](/src/Models/AlgoliaSearchModel.cs) property present on all indexes to check the type of the returned hit.
 
 Once the search is performed, pass the `Hits` and paging information to your view:
 
@@ -357,7 +380,7 @@ return View(new SearchResultsModel()
 
 ### Creating an autocomplete search box
 
-Algolia provides [autocomplete](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/) functionality via javascript which you can [install](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/getting-started/#installation) and set up any way you'd like. Below is an example of how to add autocomplete functionality to the Dancing Goat demo site.
+Algolia provides [autocomplete](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/) functionality via javascript which you can [install](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/getting-started/#installation) and set up according to your preferences. Below is an example of how to add autocomplete functionality to the Dancing Goat sample site.
 
 1. In the `/_Layout.cshtml` view which is rendered for every page, add a reference to Algolia's scripts and the default theme for autocomplete:
 
@@ -483,11 +506,11 @@ As the search interface can be designed in multiple languages using Algolia's AP
 
 ### Setting up basic search
 
-The Dancing Goat store doesn't use search out-of-the-box, so first you need to hook it up to Algolia. In this example, the search model seen [here](#gear-creating-and-registering-an-algolia-index) will be used.
+The Dancing Goat site doesn't use search out-of-the-box, so first you need to hook it up to Algolia. In this example, the search model seen [here](#gear-creating-and-registering-an-algolia-index) is used.
 
 1. Inject `IAlgoliaIndexService` into the `CoffeesController` as shown in [this section](#magright-implementing-the-search-interface).
 
-2. In __CoffeesController.cs__, create a method that will perform a standard Algolia search. In the `Query.Filters` property, add a filter to only retrieve records where `ClassName` is `DancingGoatCore.Coffee.` You also specify which `Facets` you want to retrieve, but they are not used yet.
+2. In __CoffeesController.cs__, create a method that performs a standard Algolia search. In the `Query.Filters` property, add a filter to only retrieve records where `ClassName` is `DancingGoatCore.Coffee.` You also specify which `Facets` you want to retrieve, but they are not used yet.
 
 ```cs
 private async Task<SearchResponse<SiteSearchModel>> Search(CancellationToken cancellationToken)
@@ -549,7 +572,7 @@ In the `Search()` method, the _CoffeeIsDecaf_ and _CoffeeProcessing_ facets are 
 
 Each `AlgoliaFacet` object represents the faceted attribute's possible values and contains the number of results that will be returned if the facet is enabled. For example, the "CoffeeProcessing" `AlgoliaFacetedAttribute` contains 3 `AlgoliaFacet` objects in its `Facets` property.
 
-1. In the Xperience administration, edit the "Coffee" page type and add the __CoffeeProcessing__ and __CoffeeIsDecaf__ fields with data types "Boolean" and "Text" respectively. For the "CoffeeProcessing" field, use the "Dropdown selector" component and add some values like "washed" and "natural."
+1. In the Xperience administration, edit the "Coffee" content type and add the __CoffeeProcessing__ and __CoffeeIsDecaf__ fields with data types "Boolean" and "Text" respectively. For the "CoffeeProcessing" field, use the "Dropdown selector" component and add some values like "washed" and "natural."
 
 2. In the __Pages__ application, edit the coffess and set values for the new fields.
 
@@ -716,10 +739,12 @@ filter.UpdateFacets(new FacetConfiguration(searchResponse.Facets, AlgoliaFacetTr
 
 ## :bulb: Personalizing search results
 
-Algolia offers search result [personalization](https://www.algolia.com/doc/guides/personalization/what-is-personalization/) to offer more relevant results to each individual visitor on your website. To begin personalizing search results, you first need to send [events](https://www.algolia.com/doc/guides/sending-events/planning/) to Algolia which detail the visitor's activity. As with much of the Algolia functionality, sending events is very flexible depending on your API of choice and how your search is implemented. You can choose to use any of the approaches in the Algolia documentation (e.g. [Google Tag Manager](https://www.algolia.com/doc/guides/sending-events/implementing/connectors/google-tag-manager/)). The following section showcases how to send events using C# with the assistance of some classes from this repository.
+Algolia provides search result [personalization](https://www.algolia.com/doc/guides/personalization/what-is-personalization/) that allows you to offer more relevant results to individual site visitors. To begin personalizing search results, you first need to send [events](https://www.algolia.com/doc/guides/sending-events/planning/) to Algolia which detail the visitor's activity. Sending events varies depending on your API of choice and how your search is implemented. You can choose to use any of the approaches in the Algolia documentation (e.g., [Google Tag Manager](https://www.algolia.com/doc/guides/sending-events/implementing/connectors/google-tag-manager/)). 
+
+The following section demonstrates how to send events using C# with the assistance of some classes from this repository.
 
 
-If you do not already have a basic search interface set up, you need to [implement a search interface](#mag_right-implementing-the-search-interface).
+>If you do not already have a basic search interface set up, you need to [implement one](#mag_right-implementing-the-search-interface).
 
 ### Sending search result click events/conversions
 
@@ -759,11 +784,11 @@ Now, when you display the search results using the `Url` property, it will look 
 }
 ```
 
-When a visitor lands on a page after clicking a search result, these methods use the data contained in the query string to submit a search result click event or conversion. If the visitor arrives on the page without query string parameters (e.g. using the site navigation), nothing is logged.
+When a visitor lands on a page after clicking on a search result, these methods use the data contained in the query string to submit a search result click event or conversion. If the visitor arrives on the page without query string parameters (e.g. using the site navigation), nothing is logged.
 
 ### Sending generic page-related events/conversions
 
-Aside from search result related events/conversions, there are many more generic events you can send to Algolia. For example, a very important conversion on E-commerce websites could be _Product added to cart_. For sites that produce blog posts or articles, you may want to send an _Article viewed_ event.
+Aside from search result related events/conversions, there are many more generic events you can send to Algolia. For example, for sites that produce blog posts or articles, you may want to send an _Article viewed_ event.
 
 For a conversion, you can use the `IAlgoliaInsightsService.LogPageConversion()` method in your controllers or views:
 
@@ -791,23 +816,9 @@ public async Task<IActionResult> Detail([FromServices] ArticleRepository article
 }
 ```
 
-Or, in the _\_Details.cshtml_ view for products, you can log a _Product viewed_ event:
-
-```cshtml
-@inject IAlgoliaInsightsService _insightsService
-@inject IPageDataContextRetriever _pageDataContextRetriever
-
-@{
-    if(_pageDataContextRetriever.TryRetrieve<TreeNode>(out var context))
-    {
-        await _insightsService.LogPageViewed(context.Page.DocumentID, "Product viewed", SiteSearchModel.IndexName, CancellationToken.None);
-    }
-}
-```
-
 ### Logging facet-related events/conversions
 
-You can log events and conversions when facets are displayed to a visitor, or when they click on an individual facet. In this example, the code from our Dancing Goat faceted search [example](#filtering-your-search-with-facets) will be used. Logging a _Search facets viewed_ event can be done in the `Index()` action of __CoffeesController__. The `LogFacetsViewed()` method requires a list of `AlgoliaFacetedAttribute`s, which you can get from the filter:
+You can log events and conversions when facets are displayed to a visitor, or when they click on an individual facet. In this example, the code from our Dancing Goat faceted search [example](#filtering-your-search-with-facets) is used. Logging a _Search facets viewed_ event is done in the `Index()` action of __CoffeesController__. The `LogFacetsViewed()` method requires a list of `AlgoliaFacetedAttribute`s, which you can get from the filter:
 
 ```cs
 var searchResponse = await Search(filter, cancellationToken);
@@ -821,7 +832,7 @@ To log an event or conversion when a facet is clicked, you need to use AJAX. Fir
 <input data-facet="@(Model.Attribute):@Model.Facets[i].Value" asp-for="@Model.Facets[i].IsChecked" />
 ```
 
-In the _Index.cshtml_ view for the coffee listing, the `change()` function is already used to run some javascript when a facet is checked or unchecked. Let's add some code that runs only if the facet has been checked which gets the value of the new `data` attribute and sends a POST request:
+In the _Index.cshtml_ view for the coffee listing, the `change()` function is already used to run some JavaScript when a facet is checked or unchecked. Let's add code that runs only if the facet has been checked which gets the value of the new `data` attribute and sends a POST request:
 
 ```js
 <script>
@@ -893,7 +904,7 @@ var results = await searchIndex.SearchAsync<AlgoliaSiteSearchModel>(query, new R
 
 ## :crystal_ball: Using InstantSearch.js
 
-InstantSearch.js is a vanilla javascript library developed by Algolia which utilizes highly-customizable widgets to easily develop a search interface with nearly no coding. In this example, we will use InstantSearch.js in the Dancing Goat sample site with very few changes, using the search model sample code [here](#determining-the-pages-to-index).
+`InstantSearch.js` is a vanilla javascript library developed by Algolia which utilizes highly-customizable widgets to easily develop a search interface with nearly no coding. In this example, we will use `InstantSearch.js` in the Dancing Goat sample site with very few changes, using the search model sample code [here](#determining-the-pages-to-index).
 
 1. Create a new empty Controller to display the search (e.g. __InstantsearchController__), and ensure it has a proper route in `Program.cs`:
 
@@ -1179,7 +1190,7 @@ public class CrawlerHitModel
 
 To perform a search against the crawler and return the `CrawlerHitModel` results, you must obtain the full index name from the crawler's configuration. Because the crawler's configuration contains a name and optional prefix that is added to the underlying index name, use `IAlgoliaClient.GetCrawler()` to retrieve the configuration, then use `IAlgoliaIndexService.InitializeCrawler()` to retrieve the search index.
 
-In the below example we've only registered a single crawler, so we can use `FirstOrDefault()` to get the crawler ID. In cases where there are multiple crawlers registered, your developers will need to create a mapping to identify which crawler should be used in a particular search. We are also using the `path` and `fileType` attributes to only return pages under the /coffees path:
+In the below example we've only registered a single crawler, so we can use `FirstOrDefault()` to get the crawler ID. In cases where there are multiple crawlers registered, the developers need to create a mapping to identify which crawler is used in a particular search. We are also using the `path` and `fileType` attributes to only return pages under the /coffees path:
 
 ```cs
 public async Task<IActionResult> Search([FromQuery] string searchText, CancellationToken cancellationToken)
@@ -1199,17 +1210,20 @@ public async Task<IActionResult> Search([FromQuery] string searchText, Cancellat
 }
 ```
 
-## :computer: Algolia application for administration interface
+## :computer: Algolia application for the Xperience administration
 
-After [installing](#rocket-installation) the NuGet package in your Xperience by Kentico project, a new _Algolia_ application will be available in the __Development__ menu. When you open the application, you will see a table of all registered Algolia indexes with information about the number of records, build time, and last update:
+After [installing](#rocket-installation) the NuGet package in your Xperience by Kentico project, a new _Algolia_ application becomes available in the __Development__ section. The application displays a table of all registered Algolia indexes with information about the number of records, build time, and last update:
 
 ![Algolia main menu](/img/main-menu.png)
 
-You can use the __Rebuild__ action on the right side of the table to re-index the pages of the Algolia index, which completely removes the existing records and replaces them with the most up-to-date page data. This could be especially useful after enabling the [data splitting](#scissors-splitting-large-content) feature. If you click on a row in this table you will navigate to a page detailing the indexed paths and properties of the Algolia index:
+Use the __Rebuild__ action on the right side of the table to re-index the pages of the Algolia index. This completely removes the existing records and replaces them with the most up-to-date data. Rebuilding indexes is especially useful after enabling the [data splitting](#scissors-splitting-large-content) feature. Selecting an index form the list displays a page detailing the indexed paths and properties of the corresponding Algolia index:
 
 ![Algolia indexed content menu](/img/indexed-content-menu.png)
 
-The __Indexed properties__ table lists each property defined in the search model and the [attributes](#memo-configuring-algolia-attributes) of that property. The __Indexed paths__ table displays the search model's [`IncludedPathAttribute`s](#determining-which-pages-to-index), including the paths and page types of each attribute. If you click on a row in this table, a dialog will appear which displays each page type included in the indexed path:
+The __Indexed properties__ table lists each property defined in the search model and the [attributes](#memo-configuring-algolia-attributes) of that property. 
+
+The __Indexed paths__ table lists the search model's [`IncludedPathAttribute`s](#determining-which-pages-to-index), including the paths and content types included within each index attribute. 
+Selecting an indexed path displays each content type included in the indexed path:
 
 ![Path detail menu](/img/path-detail-menu.png)
 
