@@ -127,32 +127,33 @@ public class SiteSearchModel : AlgoliaSearchModel
 
 ### Customizing the indexing process
 
-In some cases, you may want to customize the values that are sent to Algolia during the indexing process. For example, the [sample `SiteSearchModel`](#gear-creating-and-registering-an-algolia-index) search model above contains the `Content` property which retrieves its value from the `ArticleText` or `CoffeeDescription` fields. However, if we are indexing the "About Us" page in Dancing Goat, the content of the page actually comes from the child pages.
+In some cases, you may want to customize the values that are sent to Algolia during the indexing process. For example, the [sample `SiteSearchModel`](#gear-creating-and-registering-an-algolia-index) search model above contains the `Content` property which retrieves its value from the `ArticleText` or `CoffeeDescription` fields. However, the content of your pages may be retrieved from [linked content items](https://docs.xperience.io/xp/developers-and-admins/development/content-modeling/content-types#Contenttypes-Addoptiontolinkcontentitems) instead.
 
 To customize the indexing process, you can override the `OnIndexingProperty()` that is defined in the search model base class `AlgoliaSearchModel`. This method is called during the indexing of a page for each property defined in your search model. You can use the function parameters such as the page being indexed, the value that would be indexed, the search model property name, and the name of the database column the value was retrieved from.
 
-To index the data from the child pages and store it in the "About Us" record in Algolia, we can use this method to loop through the child pages and retrieve text from their fields:
+We can use the [generated code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) of a content type to retrieve the text from the linked content items. Then we can store the text from the linked content items and store the text in our "Content" field:
 
 ```cs
 public override object OnIndexingProperty(TreeNode node, string propertyName, string usedColumn, object foundValue)
 {
-    switch (propertyName)
-    {
-        case nameof(Content):
-            if (node.DocumentName == "About Us")
+   switch (propertyName)
+   {
+      case nameof(Content):
+         if (node.ClassName.Equals(Parent.CLASS_NAME, System.StringComparison.OrdinalIgnoreCase))
+         {
+            var text = new StringBuilder();
+            var parentPage = node as Parent;
+            foreach (var section in parentPage.Fields.Sections)
             {
-                var text = new StringBuilder();
-                var aboutUsSections = node.Children.WithAllData.Where(child => child.ClassName == AboutUsSection.CLASS_NAME);
-                foreach (AboutUsSection aboutUsSection in aboutUsSections)
-                {
-                    text.Append(aboutUsSection.AboutUsSectionText);
-                }
-                return text.ToString();
+	       var sectionText = section.GetStringValue(nameof(Section.SectionText), String.Empty);
+	       text.Append(sectionText);
             }
-            break;
-    }
+            return text.ToString();
+         }
+         break;
+   }
 
-    return foundValue;
+   return base.OnIndexingProperty(node, propertyName, usedColumn, foundValue);
 }
 ```
 
@@ -265,7 +266,7 @@ The `DistinctOptions` constructor accepts two parameters:
   - __distinctAttribute__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct). This is a property of the search model whose value will remain constant for all fragments, and is used to identify fragments during de-duplication. Fragments of a search result are "grouped" together according to this attribute's value, then a certain number of fragments per-group are returned, depending on the `distinctLevel` setting. In most cases, this will be a property like `DocumentName` or `NodeAliasPath`.
   - __distinctLevel__: Corresponds with [this Algolia setting](https://www.algolia.com/doc/api-reference/api-parameters/distinct). A value of zero disables de-duplication and grouping, while positive values determine how many fragments will be returned by a search. This is generally set to "1" so that only one fragment is returned from each grouping.
 
-To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the example below. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs should ___not___ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
+To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's __very important__ to set the "objectID" of each fragment, as seen in the example below. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs ___must not___ be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
 
 In the following example, we have large articles on our website which can be split into smaller fragments by splitting text on the `<p>` tag. Note that each fragment still contains all of the original data- only the "Content" property is modified.
 
