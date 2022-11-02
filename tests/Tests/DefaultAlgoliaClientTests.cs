@@ -94,7 +94,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -141,7 +140,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -196,7 +194,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     mockIndexService,
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -247,7 +244,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(httpClient,
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -295,7 +291,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     Substitute.For<IAlgoliaIndexService>(),
-                    Substitute.For<IAlgoliaObjectGenerator>(),
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
@@ -325,10 +320,15 @@ namespace Kentico.Xperience.Algolia.Tests
             private readonly ICacheAccessor mockCacheAccessor = Substitute.For<ICacheAccessor>();
             private readonly IAlgoliaIndexService mockIndexService = Substitute.For<IAlgoliaIndexService>();
             private readonly IPageRetriever mockPageRetriever = Substitute.For<IPageRetriever>();
-            private readonly IAlgoliaObjectGenerator algoliaObjectGenerator = new DefaultAlgoliaObjectGenerator(Substitute.For<IConversionService>(),
-                Substitute.For<IEventLogService>(),
-                Substitute.For<IMediaFileInfoProvider>(),
-                Substitute.For<IMediaFileUrlRetriever>());
+            private readonly IAlgoliaTaskProcessor mockTaskProcessor = Substitute.For<IAlgoliaTaskProcessor>();
+
+
+            protected override void RegisterTestServices()
+            {
+                base.RegisterTestServices();
+
+                Service.Use<IAlgoliaTaskProcessor>(mockTaskProcessor);
+            }
 
 
             [SetUp]
@@ -340,7 +340,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     mockCacheAccessor,
                     Substitute.For<IEventLogService>(),
                     mockPageRetriever,
@@ -365,14 +364,19 @@ namespace Kentico.Xperience.Algolia.Tests
             public async Task Rebuild_ValidIndex_CallsMethods()
             {
                 var cancellationToken = new CancellationToken();
-                var articleEnData = algoliaObjectGenerator.GetTreeNodeData(new AlgoliaQueueItem(FakeNodes.ArticleEn, AlgoliaTaskType.CREATE, nameof(ArticleEnSearchModel)));
                 await algoliaClient.Rebuild(nameof(ArticleEnSearchModel), cancellationToken);
 
                 mockCacheAccessor.Received(1).Remove(DefaultAlgoliaClient.CACHEKEY_STATISTICS);
                 await mockPageRetriever.Received(1).RetrieveMultipleAsync(Arg.Any<Action<MultiDocumentQuery>>(), null, cancellationToken);
                 await mockIndexService.Received(1).InitializeIndex(nameof(ArticleEnSearchModel), cancellationToken);
-                await mockSearchIndex.Received(1).ReplaceAllObjectsAsync(Arg.Is<IEnumerable<JObject>>(arg =>
-                    arg.SequenceEqual(new JObject[] { articleEnData }, new JObjectEqualityComparer())), null, cancellationToken, Arg.Any<bool>());
+                await mockSearchIndex.Received(1).ClearObjectsAsync(ct: cancellationToken);
+                await mockTaskProcessor.Received(1).ProcessAlgoliaTasks(Arg.Is<IEnumerable<AlgoliaQueueItem>>(arg =>
+                    arg.Count() == 1 &&
+                    arg.FirstOrDefault().ChangedColumns == null &&
+                    arg.FirstOrDefault().Node == FakeNodes.ArticleEn &&
+                    arg.FirstOrDefault().TaskType == AlgoliaTaskType.CREATE &&
+                    arg.FirstOrDefault().IndexName.Equals(nameof(ArticleEnSearchModel), StringComparison.OrdinalIgnoreCase)),
+                cancellationToken);
             }
         }
 
@@ -396,7 +400,6 @@ namespace Kentico.Xperience.Algolia.Tests
 
                 algoliaClient = new DefaultAlgoliaClient(Substitute.For<HttpClient>(),
                     mockIndexService,
-                    algoliaObjectGenerator,
                     Substitute.For<ICacheAccessor>(),
                     Substitute.For<IEventLogService>(),
                     Substitute.For<IPageRetriever>(),
