@@ -38,7 +38,31 @@ stages:
           - name: DotNetSdkVersion
             value: 5.0.x
 
+          - name: NodeVersion
+            value: 16.x
+
+          - name: ClientPath
+            value: $(System.DefaultWorkingDirectory)/src/Admin/Client
+
         steps:
+          - task: UseNode@1
+            displayName: Use Node ${{ variables.NodeVersion }}
+            inputs:
+              version: ${{ variables.NodeVersion }}
+              checkLatest: true
+
+          - task: Npm@1
+            displayName: Install client dependencies
+            inputs:
+              workingDir: ${{ variables.ClientPath }}
+
+          - task: Npm@1
+            displayName: Build client
+            inputs:
+              workingDir: ${{ variables.ClientPath }}
+              command: custom
+              customCommand: run build
+
           - task: UseDotNet@2
             displayName: Select dotnet version
             inputs:
