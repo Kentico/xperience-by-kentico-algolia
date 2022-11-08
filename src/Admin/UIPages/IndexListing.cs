@@ -80,6 +80,19 @@ namespace Kentico.Xperience.Algolia.Admin
                     }
                 };
             }
+            else
+            {
+                PageConfiguration.Callouts = new List<CalloutConfiguration>
+                {
+                    new CalloutConfiguration
+                    {
+                        Headline = LocalizationService.GetString("integrations.algolia.listing.callout.headline"),
+                        Content = LocalizationService.GetString("integrations.algolia.listing.callout.content"),
+                        ContentAsHtml = true,
+                        Type = CalloutType.QuickTip
+                    }
+                };
+            }
 
             PageConfiguration.ColumnConfigurations
                 .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("integrations.algolia.listing.columns.name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
