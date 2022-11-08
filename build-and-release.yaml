@@ -173,6 +173,6 @@ stages:
                       displayName: NuGet push
                       inputs:
                         command: push
-                        packagesToPush: $(Build.ArtifactStagingDirectory)/*.nupkg;$(Build.ArtifactStagingDirectory)/*.snupkg;
+                        packagesToPush: $(Build.ArtifactStagingDirectory)/*.nupkg
                         nuGetFeedType: external
                         publishFeedCredentials: nuget.org
