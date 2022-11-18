@@ -1,5 +1,5 @@
 [![Nuget](https://img.shields.io/nuget/v/Kentico.Xperience.Algolia)](https://www.nuget.org/packages/Kentico.Xperience.Algolia)
-[![Kentico.Xperience.WebApp 22.3.0](https://img.shields.io/badge/Kentico.Xperience.WebApp-v22.3.0-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
+[![Kentico.Xperience.WebApp 23.0.1](https://img.shields.io/badge/Kentico.Xperience.WebApp-v23.0.1-orange)](https://www.nuget.org/packages/Kentico.Xperience.WebApp#versions-body-tab)
 [![Algolia.Search 6.13.0](https://img.shields.io/badge/Algolia.Search-v6.13.0-blue)](https://www.nuget.org/packages/Algolia.Search#versions-body-tab)
 
 # Xperience by Kentico Algolia Search Integration
