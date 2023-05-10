@@ -19,7 +19,8 @@ using Kentico.Xperience.Algolia.Services;
 [assembly: RegisterModule(typeof(AlgoliaAdminModule))]
 
 // UI applications
-[assembly: UIApplication(typeof(AlgoliaApplication), "Algolia", "{$integrations.algolia.applicationname$}", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
+//[assembly: UIApplication(typeof(AlgoliaApplication), "Algolia", "{$integrations.algolia.applicationname$}", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
+[assembly: UIApplication(AlgoliaApplication.IDENTIFIER, typeof(AlgoliaApplication), "algolia", "{$integrations.algolia.applicationname$}", BaseApplicationCategories.DEVELOPMENT, Icons.Magnifier, TemplateNames.SECTION_LAYOUT)]
 
 // Admin UI pages
 [assembly: UIPage(typeof(AlgoliaApplication), "Indexes", typeof(IndexListing), "{$integrations.algolia.listing$}", TemplateNames.LISTING, UIPageOrder.First)]
