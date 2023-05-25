@@ -100,7 +100,8 @@ namespace Kentico.Xperience.Algolia.Admin
                         ComponentProps = new TagTableCellComponentProps
                         {
                             Label = GetContentTypeLabel(attribute),
-                            Color = GetContentTypeColor(attribute)
+                            Color = GetContentTypeColor(attribute),
+                            TooltipText = string.Empty
                         }
                     }
                 }
