@@ -283,6 +283,8 @@ namespace Kentico.Xperience.Algolia.Services
                     q.Path(includedPathAttribute.AliasPath)
                         .PublishedVersion()
                         .WithCoupledColumns();
+
+                    q.AllCultures();
                 }, cancellationToken: cancellationToken);
                     
                 indexedNodes.AddRange(nodes);
