@@ -9,7 +9,7 @@
     "lint": "npx eslint src/**/*.tsx"
   },
   "dependencies": {
-    "@kentico/xperience-admin-base": "26.2.0",
+    "@kentico/xperience-admin-base": "26.3.3",
     "@kentico/xperience-admin-components": "26.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
