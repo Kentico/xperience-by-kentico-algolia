@@ -6,7 +6,7 @@ The Xperience by Kentico Algolia integration provides basic support for [Algolia
 
 After you have created a crawler in Algolia, you can register the crawler in Xperience:
 
-1. Locate the User ID and API Key in the [Algolia Crawler Admin](https://www.algolia.com/doc/tools/crawler/apis/crawler-rest-api/#authentication) and add the values to your `appsettings.json`:
+Locate the User ID and API Key in the [Algolia Crawler Admin](https://www.algolia.com/doc/tools/crawler/apis/crawler-rest-api/#authentication) and add the values to your `appsettings.json`:
 
 ```json
 "xperience.algolia": {
