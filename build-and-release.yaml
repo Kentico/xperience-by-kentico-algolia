@@ -1,4 +1,4 @@
-name: '$(Build.DefinitionName) #$(Build.BuildId)'
+name: "$(Build.DefinitionName) #$(Build.BuildId)"
 
 trigger:
   - master
@@ -12,7 +12,7 @@ parameters:
   - name: AgentName
     displayName: Agent name - single char for any
     type: string
-    default: ' '
+    default: " "
 
 stages:
   - stage: Build
@@ -34,9 +34,6 @@ stages:
 
           - name: Configuration
             value: Release
-
-          - name: DotNetSdkVersion
-            value: 5.0.x
 
           - name: NodeVersion
             value: 16.x
@@ -67,13 +64,13 @@ stages:
             displayName: Select dotnet version
             inputs:
               packageType: sdk
-              version: ${{ variables.DotNetSdkVersion }}
+              useGlobalJson: true
 
           - task: DotNetCoreCLI@2
             displayName: Restore dependencies
             inputs:
               command: restore
-              projects: '**/*.csproj'
+              projects: "**/*.csproj"
               feedsToUse: select
 
           - pwsh: |
@@ -103,24 +100,24 @@ stages:
             displayName: Build
             inputs:
               command: build
-              projects: '**/*.csproj'
+              projects: "**/*.csproj"
               arguments: --no-restore --configuration ${{ variables.Configuration }}
 
           - task: DotNetCoreCLI@2
             displayName: Test
             inputs:
               command: test
-              projects: '**/*.Tests.csproj'
+              projects: "**/*.Tests.csproj"
               arguments: --no-build --configuration ${{ variables.Configuration }}
 
           - task: DotNetCoreCLI@2
             displayName: Create NuGet package
             inputs:
               command: pack
-              packagesToPack: '**/*.csproj'
+              packagesToPack: "**/*.csproj"
               configuration: ${{ variables.Configuration }}
               nobuild: true
-              versioningScheme: 'off'
+              versioningScheme: "off"
 
           - task: PublishPipelineArtifact@1
             displayName: Publish NuGet package as artifact
@@ -163,7 +160,7 @@ stages:
                     - task: NuGetToolInstaller@1
                       displayName: Install nuget.exe
                       inputs:
-                        versionSpec: '>=5.6'
+                        versionSpec: ">=5.6"
                         checkLatest: true
 
                     - task: NuGetAuthenticate@0
