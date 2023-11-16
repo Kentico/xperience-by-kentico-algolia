@@ -6,7 +6,7 @@ Algolia provides search result [personalization](https://www.algolia.com/doc/gui
 
 The following section demonstrates how to send events using C# with the assistance of some classes from this repository.
 
-> If you do not already have a basic search querying process, you will need to [implement one](./Usage-Guide.md#basic-search).
+> If you do not already have a basic search querying process, you will need to [implement one](Usage-Guide.md#basic-search).
 
 ## Sending search result click events/conversions
 

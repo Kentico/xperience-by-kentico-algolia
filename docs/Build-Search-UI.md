@@ -66,7 +66,7 @@ document.querySelector("#search-input").addEventListener("keyup", (e) => {
 
 When you build and run the Dancing Goat website and start typing into the search box, records from the Algolia index will be suggested:
 
-![Autocomplete](../images/autocomplete-default-theme.png)
+![Autocomplete](/images/autocomplete-default-theme.png)
 
 ### Customize the autocomplete search box
 
@@ -120,7 +120,7 @@ const autocompleteBox = autocomplete('#search-input', { hint: false }, [{
 }]);
 ```
 
-> The attributes `DocumentName` and `Thumbnail` used in this example are not present in all Algolia indexes! If you follow this example, make sure you are using attributes present in your index. See the [sample search model](./Usage-Guide.md#defining-a-search-model) to find out how these attributes were defined.
+> The attributes `DocumentName` and `Thumbnail` used in this example are not present in all Algolia indexes! If you follow this example, make sure you are using attributes present in your index. See the [sample search model](Usage-Guide.md#defining-a-search-model) to find out how these attributes were defined.
 
 ## Faceted search
 
@@ -128,9 +128,9 @@ As the search interface can be designed in multiple languages using Algolia's AP
 
 ### Setting up basic search
 
-The Dancing Goat site doesn't use search out-of-the-box, so first you need to hook it up to Algolia. In this example, the [sample search model](./Usage-Guide.md#defining-a-search-model) is used.
+The Dancing Goat site doesn't use search out-of-the-box, so first you need to hook it up to Algolia. In this example, the [sample search model](Usage-Guide.md#defining-a-search-model) is used.
 
-Inject `IAlgoliaIndexService` into the `CoffeesController`, similar to the example shown in [the basic search setup](./Usage-Guide.md#basic-search).
+Inject `IAlgoliaIndexService` into the `CoffeesController`, similar to the example shown in [the basic search setup](Usage-Guide.md#basic-search).
 
 In the `CoffeesController.cs`, create a method that performs a standard Algolia search. In the `Query.Filters` property, add a filter to only retrieve records where `ClassName` is `DancingGoatCore.Coffee`. You will also specify which `Facets` you want to retrieve, but they are not used yet.
 
@@ -233,7 +233,7 @@ The `GetFilter()` method returns a condition for each facet in the `IAlgoliaFace
 
 > "CoffeeIsDecaf:true" AND ("CoffeeProcessing:washed" OR "CoffeeProcessing:natural")
 
-You can change this behavior by setting the [`UseAndCondition`](./Usage-Guide.md#facetable-attribute) property of your faceted attributes, or by creating your own implementation of `IAlgoliaFacetFilter`.
+You can change this behavior by setting the [`UseAndCondition`](Usage-Guide.md#facetable-attribute) property of your faceted attributes, or by creating your own implementation of `IAlgoliaFacetFilter`.
 
 Modify the `Index()` action to accept an `AlgoliaFacetFilter` parameter, pass it to the `Search()` method, parse the facets from the search response, then pass the filter to the view:
 

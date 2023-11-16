@@ -37,7 +37,7 @@ In the Xperience project's `appsettings.json`, add the following section with yo
 
 ## Defining a Search Model
 
-An Algolia index and its attributes are defined within a single class, which must inherit from [`AlgoliaSearchModel`](../src/Models/AlgoliaSearchModel.cs).
+An Algolia index and its attributes are defined within a single class, which must inherit from [`AlgoliaSearchModel`](/src/Models/AlgoliaSearchModel.cs).
 
 Within the class, define the attributes of the index by creating properties that match the names of the content type fields to index. The index supports fields from the `TreeNode` object and any custom fields defined using the [field editor](https://docs.xperience.io/x/RIXWCQ).
 
@@ -113,7 +113,7 @@ This environment value can be populated in the `appsettings.json` file in a buil
 
 ### Determining which pages to index
 
-While the above sample code will create an Algolia index, pages in the content tree will not be indexed until one or more [`IncludedPathAttribute`](../src/Attributes/IncludedPathAttribute.cs) attributes are applied to the class. The `IncludedPathAttribute` has two properties to configure:
+While the above sample code will create an Algolia index, pages in the content tree will not be indexed until one or more [`IncludedPathAttribute`](/src/Attributes/IncludedPathAttribute.cs) attributes are applied to the class. The `IncludedPathAttribute` has two properties to configure:
 
 - **AliasPath**: The path in the content tree to index. Use a wildcard `"/%"` value to index all children of an `AliasPath`.
 - **ContentTypes** (optional): The code names of the Page content types under the specified [`AliasPath`](https://docs.xperience.io/x/4obWCQ#Retrievepagecontent-Pagepathexpressions) to index. If this value is not provided, all content types are indexed.
@@ -147,19 +147,19 @@ public override object OnIndexingProperty(TreeNode node, string propertyName, st
         case nameof(Content):
             if (node.ClassName.Equals(Parent.CLASS_NAME, System.StringComparison.OrdinalIgnoreCase))
             {
-            var text = new StringBuilder();
-            var parentPage = node as Parent;
-            foreach (var section in parentPage.Fields.Sections)
-            {
-                var sectionText = section.GetStringValue(nameof(Section.SectionText), String.Empty);
-                text.Append(sectionText);
-            }
-            return text.ToString();
+                var text = new StringBuilder();
+                var parentPage = node as Parent;
+                foreach (var section in parentPage.Fields.Sections)
+                {
+                    var sectionText = section.GetStringValue(nameof(Section.SectionText), String.Empty);
+                    text.Append(sectionText);
+                }
+                return text.ToString();
             }
             break;
     }
 
-   return base.OnIndexingProperty(node, propertyName, usedColumn, foundValue);
+    return base.OnIndexingProperty(node, propertyName, usedColumn, foundValue);
 }
 ```
 
@@ -373,7 +373,7 @@ public async Task<ActionResult> Search(string searchText, CancellationToken canc
 
 The `Hits` object of the [search response](https://www.algolia.com/doc/api-reference/api-methods/search/?client=csharp#response) is a list of strongly typed objects defined by your search model (`SiteSearchModel` in the example above). Other helpful properties of the results object are `NbPages` and `NbHits`.
 
-The properties of each hit are populated from the Algolia index, but be sure not to omit `null` checks when working with the results. For example, a property that does _not_ have the [`Retrievable`](#retrievable-attribute) attribute is not returned and custom content type fields are only present for results of that type. That is, a property named "ArticleText" will be `null` for the coffee pages in Dancing Goat. You can reference the [`SiteSearchModel.ClassName`](../src/Models/AlgoliaSearchModel.cs) property present on all indexes to check the type of the returned hit.
+The properties of each hit are populated from the Algolia index, but be sure not to omit `null` checks when working with the results. For example, a property that does _not_ have the [`Retrievable`](#retrievable-attribute) attribute is not returned and custom content type fields are only present for results of that type. That is, a property named "ArticleText" will be `null` for the coffee pages in Dancing Goat. You can reference the [`SiteSearchModel.ClassName`](/src/Models/AlgoliaSearchModel.cs) property present on all indexes to check the type of the returned hit.
 
 Once the search is performed, pass the `Hits` and paging information to your view:
 
@@ -391,14 +391,14 @@ return View(new SearchResultsModel()
 
 After [installing](../README.md#package-installation) the NuGet package in your Xperience by Kentico project, a new _Search_ application becomes available in the **Development** application group. The Search application displays a table of all registered Algolia indexes with information about the number of records, build time, and last update:
 
-<a href="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/main-menu.png">
-  <img src="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/main-menu.png" width="600" alt="Administration Algolia indexes list">
+<a href="../images/main-menu.png">
+  <img src="../images/main-menu.png" width="600" alt="Administration Algolia indexes list">
 </a>
 
 Use the **Rebuild** action on the right side of the table to re-index the pages of the Algolia index. This completely removes the existing records and replaces them with the most up-to-date data. Rebuilding indexes is especially useful after enabling the [data splitting](#splitting-large-content) feature. Selecting an index form the list displays a page detailing the indexed paths and properties of the corresponding Algolia index:
 
-<a href="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/indexed-content-menu.png">
-  <img src="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/indexed-content-menu.png" width="600" alt="Administration indexed content details">
+<a href="../images/indexed-content-menu.png">
+  <img src="../images/indexed-content-menu.png" width="600" alt="Administration indexed content details">
 </a>
 
 The **Indexed properties** table lists each property defined in the search model and the [attributes](#algolia-attributes) of that property.
@@ -406,17 +406,17 @@ The **Indexed properties** table lists each property defined in the search model
 The **Indexed paths** table lists the search model's [`IncludedPathAttribute`s](#determining-which-pages-to-index), including the paths and content types included within each index attribute.
 Selecting an indexed path displays each content type included in the indexed path:
 
-<a href="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/path-detail-menu.png">
-  <img src="https://raw.githubusercontent.com/Kentico/xperience-by-kentico-algolia/main/images/path-detail-menu.png" width="600" alt="Administration indexed content path details">
+<a href="../images/path-detail-menu.png">
+  <img src="../images/path-detail-menu.png" width="600" alt="Administration indexed content path details">
 </a>
 
 ## Advanced Topics
 
 There are more topics covered by additional pages in this guide:
 
-- [Building a Search UI](./Build-Search-UI.md)
-- [Search Personalization](./Search-Personalization.md)
-- [InstantSearch.js](./InstantSearch-js.md)
-- [Algolia Crawler](./Algolia-Crawler.md)
+- [Building a Search UI](Build-Search-UI.md)
+- [Search Personalization](Search-Personalization.md)
+- [InstantSearch.js](InstantSearch-js.md)
+- [Algolia Crawler](Algolia-Crawler.md)
 
 ## Additional Resources
