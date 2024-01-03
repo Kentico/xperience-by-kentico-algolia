@@ -1,80 +1,108 @@
 using CMS.Base;
+using CMS.ContentEngine;
 using CMS.Core;
 using CMS.DataEngine;
-using CMS.DocumentEngine;
-
+using CMS.Websites;
+using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
+using System.Threading.Tasks;
 
-namespace Kentico.Xperience.Algolia
+namespace Kentico.Xperience.Algolia;
+
+/// <summary>
+/// Initializes page event handlers, and ensures the thread queue workers for processing Algolia tasks.
+/// </summary>
+internal class AlgoliaSearchModule : Module
 {
-    /// <summary>
-    /// Initializes page event handlers, and ensures the thread queue workers for processing Algolia tasks.
-    /// </summary>
-    internal class AlgoliaSearchModule : Module
+    private IAlgoliaTaskLogger algoliaTaskLogger;
+    private IAppSettingsService appSettingsService;
+    private IConversionService conversionService;
+    private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
+
+
+    private bool IndexingDisabled
     {
-        private IAlgoliaTaskLogger algoliaTaskLogger;
-        private IAppSettingsService appSettingsService;
-        private IConversionService conversionService;
-        private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
-
-
-        private bool IndexingDisabled
+        get
         {
-            get
-            {
-                return conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);
-            }
+            return conversionService.GetBoolean(appSettingsService[APP_SETTINGS_KEY_INDEXING_DISABLED], false);
         }
+    }
 
 
-        /// <inheritdoc/>
-        public AlgoliaSearchModule() : base(nameof(AlgoliaSearchModule))
+    /// <inheritdoc/>
+    public AlgoliaSearchModule() : base(nameof(AlgoliaSearchModule))
+    {
+    }
+
+
+    /// <inheritdoc/>
+    protected override void OnInit()
+    {
+        base.OnInit();
+
+        Service.Resolve<AlgoliaModuleInstaller>().Install();
+        algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
+        appSettingsService = Service.Resolve<IAppSettingsService>();
+        conversionService = Service.Resolve<IConversionService>();
+
+
+        AddRegisteredIndices().Wait();
+        WebPageEvents.Publish.Execute += HandleEvent;
+        WebPageEvents.Delete.Execute += HandleEvent;
+        ContentItemEvents.Publish.Execute += HandleContentItemEvent;
+        ContentItemEvents.Delete.Execute += HandleContentItemEvent;
+        RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
+    }
+
+
+    /// <summary>
+    /// Called when a page is published. Logs an Algolia task to be processed later.
+    /// </summary>
+    private void HandleEvent(object? sender, CMSEventArgs e)
+    {
+        if (IndexingDisabled)
         {
+            return;
         }
-
-
-        /// <inheritdoc/>
-        protected override void OnInit()
+        var publishedEvent = (WebPageEventArgsBase)e;
+        var indexedItemModel = new IndexedItemModel
         {
-            base.OnInit();
+            LanguageCode = publishedEvent.ContentLanguageName,
+            ClassName = publishedEvent.ContentTypeName,
+            ChannelName = publishedEvent.WebsiteChannelName,
+            WebPageItemGuid = publishedEvent.Guid,
+            WebPageItemTreePath = publishedEvent.TreePath,
+        };
 
-            algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
-            appSettingsService = Service.Resolve<IAppSettingsService>();
-            conversionService = Service.Resolve<IConversionService>();
+        var task = algoliaTaskLogger?.HandleEvent(indexedItemModel, e.CurrentHandler.Name);
+        task.Wait();
+    }
 
-            DocumentEvents.Delete.Before += HandleDocumentEvent;
-            WorkflowEvents.Publish.After += HandleWorkflowEvent;
-            WorkflowEvents.Archive.Before += HandleWorkflowEvent;
-            RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
-            RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaCrawlerQueueWorker.Current.EnsureRunningThread();
-        }
-
-
-        /// <summary>
-        /// Called when a page is published or archived. Logs an Algolia task to be processed later.
-        /// </summary>
-        private void HandleWorkflowEvent(object sender, WorkflowEventArgs e)
+    private void HandleContentItemEvent(object? sender, CMSEventArgs e)
+    {
+        if (IndexingDisabled)
         {
-            if (IndexingDisabled)
-            {
-                return;
-            }
-
-            algoliaTaskLogger.HandleEvent(e.Document, e.CurrentHandler.Name);
+            return;
         }
+        var publishedEvent = (ContentItemEventArgsBase)e;
 
-
-        /// <summary>
-        /// Called when a page is deleted. Logs an Algolia task to be processed later.
-        /// </summary>
-        private void HandleDocumentEvent(object sender, DocumentEventArgs e)
+        var indexedContentItemModel = new IndexedContentItemModel
         {
-            if (IndexingDisabled)
-            {
-                return;
-            }
+            LanguageCode = publishedEvent.ContentLanguageName,
+            ClassName = publishedEvent.ContentTypeName,
+            ContentItemGuid = publishedEvent.Guid
+        };
 
-            algoliaTaskLogger.HandleEvent(e.Node, e.CurrentHandler.Name);
-        }
+        var task = algoliaTaskLogger?.HandleContentItemEvent(indexedContentItemModel, e.CurrentHandler.Name);
+
+        task.Wait();
+    }
+
+    public static async Task AddRegisteredIndices()
+    {
+        var configurationStorageService = Service.Resolve<IConfigurationStorageService>();
+        var indices = await configurationStorageService.GetAllIndexData();
+
+        IndexStore.Instance.AddIndices(indices);
     }
 }

@@ -5,117 +5,147 @@
 	},
 	"extends": [
 		"plugin:react/recommended",
-		"standard-with-typescript"
+		"standard-with-typescript",
+		"prettier"
 	],
-	"overrides": [
-	],
+	"overrides": [],
 	"parserOptions": {
-		"project": "tsconfig.json",
+		"project": "./tsconfig.json",
 		"ecmaVersion": "latest",
-		"sourceType": "module"
+		"sourceType": "module",
+		"parser": "babel-eslint"
 	},
-	"plugins": [
-		"react"
-	],
+	"plugins": [ "react" ],
 	"rules": {
-        "@typescript-eslint/no-invalid-void-type": [
-            "off"
-        ],
-		"quotes": ["error", "single", {
+		"@typescript-eslint/no-invalid-void-type": [ "off" ],
+		"quotes": [
+			"warn",
+			"single",
+			{
 				"avoidEscape": true
 			}
 		],
-		"jsx-quotes": ["error", "prefer-double"],
-		"comma-dangle": ["error", {
-				"arrays": "only-multiline",
-				"objects": "only-multiline"
-			}
-		],
-		"eqeqeq": ["error", "always"],
-		"no-var": "error",
+		"jsx-quotes": [ "warn", "prefer-double" ],
+		"eqeqeq": [ "warn", "always" ],
+		"no-var": "warn",
 		"no-unused-vars": "off",
-		"no-console": "error",
-		"no-debugger": "error",
-		"@typescript-eslint/no-unused-vars": ["error", {
+		"no-console": "warn",
+		"no-debugger": "warn",
+		"@typescript-eslint/no-unused-vars": [
+			"warn",
+			{
 				"args": "after-used"
 			}
 		],
-		"import/first": "error",
-		"import/order": ["error", {
+		"import/first": "warn",
+		"sort-imports": [
+			"warn",
+			{ "ignoreDeclarationSort": true }
+		],
+		"import/order": [
+			"warn",
+			{
 				"newlines-between": "never",
-				"pathGroups": [{
+				"pathGroups": [
+					{
 						"pattern": "./**.scss",
 						"group": "index",
 						"position": "after"
 					}
-				]
+				],
+				"groups": [
+					"builtin",
+					"external",
+					"internal",
+					"parent",
+					"sibling",
+					"index"
+				],
+				"alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				}
 			}
 		],
-		"import/no-default-export": "error",
-		"import/no-duplicates": "error",
-		"react/prefer-es6-class": ["error", "always"],
+		"import/no-default-export": "warn",
+		"import/no-duplicates": "warn",
+		"react/prefer-es6-class": [ "warn", "always" ],
 		"react/jsx-uses-react": "off",
 		"react/react-in-jsx-scope": "off",
-		"@typescript-eslint/no-explicit-any": "error",
-		"@typescript-eslint/no-require-imports": "error",
-		"@typescript-eslint/naming-convention": ["error", {
+		"@typescript-eslint/no-explicit-any": "warn",
+		"@typescript-eslint/no-require-imports": "warn",
+		"@typescript-eslint/naming-convention": [
+			"warn",
+			{
 				"selector": "default",
-				"format": ["PascalCase"],
+				"format": [ "PascalCase" ],
 				"filter": {
 					"regex": "^((data|aria|xp|invalid|--[a-z]+)[-].+)|[0-9]+$",
 					"match": false
 				}
-			}, {
+			},
+			{
 				"selector": "variable",
-				"format": ["PascalCase", "camelCase"]
-			}, {
+				"format": [ "PascalCase", "camelCase" ]
+			},
+			{
 				"selector": "variable",
-				"format": ["UPPER_CASE"],
+				"format": [ "UPPER_CASE" ],
 				"filter": {
 					"regex": "^__[A-Za-z_]+__$",
 					"match": true
 				},
 				"leadingUnderscore": "requireDouble",
 				"trailingUnderscore": "requireDouble"
-			}, {
+			},
+			{
 				"selector": "function",
-				"format": ["camelCase"]
-			}, {
+				"format": [ "camelCase" ]
+			},
+			{
 				"selector": "parameter",
-				"format": ["camelCase"],
+				"format": [ "camelCase" ],
 				"leadingUnderscore": "allow"
-			}, {
+			},
+			{
 				"selector": "enum",
-				"format": ["PascalCase"]
-			}, {
+				"format": [ "PascalCase" ]
+			},
+			{
 				"selector": "objectLiteralProperty",
-				"format": ["camelCase", "PascalCase"],
+				"format": [ "camelCase", "PascalCase" ],
 				"filter": {
 					"regex": "^((data|aria|xp|invalid|--[a-z]+)[-].+)|[0-9]+$",
 					"match": false
 				}
-			}, {
+			},
+			{
 				"selector": "objectLiteralMethod",
-				"format": ["camelCase"]
-			}, {
+				"format": [ "camelCase" ]
+			},
+			{
 				"selector": "typeProperty",
-				"format": ["camelCase"],
+				"format": [ "camelCase" ],
 				"filter": {
 					"regex": "^(data)[-].+$",
 					"match": false
 				}
-			}, {
+			},
+			{
 				"selector": "typeLike",
-				"format": ["PascalCase"]
-			}, {
+				"format": [ "PascalCase" ]
+			},
+			{
 				"selector": "classMethod",
-				"format": ["camelCase"]
-			}, {
+				"format": [ "camelCase" ]
+			},
+			{
 				"selector": "classProperty",
-				"format": ["camelCase"]
-			}, {
+				"format": [ "camelCase" ]
+			},
+			{
 				"selector": "interface",
-				"format": ["PascalCase"],
+				"format": [ "PascalCase" ],
 				"custom": {
 					"regex": "^I[A-Z]",
 					"match": false
@@ -123,8 +153,8 @@
 			}
 		],
 		"@typescript-eslint/await-thenable": "warn",
-		"@typescript-eslint/prefer-enum-initializers": "error",
-		"@typescript-eslint/no-non-null-assertion": "error"
+		"@typescript-eslint/prefer-enum-initializers": "warn",
+		"@typescript-eslint/no-non-null-assertion": "warn"
 	},
 	"settings": {
 		"react": {

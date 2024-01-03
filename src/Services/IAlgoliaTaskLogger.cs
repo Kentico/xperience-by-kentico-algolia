@@ -1,6 +1,5 @@
-﻿using CMS.DocumentEngine;
-
-using Kentico.Xperience.Algolia.Models;
+﻿using Kentico.Xperience.Algolia.Models;
+using System.Threading.Tasks;
 
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -16,6 +15,8 @@ namespace Kentico.Xperience.Algolia.Services
         /// </summary>
         /// <param name="node">The <see cref="TreeNode"/> that triggered the event.</param>
         /// <param name="eventName">The name of the Xperience event that was triggered.</param>
-        void HandleEvent(TreeNode node, string eventName);
+        Task HandleEvent(IndexedItemModel indexedModel, string eventName);
+
+        Task HandleContentItemEvent(IndexedContentItemModel indexedItem, string eventName);
     }
 }

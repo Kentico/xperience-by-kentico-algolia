@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-
+using System.Threading.Tasks;
 using CMS.Core;
-using CMS.DocumentEngine;
-using CMS.SiteProvider;
-
+using CMS.Websites;
 using Kentico.Xperience.Algolia.Extensions;
 using Kentico.Xperience.Algolia.Models;
 
@@ -28,54 +26,77 @@ namespace Kentico.Xperience.Algolia.Services
 
 
         /// <inheritdoc />
-        public void HandleEvent(TreeNode node, string eventName)
+        public async Task HandleEvent(IndexedItemModel indexedItem, string eventName)
         {
-            var taskType = GetTaskType(node, eventName);
+            var taskType = GetTaskType(eventName);
 
-            // Check crawlers
-            if (node.Site.SiteStatus == SiteStatusEnum.Running)
-            {
-                foreach (var crawlerId in IndexStore.Instance.GetAllCrawlers())
-                {
-                    var url = DocumentURLProvider.GetAbsoluteUrl(node);
-                    LogCrawlerTask(new AlgoliaCrawlerQueueItem(crawlerId, url, taskType));
-                }
-            }
-
-            // Check standard indexes
-            if (!node.IsAlgoliaIndexed())
+            if (!indexedItem.IsAlgoliaIndexed(eventName))
             {
                 return;
             }
 
-            foreach (var indexName in IndexStore.Instance.GetAllIndexes().Select(index => index.IndexName))
+            foreach (string? indexName in IndexStore.Instance.GetAllIndices().Select(index => index.IndexName))
             {
-                if (!node.IsIndexedByIndex(indexName))
+                if (!indexedItem.IsIndexedByIndex(indexName, eventName))
                 {
                     continue;
                 }
 
-                LogIndexTask(new AlgoliaQueueItem(node, taskType, indexName, node.ChangedColumns()));
+                var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
+
+                if (algoliaIndex is not null)
+                {
+                    var toReindex = await algoliaIndex.AlgoliaIndexingStrategy.FindItemsToReindex(indexedItem);
+
+                    if (toReindex is not null)
+                    {
+                        foreach (var item in toReindex)
+                        {
+                            if (item.WebPageItemGuid == indexedItem.WebPageItemGuid)
+                            {
+                                if (taskType == AlgoliaTaskType.DELETE)
+                                {
+                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.DELETE, indexName));
+                                }
+                                else
+                                {
+                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, indexName));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-
-        /// <summary>
-        /// Logs a single <see cref="AlgoliaCrawlerQueueItem"/>.
-        /// </summary>
-        /// <param name="task">The task to log.</param>
-        private void LogCrawlerTask(AlgoliaCrawlerQueueItem task)
+        public async Task HandleContentItemEvent(IndexedContentItemModel indexedItem, string eventName)
         {
-            try
+            if (!indexedItem.IsAlgoliaIndexed(eventName))
             {
-                AlgoliaCrawlerQueueWorker.EnqueueCrawlerQueueItem(task);
+                return;
             }
-            catch (InvalidOperationException ex)
+
+            foreach (string? indexName in IndexStore.Instance.GetAllIndices().Select(index => index.IndexName))
             {
-                eventLogService.LogException(nameof(DefaultAlgoliaTaskLogger), nameof(LogCrawlerTask), ex);
+                if (!indexedItem.IsIndexedByIndex(indexName, eventName))
+                {
+                    continue;
+                }
+
+                var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
+                if (algoliaIndex is not null)
+                {
+                    var toReindex = await algoliaIndex.AlgoliaIndexingStrategy.FindItemsToReindex(indexedItem, algoliaIndex.WebSiteChannelName);
+                    if (toReindex is not null)
+                    {
+                        foreach (var item in toReindex)
+                        {
+                            LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, indexName));
+                        }
+                    }
+                }
             }
         }
-
 
         /// <summary>
         /// Logs a single <see cref="AlgoliaQueueItem"/>.
@@ -94,20 +115,15 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        private static AlgoliaTaskType GetTaskType(TreeNode node, string eventName)
+        private static AlgoliaTaskType GetTaskType(string eventName)
         {
-            if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count == 0)
-            {
-                return AlgoliaTaskType.CREATE;
-            }
-
-            if (eventName.Equals(WorkflowEvents.Publish.Name, StringComparison.OrdinalIgnoreCase) && node.WorkflowHistory.Count > 0)
+            if (eventName.Equals(WebPageEvents.Publish.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return AlgoliaTaskType.UPDATE;
             }
 
-            if (eventName.Equals(DocumentEvents.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
-                eventName.Equals(WorkflowEvents.Archive.Name, StringComparison.OrdinalIgnoreCase))
+            if (eventName.Equals(WebPageEvents.Delete.Name, StringComparison.OrdinalIgnoreCase) ||
+                eventName.Equals(WebPageEvents.Archive.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return AlgoliaTaskType.DELETE;
             }

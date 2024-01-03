@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Headline, HeadlineSize, Spacing, Stack, Table, TableColumn, TableRow } from '@kentico/xperience-admin-components'
+import { Box, Headline, HeadlineSize, Spacing, Stack, Table, type TableColumn, type TableRow } from '@kentico/xperience-admin-components'
 import { RoutingContentPlaceholder, usePageCommand } from '@kentico/xperience-admin-base'
 import localization from '../localization/localization.json'
 
@@ -19,15 +19,7 @@ const Commands = {
 }
 
 export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns, propertyRows }: IndexedContentPageProps): JSX.Element => {
-  const { execute: showPathDetail } = usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail)
-
-  const pathClicked = (index: number): void => {
-    // Send path identifier to back-end
-    const row = pathRows[index]
-    if (row !== undefined) {
-      showPathDetail({ identifier: row.identifier }).catch(() => {})
-    }
-  }
+   usePageCommand<void, PathDetailArguments>(Commands.ShowPathDetail)
 
   return (
         <RoutingContentPlaceholder>
@@ -35,7 +27,6 @@ export const IndexedContentTemplate = ({ pathColumns, pathRows, propertyColumns,
                 <Headline size={HeadlineSize.M}>{localization.integrations.algolia.content.headlines.main}</Headline>
                 <Box>
                     <Headline size={HeadlineSize.S}>{localization.integrations.algolia.content.headlines.paths}</Headline>
-                    <Table columns={pathColumns} rows={pathRows} onRowClick={pathClicked}/>
                 </Box>
                 <Box>
                     <Headline size={HeadlineSize.S}>{localization.integrations.algolia.content.headlines.properties}</Headline>

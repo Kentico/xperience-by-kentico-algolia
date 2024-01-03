@@ -8,11 +8,9 @@ using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Insights;
-using Algolia.Search.Models.Search;
 
 using CMS.ContactManagement;
 using CMS.Core;
-using CMS.Helpers;
 
 using Kentico.Xperience.Algolia.Models;
 
@@ -263,19 +261,19 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        /// <inheritdoc />
-        public void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel
-        {
-            if (String.IsNullOrEmpty(searchResponse.QueryID)) {
-                throw new InvalidOperationException($"{nameof(SearchResponse<TModel>.QueryID)} is not set, please set {nameof(Query.ClickAnalytics)} to true in the query.");
-            }
+        ///// <inheritdoc />
+        //public void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel
+        //{
+        //    if (String.IsNullOrEmpty(searchResponse.QueryID)) {
+        //        throw new InvalidOperationException($"{nameof(SearchResponse<TModel>.QueryID)} is not set, please set {nameof(Query.ClickAnalytics)} to true in the query.");
+        //    }
 
-            for (var i = 0; i < searchResponse.Hits.Count; i++)
-            {
-                var position = i + 1 + (searchResponse.HitsPerPage * searchResponse.Page);
-                searchResponse.Hits[i].Url = GetInsightsUrl(searchResponse.Hits[i], position, searchResponse.QueryID);
-            }
-        }
+        //    for (var i = 0; i < searchResponse.Hits.Count; i++)
+        //    {
+        //        var position = i + 1 + (searchResponse.HitsPerPage * searchResponse.Page);
+        //        searchResponse.Hits[i].Url = GetInsightsUrl(searchResponse.Hits[i], position, searchResponse.QueryID);
+        //    }
+        //}
 
 
         private static InsightsResponse ExceptionResponse()
@@ -288,27 +286,27 @@ namespace Kentico.Xperience.Algolia.Services
         }
 
 
-        /// <summary>
-        /// Gets the Algolia hit's absolute URL with the appropriate query string parameters
-        /// populated to log search result click events.
-        /// </summary>
-        /// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
-        /// <param name="hit">The Algolia hit to retrieve the URL for.</param>
-        /// <param name="position">The position the <paramref name="hit"/> appeared in the
-        /// search results.</param>
-        /// <param name="queryId">The unique identifier of the Algolia query.</param>
-        private string GetInsightsUrl<TModel>(TModel hit, int position, string queryId) where TModel : AlgoliaSearchModel
-        {
-            var url = hit.Url;
-            url = URLHelper.AddQueryParameter(url, algoliaOptions.ObjectIdParameterName, hit.ObjectID);
-            url = URLHelper.AddQueryParameter(url, algoliaOptions.PositionParameterName, position.ToString());
-            if (queryParameterRegex.IsMatch(queryId))
-            {
-                url = URLHelper.AddQueryParameter(url, algoliaOptions.QueryIdParameterName, queryId);
-            }
+        ///// <summary>
+        ///// Gets the Algolia hit's absolute URL with the appropriate query string parameters
+        ///// populated to log search result click events.
+        ///// </summary>
+        ///// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
+        ///// <param name="hit">The Algolia hit to retrieve the URL for.</param>
+        ///// <param name="position">The position the <paramref name="hit"/> appeared in the
+        ///// search results.</param>
+        ///// <param name="queryId">The unique identifier of the Algolia query.</param>
+        //private string GetInsightsUrl<TModel>(TModel hit, int position, string queryId) where TModel : AlgoliaSearchModel
+        //{
+        //    var url = hit.Url;
+        //    url = URLHelper.AddQueryParameter(url, algoliaOptions.ObjectIdParameterName, hit.ObjectID);
+        //    url = URLHelper.AddQueryParameter(url, algoliaOptions.PositionParameterName, position.ToString());
+        //    if (queryParameterRegex.IsMatch(queryId))
+        //    {
+        //        url = URLHelper.AddQueryParameter(url, algoliaOptions.QueryIdParameterName, queryId);
+        //    }
 
-            return url;
-        }
+        //    return url;
+        //}
 
 
         private static InsightsResponse InvalidParameterResponse()

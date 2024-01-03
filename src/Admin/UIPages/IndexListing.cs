@@ -9,6 +9,7 @@ using Algolia.Search.Models.Common;
 using CMS.Core;
 
 using Kentico.Xperience.Admin.Base;
+using Kentico.Xperience.Algolia.Admin.UIPages;
 using Kentico.Xperience.Algolia.Models;
 using Kentico.Xperience.Algolia.Services;
 
@@ -35,7 +36,7 @@ namespace Kentico.Xperience.Algolia.Admin
                 {
                     mPageConfiguration = new ListingConfiguration()
                     {
-                        Caption = LocalizationService.GetString("integrations.algolia.listing.caption"),
+                        Caption = LocalizationService.GetString("List of indices"),
                         ColumnConfigurations = new List<ColumnConfiguration>(),
                         TableActions = new List<ActionConfiguration>(),
                         HeaderActions = new List<ActionConfiguration>(),
@@ -66,14 +67,14 @@ namespace Kentico.Xperience.Algolia.Admin
         /// <inheritdoc/>
         public override Task ConfigurePage()
         {
-            if (!IndexStore.Instance.GetAllIndexes().Any())
+            if (!IndexStore.Instance.GetAllIndices().Any())
             {
                 PageConfiguration.Callouts = new List<CalloutConfiguration>
                 {
                     new CalloutConfiguration
                     {
-                        Headline = LocalizationService.GetString("integrations.algolia.listing.noindexes.headline"),
-                        Content = LocalizationService.GetString("integrations.algolia.listing.noindexes.description"),
+                        Headline = "No indexes",
+                    Content = "No Lucene indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-lucene'>our instructions</a> to read more about creating and registering Lucene indexes.",
                         ContentAsHtml = true,
                         Type = CalloutType.FriendlyWarning,
                         Placement = CalloutPlacement.OnDesk
@@ -81,29 +82,45 @@ namespace Kentico.Xperience.Algolia.Admin
                 };
             }
 
+
+            PageConfiguration.HeaderActions.AddLink<EditIndex>("Create", parameters: "-1");
+
             PageConfiguration.ColumnConfigurations
-                .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("integrations.algolia.listing.columns.name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
-                .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("integrations.algolia.listing.columns.entries"))
-                .AddColumn(nameof(IndicesResponse.LastBuildTimes), LocalizationService.GetString("integrations.algolia.listing.columns.buildtime"))
-                .AddColumn(nameof(IndicesResponse.UpdatedAt), LocalizationService.GetString("integrations.algolia.listing.columns.updatedat"));
+                .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("Name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
+                .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("Entries"))
+                .AddColumn(nameof(IndicesResponse.LastBuildTimes), LocalizationService.GetString("Build Time"))
+                .AddColumn(nameof(IndicesResponse.UpdatedAt), LocalizationService.GetString("Updated At"));
 
-            PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"), nameof(Rebuild), Icons.RotateRight);
-
+            PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("Build index"), nameof(Rebuild), Icons.RotateRight);
+            PageConfiguration.TableActions.AddCommand("Edit", nameof(Edit));
+            PageConfiguration.TableActions.AddCommand("Delete", nameof(Delete));
             return base.ConfigurePage();
         }
 
 
-        /// <summary>
-        /// A page command which displays details about an index.
-        /// </summary>
-        /// <param name="id">The ID of the row that was clicked, which corresponds with the internal
-        /// <see cref="AlgoliaIndex.Identifier"/> to display.</param>
         [PageCommand]
-        public Task<INavigateResponse> RowClick(int id)
+        public async Task<INavigateResponse> RowClick(int id)
+           => await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<EditIndex>(id.ToString())));
+
+        [PageCommand]
+        public async Task<INavigateResponse> Edit(int id, CancellationToken cancellationToken)
         {
-            return Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl(typeof(IndexedContent), id.ToString())));
+            return await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<EditIndex>(id.ToString())));
         }
 
+        [PageCommand]
+        public async Task<ICommandResponse> Delete(int id, CancellationToken cancellationToken)
+        {
+            var storageService = Service.Resolve<IConfigurationStorageService>();
+            var res = await storageService.TryDeleteIndex(id);
+            if (res)
+            {
+                var indices = await storageService.GetAllIndexData();
+
+                IndexStore.Instance.AddIndices(indices);
+            }
+            return await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<IndexListing>()));
+        }
 
         /// <summary>
         /// A page command which rebuilds an Algolia index.
@@ -119,20 +136,20 @@ namespace Kentico.Xperience.Algolia.Admin
             if (index == null)
             {
                 return ResponseFrom(result)
-                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.error.noindex"), id));
+                .AddErrorMessage(string.Format("Error loading Lucene index with identifier {0}.", id));
             }
 
             try
             {
                 await algoliaClient.Rebuild(index.IndexName, cancellationToken);
                 return ResponseFrom(result)
-                    .AddSuccessMessage(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilding"));
+                     .AddSuccessMessage("Indexing in progress. Visit your Lucene dashboard for details about the indexing process.");
             }
             catch(Exception ex)
             {
                 EventLogService.LogException(nameof(IndexListing), nameof(Rebuild), ex);
                 return ResponseFrom(result)
-                    .AddErrorMessage(String.Format(LocalizationService.GetString("integrations.algolia.listing.messages.rebuilderror"), index.IndexName));
+                   .AddErrorMessage(string.Format("Errors occurred while rebuilding the '{0}' index. Please check the Event Log for more details.", index.IndexName));
             }
             
         }
@@ -150,7 +167,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
                 // Remove statistics for indexes that are not registered in this instance
                 var filteredStatistics = statistics.Where(stat =>
-                    IndexStore.Instance.GetAllIndexes().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
+                    IndexStore.Instance.GetAllIndices().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
 
                 var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
                 var orderedStatistics = SortStatistics(searchedStatistics, settings);
@@ -176,7 +193,7 @@ namespace Kentico.Xperience.Algolia.Admin
 
         private static void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
         {
-            foreach (var indexName in IndexStore.Instance.GetAllIndexes().Select(i => i.IndexName))
+            foreach (var indexName in IndexStore.Instance.GetAllIndices().Select(i => i.IndexName))
             {
                 if (!statistics.Any(stat => stat.Name.Equals(indexName, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -219,37 +236,51 @@ namespace Kentico.Xperience.Algolia.Admin
                     Parameter = nameof(RowClick)
                 },
                 Cells = new List<Cell>
+                {
+                    new StringCell
                     {
-                        new StringCell
+                        Value = statistics.Name
+                    },
+                    new StringCell
+                    {
+                        Value = statistics.Entries.ToString()
+                    },
+                    new StringCell
+                    {
+                        Value = statistics.LastBuildTimes.ToString()
+                    },
+                    new StringCell
+                    {
+                        Value = statistics.UpdatedAt.ToString()
+                    },
+                    new ActionCell
+                    {
+                        Actions = new List<Action>
                         {
-                            Value = statistics.Name
-                        },
-                        new StringCell
-                        {
-                            Value = statistics.Entries.ToString()
-                        },
-                        new StringCell
-                        {
-                            Value = statistics.LastBuildTimes.ToString()
-                        },
-                        new StringCell
-                        {
-                            Value = statistics.UpdatedAt.ToString()
-                        },
-                        new ActionCell
-                        {
-                            Actions = new List<Action>
+                            new Action(ActionType.Command)
                             {
-                                new Action(ActionType.Command)
-                                {
-                                    Title = LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"),
-                                    Label = LocalizationService.GetString("integrations.algolia.listing.commands.rebuild"),
-                                    Icon = Icons.RotateRight,
-                                    Parameter = nameof(Rebuild)
-                                }
+                                Title = "Build index",
+                                Label = "Build index",
+                                Icon = Icons.RotateRight,
+                                Parameter = nameof(Rebuild)
+                            },
+                            new Action(ActionType.Command)
+                            {
+                                Title = "Edit",
+                                Label = "Edit",
+                                Parameter = nameof(Edit),
+                                Icon = Icons.Edit
+                            },
+                            new Action(ActionType.Command)
+                            {
+                                Title = "Delete",
+                                Label = "Delete",
+                                Parameter = nameof(Delete),
+                                Icon = Icons.Bin
                             }
                         }
                     }
+                }
             };
         }
 

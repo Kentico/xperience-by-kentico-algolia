@@ -1,19 +1,36 @@
-﻿using System;
+﻿using Algolia.Search.Models.Settings;
+using Kentico.Xperience.Algolia.Services;
+using System;
 using System.Collections.Generic;
-
-using Kentico.Xperience.Algolia.Attributes;
 
 namespace Kentico.Xperience.Algolia.Models
 {
-    /// <summary>
-    /// Represents the configuration of an Algolia index.
-    /// </summary>
-    public sealed class AlgoliaIndex
+    public class IncludedPath
     {
         /// <summary>
-        /// The distinct and de-duplication settings for the Algolia index.
+        /// The node alias pattern that will be used to match pages in the content tree for indexing.
         /// </summary>
-        public DistinctOptions DistinctOptions
+        /// <remarks>For example, "/Blogs/Products/" will index all pages under the "Products" page.</remarks>
+        public string AliasPath
+        {
+            get;
+        }
+
+
+        /// <summary>
+        /// A list of content types under the specified <see cref="AliasPath"/> that will be indexed.
+        /// </summary>
+        public string[]? ContentTypes
+        {
+            get;
+            set;
+        } = Array.Empty<string>();
+
+
+        /// <summary>
+        /// The internal identifier of the included path.
+        /// </summary>
+        internal string? Identifier
         {
             get;
             set;
@@ -21,13 +38,42 @@ namespace Kentico.Xperience.Algolia.Models
 
 
         /// <summary>
-        /// The type of the class which extends <see cref="AlgoliaSearchModel"/>.
         /// </summary>
-        public Type Type
+        /// <param name="aliasPath">The node alias pattern that will be used to match pages in the content tree
+        /// for indexing.</param>
+        public IncludedPath(string aliasPath) => AliasPath = aliasPath;
+    }
+
+    /// <summary>
+    /// Represents the configuration of an Algolia index.
+    /// </summary>
+    public sealed class AlgoliaIndex
+    {
+        public IndexSettings IndexSettings { get; set; }
+
+        /// <summary>
+        /// The type of the class which extends <see cref="IAlgoliaIndexingStrategy"/>.
+        /// </summary>
+        public IAlgoliaIndexingStrategy AlgoliaIndexingStrategy
         {
             get;
         }
 
+        /// <summary>
+        /// The Name of the WebSiteChannel.
+        /// </summary>
+        public string WebSiteChannelName
+        {
+            get;
+        }
+
+        /// <summary>
+        /// The Language used on the WebSite on the Channel which is indexed.
+        /// </summary>
+        public List<string> LanguageCodes
+        {
+            get;
+        }
 
         /// <summary>
         /// The code name of the Algolia index.
@@ -37,55 +83,44 @@ namespace Kentico.Xperience.Algolia.Models
             get;
         }
 
-
         /// <summary>
         /// An arbitrary ID used to identify the Algolia index in the admin UI.
         /// </summary>
-        internal int Identifier
+        public int Identifier
         {
             get;
             set;
         }
 
-
-        /// <summary>
-        /// The <see cref="IncludedPathAttribute"/>s which are defined in the search model.
-        /// </summary>
-        internal IEnumerable<IncludedPathAttribute> IncludedPaths
+        internal IEnumerable<IncludedPath> IncludedPaths
         {
             get;
             set;
         }
 
-
-        /// <summary>
-        /// Initializes a new <see cref="AlgoliaIndex"/>.
-        /// </summary>
-        /// <param name="type">The type of the class which extends <see cref="AlgoliaSearchModel"/>.</param>
-        /// <param name="indexName">The code name of the Algolia index.</param>
-        /// <param name="distinctOptions">The distinct and de-duplication settings for the Algolia index.</param>
-        /// <exception cref="ArgumentNullException" />
-        /// <exception cref="InvalidOperationException" />
-        public AlgoliaIndex(Type type, string indexName, DistinctOptions distinctOptions = null)
+        public AlgoliaIndex(string indexName, string webSiteChannelName, List<string> languageCodes, int identifier, IEnumerable<IncludedPath> paths, IAlgoliaIndexingStrategy strategy)
         {
             if (String.IsNullOrEmpty(indexName))
             {
                 throw new ArgumentNullException(nameof(indexName));
             }
 
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (!typeof(AlgoliaSearchModel).IsAssignableFrom(type))
-            {
-                throw new InvalidOperationException($"The search model {type} must extend {nameof(AlgoliaSearchModel)}.");
-            }
-
-            Type = type;
             IndexName = indexName;
-            DistinctOptions = distinctOptions;
+
+            Identifier = identifier;
+            WebSiteChannelName = webSiteChannelName;
+            LanguageCodes = languageCodes;
+
+            IncludedPaths = paths;
+
+            AlgoliaIndexingStrategy = strategy;
+
+            IndexSettings = strategy.GetAlgoliaIndexSettings();
+
+            IndexSettings.AttributesToRetrieve.Add("Url");
+            IndexSettings.AttributesToRetrieve.Add("objectID");
+            IndexSettings.AttributesToRetrieve.Add(nameof(IndexedItemModel.ClassName));
+            IndexSettings.AttributesToRetrieve.Add(nameof(IndexedItemModel.LanguageCode));
         }
     }
 }

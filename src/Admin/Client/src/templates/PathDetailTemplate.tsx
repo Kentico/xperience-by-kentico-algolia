@@ -1,5 +1,5 @@
 import { usePageCommand } from '@kentico/xperience-admin-base'
-import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, TableCell, TableColumn, TableRow } from '@kentico/xperience-admin-components'
+import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, type TableCell, type TableColumn, type TableRow } from '@kentico/xperience-admin-components'
 import React, { useState } from 'react'
 import localization from '../localization/localization.json'
 

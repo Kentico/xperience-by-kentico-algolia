@@ -15,7 +15,7 @@ namespace Kentico.Xperience.Algolia
         /// <summary>
         /// A task for a page which was published for the first time.
         /// </summary>
-        CREATE,
+        PUBLISH_INDEX,
 
         /// <summary>
         /// A task for a page which was previously published.

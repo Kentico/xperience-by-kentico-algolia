@@ -2,9 +2,7 @@
 
 ## Introduction
 
-A single class (created by the developers) contains the Algolia index attributes and the individual attribute configurations, which are registered during application startup. As a result, your developers can utilize Algolia's [POCO philosophy](https://www.algolia.com/doc/api-client/getting-started/install/csharp/?client=csharp#poco-types-and-jsonnet) while creating the search interface.
-
-> :bulb: Certain code examples in this article reference and work with values and types from the Dancing Goat project. Dancing Goat is a sample project that demonstrates the content management and digital marketing features of the Xperience platform. Feel free to [install the project](https://docs.xperience.io/x/DQKQC) from a .NET template and follow along with the examples.
+A single class (created by the developers) contains the Algolia index setup and methods to match Kentico page and content items to indexed recors. As a result, your developers can utilize Algolia's [POCO philosophy](https://www.algolia.com/doc/api-client/getting-started/install/csharp/?client=csharp#poco-types-and-jsonnet) while creating the search interface.
 
 ## Basic Setup
 
@@ -13,13 +11,6 @@ A single class (created by the developers) contains the Algolia index attributes
 In the [Algolia dashboard](https://www.algolia.com/dashboard), open your application, navigate to **Settings → API keys** and note the _Search API key_ value.
 
 On the **All API keys** tab, create a new "Indexing" API key which will be used for indexing and performing searches in the Xperience application. The key must have at least the following ACLs:
-
-- search
-- addObject
-- deleteObject
-- deleteIndex
-- editSettings
-- listIndexes
 
 ### ASP.NET Core Configuration
 
@@ -35,302 +26,144 @@ In the Xperience project's `appsettings.json`, add the following section with yo
 }
 ```
 
-## Defining a Search Model
+### Create a custom Indexing Strategy
 
-An Algolia index and its attributes are defined within a single class, which must inherit from [`AlgoliaSearchModel`](/src/Models/AlgoliaSearchModel.cs).
+Define a custom `DefaultAlgoliaIndexingStrategy` implementation to customize how page or content items are processed for the index.
 
-Within the class, define the attributes of the index by creating properties that match the names of the content type fields to index. The index supports fields from the `TreeNode` object and any custom fields defined using the [field editor](https://docs.xperience.io/x/RIXWCQ).
+First You should define a custom class inheriting the `AlgoliaSearchResultModel` which will be used to retrieve the indexed data from the Algolia index.
+> The property names are **case-insensitive**. This means that your search result model can contain an "articletext" property, or an "ArticleText" property - both will work. These properties are mapped to the attributes which you create on the Algolia index.
+>  We recommend using `nameof()` of these attributes to specify the settings of the Algolia Index.
 
-> The property names (and names used in the [SourceAttribute](#source-attribute)) are **case-insensitive**. This means that your search model can contain an "articletext" property, or an "ArticleText" property - both will work. We recommending using the `nameof()` operator to define these values.
-
-```cs
-public class SiteSearchModel : AlgoliaSearchModel
+```csharp
+public class ExampleSearchResultModel : AlgoliaSearchResultModel
 {
-    public const string IndexName = "SiteIndex";
-
-    [Searchable, Retrievable]
-    public string DocumentName { get; set; }
-
-    [MediaUrls, Retrievable, Source(new string[] { nameof(Article.ArticleTeaser), nameof(Coffee.CoffeeImage) })]
-    public IEnumerable<string> Thumbnail { get; set; }
-
-    [Searchable, Retrievable, Source(new string[] { nameof(Article.ArticleSummary), nameof(Coffee.CoffeeShortDescription) })]
-    public string ShortDescription { get; set; }
-
-    [Searchable, Source(new string[] { nameof(Article.ArticleText), nameof(Coffee.CoffeeDescription) })]
-    public string Content { get; set; }
-
-    [Facetable]
-    public string CoffeeProcessing { get; set; }
-
-    [Facetable]
-    public bool CoffeeIsDecaf { get; set; }
+    public string ContentType { get; set; }
+    public string SortableTitle { get; set; }
+    public string Title { get; set; }
+    public string CrawlerContent { get; set; }
 }
 ```
 
-### ASP.NET Core Setup
-
-In `Program.cs`, register the Algolia integration using the `AddAlgolia()` extension method:
-
-```cs
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
-// ...
-
-builder.Services.AddKentico();
-builder.Services.AddAlgolia(builder.Configuration);
-```
-
-This method accepts a list of [`AlgoliaIndex`](/src/Models/AlgoliaIndex.cs) instances, allowing you to create and register as many indexes as needed:
-
-```cs
-builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
+The `GetAlgoliaIndexSettings` method is used to specify Algolia Settings.
+You should specify your Searchable, Retrievable and Facetable attributes here. Remember you can use the `nameof()` of the attributes defined in the `ExampleSearchResultModel` to specify these attributes.
+```csharp
+public class GlobalAlgoliaIndexingStrategy : DefaultAlgoliaIndexingStrategy
 {
-    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName),
-    // Additional index registrations as needed...
-});
-```
-
-If you're developing your search solution in multiple environments (e.g. "DEV" and "STAGE"), we recommended that you create a unique Algolia index per environment. With this approach, the search functionality can be tested in each environment individually and changes to the index structure or content will not affect other environments. This can be implemented any way you'd like, including some custom service which transforms the index names. The simplest approach is to prepend the environment name, stored in the `appsettings.json`, to the index:
-
-```json
-"Environment": "DEV",
-```
-
-Then, reference this configuration value when defining the index name:
-
-```cs
-string environment = builder.Configuration["Environment"];
-builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
-{
-    new AlgoliaIndex(typeof(SiteSearchModel), $"{environment}-{SiteSearchModel.IndexName}")
-});
-```
-
-This environment value can be populated in the `appsettings.json` file in a build pipeline (ex: GitHub Actions or Azure DevOps).
-
-## Content Indexing Customization
-
-### Determining which pages to index
-
-While the above sample code will create an Algolia index, pages in the content tree will not be indexed until one or more [`IncludedPathAttribute`](/src/Attributes/IncludedPathAttribute.cs) attributes are applied to the class. The `IncludedPathAttribute` has two properties to configure:
-
-- **AliasPath**: The path in the content tree to index. Use a wildcard `"/%"` value to index all children of an `AliasPath`.
-- **ContentTypes** (optional): The code names of the Page content types under the specified [`AliasPath`](https://docs.xperience.io/x/4obWCQ#Retrievepagecontent-Pagepathexpressions) to index. If this value is not provided, all content types are indexed.
-
-> We recommend using [generated code files](https://docs.xperience.io/x/5IbWCQ) to reference Page content type class names.
-
-The code sample below demonstrates using `IncludedPathAttribute` to include multiple paths and Page content types in an index:
-
-```cs
-[IncludedPath("/Articles/%", ContentTypes = new string[] { Article.CLASS_NAME })]
-[IncludedPath("/Coffees/%", ContentTypes = new string[] { Coffee.CLASS_NAME })]
-public class SiteSearchModel : AlgoliaSearchModel
-{
-    // ...
-}
-```
-
-### Customizing the indexing process
-
-In some cases, you may want to customize the values that are sent to Algolia during the indexing process. For example, the [`SiteSearchModel`](#defining-a-search-model) search model above contains the `Content` property which retrieves its value from the `ArticleText` or `CoffeeDescription` fields. However, the content of your pages may be retrieved from [linked content items](https://docs.xperience.io/xp/developers-and-admins/development/content-modeling/content-types#Contenttypes-Addoptiontolinkcontentitems) instead.
-
-To customize the indexing process, you can override the `OnIndexingProperty()` that is defined in the search model base class `AlgoliaSearchModel`. This method is called during the indexing of a page for each property defined in your search model. You can use the function parameters such as the page being indexed, the value that would be indexed, the search model property name, and the name of the database column the value was retrieved from.
-
-We can use the [generated code](https://docs.xperience.io/xp/developers-and-admins/development/content-retrieval/generate-code-files-for-xperience-objects) of a content type to retrieve the text from the linked content items. If we return the combined text from the linked content types, it will be stored in our "Content" field:
-
-```cs
-public override object OnIndexingProperty(TreeNode node, string propertyName, string usedColumn, object foundValue)
-{
-    switch (propertyName)
+    public override IndexSettings GetAlgoliaIndexSettings()
     {
-        case nameof(Content):
-            if (node.ClassName.Equals(Parent.CLASS_NAME, System.StringComparison.OrdinalIgnoreCase))
+        return new IndexSettings()
+        {
+            SearchableAttributes = new List<string> { $"{nameof(ExampleSearchResultModel.ContentType)},{nameof(ExampleSearchResultModel.SortableTitle)},{nameof(ExampleSearchResultModel.Title)},{nameof(ExampleSearchResultModel.CrawlerContent)}" },
+            AttributesToRetrieve = new List<string>
             {
-                var text = new StringBuilder();
-                var parentPage = node as Parent;
-                foreach (var section in parentPage.Fields.Sections)
-                {
-                    var sectionText = section.GetStringValue(nameof(Section.SectionText), String.Empty);
-                    text.Append(sectionText);
-                }
-                return text.ToString();
-            }
-            break;
+                nameof(ExampleSearchResultModel.ContentType),
+                nameof(ExampleSearchResultModel.SortableTitle),
+                nameof(ExampleSearchResultModel.Title)
+            },
+            AttributesForFaceting = new List<string> { nameof(ExampleSearchResultModel.ContentType) }
+        };
     }
 
-    return base.OnIndexingProperty(node, propertyName, usedColumn, foundValue);
+    //...
 }
 ```
 
-### Algolia attributes
+`MapToAlgoliaJObjecstOrNull` method is given an `IndexedItemModel` which is a unique representation of any item used on a web page. Every item of a type specified in the admin ui is rebuilt. In the UI you need to specify one or more languages, channel name, indexingStrategy and paths with content types. This strategy than evaluates all web page items of a type specified in the administration. 
 
-The integration package includes five attributes which can be applied to individual Algolia index attributes to further configure the Algolia index:
+Let's say we specified `ArticlePage` in the admin ui.
+Now we implement how we want to save ArticlePage document in our strategy.
 
-- [`Searchable`](#searchable-attribute)
-- [`Facetable`](#facetable-attribute)
-- [`Retrievable`](#retrievable-attribute)
-- [`Source`](#source-attribute)
-- [`MediaUrls`](#mediaurls-attribute)
+The document is indexed representation of the webpageitem.
 
-#### Searchable attribute
+You should create JObject which is an object used to represent indexed data. 
 
-This attribute indicates that an Algolia index attribute is [searchable](https://www.algolia.com/doc/api-reference/api-parameters/searchableAttributes/#how-to-use). You can define optional attribute properties to adjust the performance of your searchable index attributes:
+```csharp
+public class GlobalAlgoliaIndexingStrategy : DefaultAlgoliaIndexingStrategy
+{
+    public override IndexSettings GetAlgoliaIndexSettings()
+    {
+        return new IndexSettings()
+        {
+            SearchableAttributes = new List<string> { $"{nameof(ExampleSearchResultModel.ContentType)},{nameof(ExampleSearchResultModel.SortableTitle)},{nameof(ExampleSearchResultModel.Title)},{nameof(ExampleSearchResultModel.CrawlerContent)}" },
+            AttributesToRetrieve = new List<string>
+            {
+                nameof(ExampleSearchResultModel.ContentType),
+                nameof(ExampleSearchResultModel.SortableTitle),
+                nameof(ExampleSearchResultModel.Title)
+            },
+            AttributesForFaceting = new List<string> { nameof(ExampleSearchResultModel.ContentType) }
+        };
+    }
 
-- **Order** (optional): Index attributes with lower `Order` will be given priority when searching for text. Index attributes without `Order` set will be added to the end of the list (making them lowest priority), while attributes with the same `Order` will be added with the same priority and are automatically `Unordered`.
-- **Unordered** (optional): By default, matches at the beginning of a text are more relevant than matches at the end of the text. If set to `true`, the position of the matched text in the attribute content is irrelevant.
+    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjecstOrNull(IndexedItemModel algoliaPageItem)
+    {
+        var result = new JObject();
 
-```cs
-[Searchable]
-public string DocumentName { get; set; }
+        var exampleResultModel = new ExampleSearchResultModel();
 
-[Searchable(Order = 0)] // Highest priority
-public string DocumentName { get; set; }
+        if (algoliaPageItem.WebPageItemTreePath.Contains("Search"))
+        {
+            return null;
+        }
 
-[Searchable(Unordered = true)]
-public string DocumentName { get; set; }
+        if (algoliaPageItem.ClassName == ArticlePage.CONTENT_TYPE_NAME)
+        {
+            var page = await GetPage<ArticlePage>(algoliaPageItem.WebPageItemGuid, algoliaPageItem.ChannelName, algoliaPageItem.LanguageCode, ArticlePage.CONTENT_TYPE_NAME);
+            exampleResultModel.ContentType = "news";
+
+            if (page != default)
+            {
+                var article = page.ArticlePageArticle.FirstOrDefault();
+
+                if (article == null)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+
+            if (page != default)
+            {
+                var article = page.ArticlePageArticle.FirstOrDefault();
+
+                exampleResultModel.SortableTitle = exampleResultModel.Title = article?.ArticleTitle ?? "";
+            }
+        }
+
+        exampleResultModel.CrawlerContent = await GetPageContent(algoliaPageItem);
+
+        result[nameof(ExampleSearchResultModel.ContentType)] = exampleResultModel.ContentType;
+        result[nameof(ExampleSearchResultModel.SortableTitle)] = exampleResultModel.SortableTitle;
+        result[nameof(ExampleSearchResultModel.Title)] = exampleResultModel.Title;
+        result[nameof(ExampleSearchResultModel.CrawlerContent)] = exampleResultModel.CrawlerContent;
+
+        return new List<JObject>() { result };
+    }
 ```
 
-#### Facetable attribute
-
-This attribute indicates that an Algolia index attribute is a [facet or filter](https://www.algolia.com/doc/api-reference/api-parameters/attributesForFaceting/#how-to-use). By creating facets, your developers are able to create a [faceted search](https://www.algolia.com/doc/guides/managing-results/refine-results/faceting/) interface on the front-end application. Optional attribute properties can be defined to change the functionality of your faceted index attributes:
-
-- **FilterOnly** (optional): Defines the attribute as a filter and not a facet. If you do not need facets, defining an attribute as a filter reduces the size of the index and improves the speed of the search. Defaults to `false`.
-
-- **Searchable** (optional): Allows developers to search for values within a facet, e.g. via the [`SearchForFacetValues()`](https://www.algolia.com/doc/api-reference/api-methods/search-for-facet-values/) method. Defaults to `false`.
-
-- **UseAndCondition** (optional): When using the sample code in this repository and the `AlgoliaFacetFilterViewModel` class, facet conditions of the same properties are joined by "OR" by default. For example, `(CoffeProcessing:washed OR CoffeeProcessing:natural)`. You may set this property to `true` to join them by "AND" instead. Defaults to `false`.
-
-> A property cannot be both `FilterOnly` and `Searchable`, otherwise an exception will be thrown.
-
-```cs
-[Facetable]
-public string CoffeeProcessing { get; set; }
-
-[Facetable(FilterOnly = true)]
-public string CoffeeProcessing { get; set; }
-
-[Facetable(Searchable = true)]
-public string CoffeeProcessing { get; set; }
-```
-
-#### Retrievable attribute
-
-This attribute determines which Algolia index attributes to [retrieve when searching](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/#how-to-use). Reducing the number of retrieved index attributes helps improve the speed of your searches without impacting the search functionality.
-
-```cs
-[Searchable, Retrievable] // Used during search and retrieval
-public string DocumentName { get; set; }
-
-[Searchable] // Used when searching but not during retrieval
-public string ArticleText { get; set; }
-```
-
-#### Source attribute
-
-You can use the `Source` attribute to specify which content type fields are stored in a given Algolia index attribute.
-
-By default, the value stored in the index attribute is retrieved from the content type field that matches the name of the declared property in the search model class.
-
-In certain cases however, you may wish to include content from multiple fields under a single index attribute. For example, if your project doesn't use uniform field naming conventions across content types, or you need to index multiple fields from a single content type under one index attribute.
-
-```cs
-// Ensures the 'Content' index attribute contains values from both the 'ArticleText' and 'CoffeeDescription' fields
-[Searchable, Source(new string[] { nameof(Article.ArticleText), nameof(Coffee.CoffeeDescription) })]
-public string Content { get; set; }
-```
-
-Fields specified in the `Source` attribute are parsed in the order they appear, until a non-empty string and non-null value is found, which is then indexed. When referencing content type fields, use the `nameof()` expression to avoid typos.
-
-### MediaUrls attribute
-
-This attribute is intended for fields that use the Xperience ["Media files" data type](https://docs.xperience.io/x/RoXWCQ). When the page is indexed, the files are converted into a list of live-site URLs.
-
-```cs
-[MediaUrls, Retrievable]
-public string ArticleTeaser { get; set; }
-
-[MediaUrls, Retrievable, Source(new string[] { nameof(Article.ArticleTeaser), nameof(Coffee.CoffeeImage) })]
-public IEnumerable<string> Thumbnail { get; set; }
-```
+In case you do not want to index any page on the `IndexedItemModel` you should return null. Indexed data associated with this IndexedItemModel in the previous iterations are also deleted when you return null. You can use this to implement splitting indexed data.
 
 ### Splitting large content
 
-Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of Algolia records, we recommend splitting large content into smaller fragments. When enabled, this operation is performed automatically during indexing by [`IAlgoliaObjectGenerator.SplitData()`](../src/Services/IAlgoliaObjectGenerator.cs), but data splitting is _not_ enabled by default.
+Due to [limitations](https://support.algolia.com/hc/en-us/articles/4406981897617-Is-there-a-size-limit-for-my-index-records-/) on the size of Algolia records, you can split large content into smaller fragments. You need to implement how are the data split and how are they later used.
 
-To enable data splitting for an Algolia index, add the `DistinctOptions` parameter during registration:
+### ASP.NET Core Setup
 
-```cs
-builder.Services.AddAlgolia(builder.Configuration, new AlgoliaIndex[]
-{
-    new AlgoliaIndex(typeof(SiteSearchModel), SiteSearchModel.IndexName, new DistinctOptions(nameof(SiteSearchModel.DocumentName), 1))
-});
-```
+Add this library to the application services, registering your custom `DefaultAlgoliaIndexingStrategy` and Algolia services as follows
+  ```csharp
+  // Program.cs
+    services.AddAlgolia(configuration);
+    services.RegisterStrategy<GlobalAlgoliaIndexingStrategy>("DefaulSrategy");
+   ```
 
-The `DistinctOptions` constructor accepts two parameters:
+## Content Indexing Customization
 
-- **distinctAttribute**: Corresponds with the [Algolia `attributeForDistinct` parameter](https://www.algolia.com/doc/api-reference/api-parameters/attributeForDistinct). This is a property of the search model whose value will remain constant for all fragments, and is used to identify fragments during de-duplication. Fragments of a search result are "grouped" together according to this attribute's value, then a certain number of fragments per-group are returned, depending on the `distinctLevel` setting. In most cases, this will be a property like `DocumentName` or `NodeAliasPath`.
-- **distinctLevel**: Corresponds with the [Algolia `distinct` parameter](https://www.algolia.com/doc/api-reference/api-parameters/distinct). A value of zero disables de-duplication and grouping, while positive values determine how many fragments will be returned by a search. This is generally set to `1` so that only one fragment is returned from each grouping.
-
-To implement data splitting, create and register a custom implementation of `IAlgoliaObjectGenerator`. It's **very important** to set the "objectID" of each fragment, as seen in the example below. The IDs can be any arbitrary string, but setting this ensures that the fragments are updated and deleted properly when the page is modified. We recommend developing a consistent naming strategy like in the example below, where an index number is appended to the original ID. The IDs **_must not_** be random! Calling `SplitData()` on the same node multiple times should always generate the same fragments and IDs.
-
-In the following example, we have large articles on our website which can be split into smaller fragments by splitting text on the `<p>` tag. Note that each fragment still contains all of the original data- only the "Content" property is modified.
-
-```cs
-[assembly: RegisterImplementation(typeof(IAlgoliaObjectGenerator), typeof(CustomAlgoliaObjectGenerator))]
-
-namespace DancingGoat.Search;
-
-public class CustomAlgoliaObjectGenerator : IAlgoliaObjectGenerator
-{
-    private readonly IAlgoliaObjectGenerator defaultImplementation;
-
-    public CustomAlgoliaObjectGenerator(IAlgoliaObjectGenerator defaultImplementation)
-    {
-        this.defaultImplementation = defaultImplementation;
-    }
-
-    public JObject GetTreeNodeData(AlgoliaQueueItem queueItem)
-    {
-        return defaultImplementation.GetTreeNodeData(queueItem);
-    }
-
-    public IEnumerable<JObject> SplitData(JObject originalData, AlgoliaIndex algoliaIndex)
-    {
-        if (algoliaIndex.Type == typeof(SiteSearchModel))
-        {
-            return SplitParagraphs(originalData, nameof(SiteSearchModel.Content));
-        }
-
-        return new JObject[] { originalData };
-    }
-
-    private IEnumerable<JObject> SplitParagraphs(JObject originalData, string propertyToSplit)
-    {
-        var originalId = originalData.Value<string>("objectID");
-        var content = originalData.Value<string>(propertyToSplit);
-        if (string.IsNullOrEmpty(content))
-        {
-            return new JObject[] { originalData };
-        }
-
-        List<string> paragraphs = new List<string>();
-        var matches = Regex.Match(content, @"<p>\s*(.+?)\s*</p>");
-        while (matches.Success)
-        {
-            paragraphs.Add(matches.Value);
-            matches = matches.NextMatch();
-        }
-
-        return paragraphs.Select((p, index) => {
-            var data = (JObject)originalData.DeepClone();
-            data["objectID"] = $"{originalId}-{index}";
-            data[propertyToSplit] = p;
-            return data;
-        });
-    }
-}
-```
+Open the Admin UI and find Search Module. You should see a listing of all registered algolia indices.
+You can create, delete and edit indices here.
+To create an index you need to specify it's name, indexed languages and name of the channel. You can configure and use these accross multiple sites. This is handy because you can write code for a widget only once, but you can configure this accross sites in various languages. You can use same widget specifying a content type which you use for a q and a site. There you can implement q and a search. Imagination is your only limit.
 
 ## Executing search requests
 
@@ -338,42 +171,47 @@ public class CustomAlgoliaObjectGenerator : IAlgoliaObjectGenerator
 
 You can use Algolia's [.NET API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/csharp/?client=csharp), [JavaScript API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/javascript/?client=javascript), or [InstantSearch.js](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) to implement a search interface on your live site.
 
-The following example will help you with creating a search interface for .NET. In your ASP.NET Core code, you can access a `SearchIndex` object by injecting the `IAlgoliaIndexService` interface and calling the `InitializeIndex()` method using your index's code name. Then, construct a `Query` to search the Algolia index. Algolia's pagination is zero-based, so in the Dancing Goat sample project we subtract 1 from the current page number:
+The following example will help you with creating a search interface for .NET. In your ASP.NET Core code, you can access a `SearchIndex` object by injecting the `IAlgoliaIndexService` interface and calling the `InitializeIndex()` method using your index's code name. Then, construct a `Query` to search the Algolia index. Algolia's pagination is zero-based.
 
 ```cs
-private readonly IAlgoliaIndexService _indexService;
-
-public SearchController(IAlgoliaIndexService indexService)
+public class SearchController
 {
-    _indexService = indexService;
-}
+    private readonly IAlgoliaIndexService _indexService;
 
-public async Task<ActionResult> Search(string searchText, CancellationToken cancellationToken, int page = DEFAULT_PAGE_NUMBER)
-{
-    page = Math.Max(page, DEFAULT_PAGE_NUMBER);
-
-    var searchIndex = await _indexService.InitializeIndex(SiteSearchModel.IndexName, cancellationToken);
-    var query = new Query(searchText)
+    public SearchController(IAlgoliaIndexService indexService)
     {
-        Page = page - 1,
-        HitsPerPage = PAGE_SIZE
-    };
-
-    try
-    {
-        var results = await searchIndex.SearchAsync<SiteSearchModel>(query, ct: cancellationToken);
-        //...
+        _indexService = indexService;
     }
-    catch (Exception e)
+
+    [Route("searchAlgolia")]
+    public async Task<ActionResult> Search(string searchText, int page, string indexName)
     {
+        page = Math.Max(page, 1);
+
+        var searchIndex = await _indexService.InitializeIndex(indexName, default);
+        var query = new Query(searchText)
+        {
+            Page = page - 1,
+            HitsPerPage = 20
+        };
+
+        try
+        {
+            var results = await searchIndex.SearchAsync<ExampleSearchResultModel>(query);
+        }
+        catch (Exception e)
+        {
+            //...
+        }
+
         //...
     }
 }
 ```
 
-The `Hits` object of the [search response](https://www.algolia.com/doc/api-reference/api-methods/search/?client=csharp#response) is a list of strongly typed objects defined by your search model (`SiteSearchModel` in the example above). Other helpful properties of the results object are `NbPages` and `NbHits`.
+The `Hits` object of the [search response](https://www.algolia.com/doc/api-reference/api-methods/search/?client=csharp#response) is a list of strongly typed objects defined by your search model (`AlgoliaSearchResultModel` in the example above). Other helpful properties of the results object are `NbPages` and `NbHits`.
 
-The properties of each hit are populated from the Algolia index, but be sure not to omit `null` checks when working with the results. For example, a property that does _not_ have the [`Retrievable`](#retrievable-attribute) attribute is not returned and custom content type fields are only present for results of that type. That is, a property named "ArticleText" will be `null` for the coffee pages in Dancing Goat. You can reference the [`SiteSearchModel.ClassName`](/src/Models/AlgoliaSearchModel.cs) property present on all indexes to check the type of the returned hit.
+The properties of each hit are populated from the Algolia index, but be sure not to omit `null` checks when working with the results. You can reference the [`AlgoliaSearchResultModel.ClassName`](/src/Models/AlgoliaSearchResultModel.cs) property present on all indexes to check the type of the returned hit.
 
 Once the search is performed, pass the `Hits` and paging information to your view:
 
@@ -389,34 +227,275 @@ return View(new SearchResultsModel()
 
 ## Xperience Administration Algolia application
 
-After [installing](../README.md#package-installation) the NuGet package in your Xperience by Kentico project, a new _Search_ application becomes available in the **Development** application group. The Search application displays a table of all registered Algolia indexes with information about the number of records, build time, and last update:
-
-<a href="../images/main-menu.png">
-  <img src="../images/main-menu.png" width="600" alt="Administration Algolia indexes list">
-</a>
-
-Use the **Rebuild** action on the right side of the table to re-index the pages of the Algolia index. This completely removes the existing records and replaces them with the most up-to-date data. Rebuilding indexes is especially useful after enabling the [data splitting](#splitting-large-content) feature. Selecting an index form the list displays a page detailing the indexed paths and properties of the corresponding Algolia index:
-
-<a href="../images/indexed-content-menu.png">
-  <img src="../images/indexed-content-menu.png" width="600" alt="Administration indexed content details">
-</a>
-
-The **Indexed properties** table lists each property defined in the search model and the [attributes](#algolia-attributes) of that property.
-
-The **Indexed paths** table lists the search model's [`IncludedPathAttribute`s](#determining-which-pages-to-index), including the paths and content types included within each index attribute.
-Selecting an indexed path displays each content type included in the indexed path:
-
-<a href="../images/path-detail-menu.png">
-  <img src="../images/path-detail-menu.png" width="600" alt="Administration indexed content path details">
-</a>
+Use the **Rebuild** action on the right side of the table to re-index the pages of the Algolia index. This completely removes the existing records and replaces them with the most up-to-date data. Rebuilding indexes is especially useful after implementing the [data splitting](#splitting-large-content) feature. Selecting an index form the list displays a page detailing the indexed paths and properties of the corresponding Algolia index:
 
 ## Advanced Topics
 
-There are more topics covered by additional pages in this guide:
+It is up to your implementation how do you want to retrieve information about the page, however article page or any webpageitem could be retrieved using `GetPage<T>` method. Where you specify that you want to retrieve `ArticlePage` item in the provided language on the channel using provided id and content type.
 
-- [Building a Search UI](Build-Search-UI.md)
-- [Search Personalization](Search-Personalization.md)
-- [InstantSearch.js](InstantSearch-js.md)
-- [Algolia Crawler](Algolia-Crawler.md)
+```csharp
+public class ExampleSearchIndexingStrategy : DefaultLuceneIndexingStrategy
+{
+    public string FacetDimension { get; set; } = "ContentType";
+    public static string SORTABLE_TITLE_FIELD_NAME = "SortableTitle";
 
-## Additional Resources
+    private async Task<T> GetPage<T>(Guid id, string channelName, string languageName, string contentTypeName) where T : IWebPageFieldsSource, new()
+    {
+        var mapper = Service.Resolve<IWebPageQueryResultMapper>();
+        var executor = Service.Resolve<IContentQueryExecutor>();
+        var query = new ContentItemQueryBuilder()
+            .ForContentType(contentTypeName,
+                config =>
+                    config
+                        .WithLinkedItems(4)
+                        .ForWebsite(channelName, includeUrlPath: true)
+                        .Where(where => where.WhereEquals(nameof(IWebPageContentQueryDataContainer.WebPageItemGUID), id))
+                        .TopN(1))
+            .InLanguage(languageName);
+        var result = await executor.GetWebPageResult(query, container => mapper.Map<T>(container), null,
+        cancellationToken: default);
+
+        return result.FirstOrDefault();
+    }
+
+    public override FacetsConfig FacetsConfigFactory()
+    {
+        var facetConfig = new FacetsConfig();
+
+        facetConfig.SetMultiValued(FacetDimension, true);
+
+        return facetConfig;
+    }
+
+    public override async Task<Document?> MapToLuceneDocumentOrNull(IndexedItemModel indexedModel)
+    {
+        var document = new Document();
+
+        string sortableTitle = "";
+        string title = "";
+        string contentType = "";
+        
+        if (indexedModel.ClassName == ArticlePage.CONTENT_TYPE_NAME)
+        {
+            var page = await GetPage<ArticlePage>(indexedModel.WebPageItemGuid, indexedModel.ChannelName, indexedModel.LanguageCode, ArticlePage.CONTENT_TYPE_NAME);
+            contentType = "news";
+
+            if (page != default)
+            {
+                var article = page.ArticlePageArticle.FirstOrDefault();
+
+                if (article == null)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+
+            if (page != default)
+            {
+                var article = page.ArticlePageArticle.FirstOrDefault();
+
+                sortableTitle = title = article?.ArticleTitle ?? "";
+            }
+        }
+
+        document.Add(new FacetField(FacetDimension, contentType));
+
+        document.Add(new TextField(nameof(GlobalSearchResultModel.Title), title, Field.Store.YES));
+        document.Add(new StringField(SORTABLE_TITLE_FIELD_NAME, sortableTitle, Field.Store.YES));
+        document.Add(new TextField(nameof(GlobalSearchResultModel.ContentType), contentType, Field.Store.YES));
+
+        return document;
+    }
+}
+```
+
+
+You can also Extend this to index content of the page. This implementation is up to you, however we provide a general example which can be used in any app: 
+
+Create a `WebCrawlerService` your baseUrl needs to mathc your site baseUrl. We retrieve this url from the appSettings.json in the  
+
+```csharp
+tring baseUrl = ValidationHelper.GetString(Service.Resolve<IAppSettingsService>()["WebCrawlerBaseUrl"], "");
+```
+
+```csharp
+public class WebCrawlerService
+{
+    private readonly HttpClient httpClient;
+    private readonly IEventLogService eventLogService;
+    private readonly IWebPageUrlRetriever webPageUrlRetriever;
+
+    public WebCrawlerService(HttpClient httpClient,
+        IEventLogService eventLogService,
+        IWebPageUrlRetriever webPageUrlRetriever)
+    {
+        this.httpClient = httpClient;
+        this.httpClient.DefaultRequestHeaders.Add(HeaderNames.UserAgent, "SearchCrawler");
+        string baseUrl = ValidationHelper.GetString(Service.Resolve<IAppSettingsService>()["WebCrawlerBaseUrl"], "");
+        this.httpClient.BaseAddress = new Uri(baseUrl);
+        this.eventLogService = eventLogService;
+        this.webPageUrlRetriever = webPageUrlRetriever;
+    }
+
+    public async Task<string> CrawlNode(IndexedItemModel itemModel)
+    {
+        try
+        {
+            //TODO MilaHlavac: improve url parts concatenation for aplications hosted on non root path
+            var url = (await webPageUrlRetriever.Retrieve(itemModel.WebPageItemGuid, itemModel.LanguageCode)).RelativePath.TrimStart('~').TrimStart('/');
+            return await CrawlPage(url);
+        }
+        catch (Exception ex)
+        {
+            eventLogService.LogException(nameof(WebCrawlerService), nameof(CrawlNode), ex, $"WebPageItemTreePath: {itemModel.WebPageItemTreePath}");
+        }
+        return "";
+    }
+
+    public async Task<string> CrawlPage(string url)
+    {
+        try
+        {
+            var response = await httpClient.GetAsync(url);
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            eventLogService.LogException(nameof(WebCrawlerService), nameof(CrawlPage), ex, $"Url: {url}");
+        }
+        return "";
+    }
+}
+```
+
+
+
+Create a sanitizer Service
+``` csharp
+
+public class WebScraperHtmlSanitizer
+{
+    public virtual string SanitizeHtmlFragment(string htmlContent)
+    {
+
+        var parser = new HtmlParser();
+        // null is relevant parameter
+        var nodes = parser.ParseFragment(htmlContent, null);
+
+        // Removes script tags
+        foreach (var element in nodes.QuerySelectorAll("script"))
+        {
+            element.Remove();
+        }
+
+        // Removes script tags
+        foreach (var element in nodes.QuerySelectorAll("style"))
+        {
+            element.Remove();
+        }
+
+        // Removes elements marked with the default Xperience exclusion attribute
+        foreach (var element in nodes.QuerySelectorAll($"*[{"data-ktc-search-exclude"}]"))
+        {
+            element.Remove();
+        }
+
+        // Gets the text content of the body element
+        string textContent = string.Join(" ", nodes.Select(n => n.TextContent));
+
+        // Normalizes and trims whitespace characters
+        textContent = HTMLHelper.RegexHtmlToTextWhiteSpace.Replace(textContent, " ");
+        textContent = textContent.Trim();
+
+        return textContent;
+    }
+
+    public virtual string SanitizeHtmlDocument(string htmlContent)
+    {
+        if (!string.IsNullOrWhiteSpace(htmlContent))
+        {
+            var parser = new HtmlParser();
+            var doc = parser.ParseDocument(htmlContent);
+            var body = doc.Body;
+            if (body != null)
+            {
+
+                // Removes script tags
+                foreach (var element in body.QuerySelectorAll("script"))
+                {
+                    element.Remove();
+                }
+
+                // Removes script tags
+                foreach (var element in body.QuerySelectorAll("style"))
+                {
+                    element.Remove();
+                }
+
+                // Removes elements marked with the default Xperience exclusion attribute
+                foreach (var element in body.QuerySelectorAll($"*[{"data-ktc-search-exclude"}]"))
+                {
+                    element.Remove();
+                }
+
+                // Removes header
+                foreach (var element in body.QuerySelectorAll("header"))
+                {
+                    element.Remove();
+                }
+
+                // Removes breadcrumbs
+                foreach (var element in body.QuerySelectorAll(".breadcrumb"))
+                {
+                    element.Remove();
+                }
+
+                // Removes footer
+                foreach (var element in body.QuerySelectorAll("footer"))
+                {
+                    element.Remove();
+                }
+
+                // Gets the text content of the body element
+                string textContent = body.TextContent;
+
+                // Normalizes and trims whitespace characters
+                textContent = HTMLHelper.RegexHtmlToTextWhiteSpace.Replace(textContent, " ");
+                textContent = textContent.Trim();
+
+                var title = doc.Head.QuerySelector("title")?.TextContent;
+                var description = doc.Head.QuerySelector("meta[name='description']")?.GetAttribute("content");
+
+                return string.Join(" ",
+                    new string[] { title, description, textContent }.Where(i => !string.IsNullOrWhiteSpace(i))
+                    );
+            }
+        }
+
+        return string.Empty;
+    }
+}
+
+```
+
+Register these services in the startup and retrieve them in your strategy:
+
+``` csharp
+  services.AddSingleton<WebScraperHtmlSanitizer>();
+  services.AddHttpClient<WebCrawlerService>();
+```
+
+``` csharp
+private async Task<string> GetPageContent(IndexedItemModel indexedModel)
+{
+    var htmlSanitizer = Service.Resolve<WebScraperHtmlSanitizer>();
+    var webCrawler = Service.Resolve<WebCrawlerService>();
+
+    string content = await webCrawler.CrawlNode(indexedModel);
+    return htmlSanitizer.SanitizeHtmlDocument(content);
+}
+```

@@ -41,7 +41,7 @@ namespace Kentico.Xperience.Algolia
         /// <exception cref="InvalidOperationException" />
         public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
         {
-            if (queueItem == null || queueItem.Node == null || String.IsNullOrEmpty(queueItem.IndexName))
+            if (queueItem == null || queueItem.IndexedItemModel == null || String.IsNullOrEmpty(queueItem.IndexName))
             {
                 return;
             }

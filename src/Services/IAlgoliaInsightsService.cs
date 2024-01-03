@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Algolia.Search.Models.Insights;
 using Algolia.Search.Models.Search;
 
-using CMS.DocumentEngine;
-
 using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Services
@@ -112,13 +110,13 @@ namespace Kentico.Xperience.Algolia.Services
         Task<InsightsResponse> LogFacetConverted(string facet, string conversionName, string indexName, CancellationToken cancellationToken);
 
 
-        /// <summary>
-        /// Updates the <see cref="AlgoliaSearchModel.Url"/> property of all search results
-        /// with the query parameters needed to track search result click and conversion events.
-        /// </summary>
-        /// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
-        /// <param name="searchResponse">The full response of an Algolia search.</param>
-        /// <exception cref="InvalidOperationException" />
-        void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel;
+        ///// <summary>
+        ///// Updates the <see cref="AlgoliaSearchModel.Url"/> property of all search results
+        ///// with the query parameters needed to track search result click and conversion events.
+        ///// </summary>
+        ///// <typeparam name="TModel">The type of the Algolia search model.</typeparam>
+        ///// <param name="searchResponse">The full response of an Algolia search.</param>
+        ///// <exception cref="InvalidOperationException" />
+        //void SetInsightsUrls<TModel>(SearchResponse<TModel> searchResponse) where TModel : AlgoliaSearchModel;
     }
 }
