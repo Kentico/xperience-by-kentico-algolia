@@ -4,9 +4,7 @@ using System.Threading;
 
 using CMS.Base;
 using CMS.Core;
-
-using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
+using Kentico.Xperience.Algolia.Indexing;
 
 namespace Kentico.Xperience.Algolia
 {
@@ -41,7 +39,7 @@ namespace Kentico.Xperience.Algolia
         /// <exception cref="InvalidOperationException" />
         public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
         {
-            if (queueItem == null || queueItem.IndexedItemModel == null || String.IsNullOrEmpty(queueItem.IndexName))
+            if (queueItem == null || queueItem.ItemToIndex == null || String.IsNullOrEmpty(queueItem.IndexName))
             {
                 return;
             }
@@ -51,7 +49,7 @@ namespace Kentico.Xperience.Algolia
                 return;
             }
 
-            if (IndexStore.Instance.GetIndex(queueItem.IndexName) == null)
+            if (AlgoliaIndexStore.Instance.GetIndex(queueItem.IndexName) == null)
             {
                 throw new InvalidOperationException($"Attempted to log task for Algolia index '{queueItem.IndexName},' but it is not registered.");
             }

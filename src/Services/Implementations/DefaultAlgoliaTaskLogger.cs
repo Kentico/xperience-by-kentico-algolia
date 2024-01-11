@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Algolia.Search.Clients;
 using CMS.Core;
 using CMS.Websites;
-using Kentico.Xperience.Algolia.Extensions;
-using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Indexing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kentico.Xperience.Algolia.Services
 {
@@ -14,53 +15,48 @@ namespace Kentico.Xperience.Algolia.Services
     internal class DefaultAlgoliaTaskLogger : IAlgoliaTaskLogger
     {
         private readonly IEventLogService eventLogService;
-
+        private readonly IServiceProvider serviceProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultAlgoliaTaskLogger"/> class.
         /// </summary>
-        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService)
+        public DefaultAlgoliaTaskLogger(IEventLogService eventLogService, IServiceProvider serviceProvider)
         {
             this.eventLogService = eventLogService;
+            this.serviceProvider = serviceProvider;
         }
 
-
         /// <inheritdoc />
-        public async Task HandleEvent(IndexedItemModel indexedItem, string eventName)
+        public async Task HandleEvent(IndexEventWebPageItemModel webpageItem, string eventName)
         {
             var taskType = GetTaskType(eventName);
 
-            if (!indexedItem.IsAlgoliaIndexed(eventName))
+            foreach (var algoliaIndex in AlgoliaIndexStore.Instance.GetAllIndices())
             {
-                return;
-            }
-
-            foreach (string? indexName in IndexStore.Instance.GetAllIndices().Select(index => index.IndexName))
-            {
-                if (!indexedItem.IsIndexedByIndex(indexName, eventName))
+                if (!webpageItem.IsIndexedByIndex(eventLogService, algoliaIndex.IndexName, eventName))
                 {
                     continue;
                 }
 
-                var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
+                var algoliaStrategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
 
                 if (algoliaIndex is not null)
                 {
-                    var toReindex = await algoliaIndex.AlgoliaIndexingStrategy.FindItemsToReindex(indexedItem);
+                    var toReindex = await algoliaStrategy.FindItemsToReindex(webpageItem);
 
                     if (toReindex is not null)
                     {
                         foreach (var item in toReindex)
                         {
-                            if (item.WebPageItemGuid == indexedItem.WebPageItemGuid)
+                            if (item.ItemGuid == webpageItem.ItemGuid)
                             {
                                 if (taskType == AlgoliaTaskType.DELETE)
                                 {
-                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.DELETE, indexName));
+                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.DELETE, algoliaIndex.IndexName));
                                 }
                                 else
                                 {
-                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, indexName));
+                                    LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, algoliaIndex.IndexName));
                                 }
                             }
                         }
@@ -69,30 +65,23 @@ namespace Kentico.Xperience.Algolia.Services
             }
         }
 
-        public async Task HandleContentItemEvent(IndexedContentItemModel indexedItem, string eventName)
+        public async Task HandleReusableItemEvent(IndexEventReusableItemModel reusableItem, string eventName)
         {
-            if (!indexedItem.IsAlgoliaIndexed(eventName))
+            foreach (var algoliaIndex in AlgoliaIndexStore.Instance.GetAllIndices())
             {
-                return;
-            }
-
-            foreach (string? indexName in IndexStore.Instance.GetAllIndices().Select(index => index.IndexName))
-            {
-                if (!indexedItem.IsIndexedByIndex(indexName, eventName))
+                if (!reusableItem.IsIndexedByIndex(eventLogService, algoliaIndex.IndexName, eventName))
                 {
                     continue;
                 }
 
-                var algoliaIndex = IndexStore.Instance.GetIndex(indexName);
-                if (algoliaIndex is not null)
+                var strategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
+                var toReindex = await strategy.FindItemsToReindex(reusableItem);
+
+                if (toReindex is not null)
                 {
-                    var toReindex = await algoliaIndex.AlgoliaIndexingStrategy.FindItemsToReindex(indexedItem, algoliaIndex.WebSiteChannelName);
-                    if (toReindex is not null)
+                    foreach (var item in toReindex)
                     {
-                        foreach (var item in toReindex)
-                        {
-                            LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, indexName));
-                        }
+                        LogIndexTask(new AlgoliaQueueItem(item, AlgoliaTaskType.UPDATE, algoliaIndex.IndexName));
                     }
                 }
             }

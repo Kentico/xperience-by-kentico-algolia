@@ -1,11 +1,15 @@
+using CMS;
 using CMS.Base;
 using CMS.ContentEngine;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.Websites;
-using Kentico.Xperience.Algolia.Models;
-using Kentico.Xperience.Algolia.Services;
-using System.Threading.Tasks;
+using Kentico.Xperience.Algolia;
+using Kentico.Xperience.Algolia.Admin;
+using Kentico.Xperience.Algolia.Indexing;
+using Microsoft.Extensions.DependencyInjection;
+
+[assembly: RegisterModule(typeof(AlgoliaSearchModule))]
 
 namespace Kentico.Xperience.Algolia;
 
@@ -14,9 +18,9 @@ namespace Kentico.Xperience.Algolia;
 /// </summary>
 internal class AlgoliaSearchModule : Module
 {
-    private IAlgoliaTaskLogger algoliaTaskLogger;
-    private IAppSettingsService appSettingsService;
-    private IConversionService conversionService;
+    private IAlgoliaTaskLogger? algoliaTaskLogger;
+    private IAppSettingsService? appSettingsService;
+    private IConversionService? conversionService;
     private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
 
 
@@ -36,21 +40,23 @@ internal class AlgoliaSearchModule : Module
 
 
     /// <inheritdoc/>
-    protected override void OnInit()
+    protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit();
+        var services = parameters.Services;
 
-        Service.Resolve<AlgoliaModuleInstaller>().Install();
+        services.GetRequiredService<AlgoliaModuleInstaller>().Install();
         algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
         appSettingsService = Service.Resolve<IAppSettingsService>();
         conversionService = Service.Resolve<IConversionService>();
 
 
-        AddRegisteredIndices().Wait();
+        AddRegisteredIndices();
         WebPageEvents.Publish.Execute += HandleEvent;
         WebPageEvents.Delete.Execute += HandleEvent;
         ContentItemEvents.Publish.Execute += HandleContentItemEvent;
         ContentItemEvents.Delete.Execute += HandleContentItemEvent;
+
         RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
     }
 
@@ -60,49 +66,55 @@ internal class AlgoliaSearchModule : Module
     /// </summary>
     private void HandleEvent(object? sender, CMSEventArgs e)
     {
-        if (IndexingDisabled)
+        if (IndexingDisabled || e is not WebPageEventArgsBase publishedEvent)
         {
             return;
         }
-        var publishedEvent = (WebPageEventArgsBase)e;
-        var indexedItemModel = new IndexedItemModel
-        {
-            LanguageCode = publishedEvent.ContentLanguageName,
-            ClassName = publishedEvent.ContentTypeName,
-            ChannelName = publishedEvent.WebsiteChannelName,
-            WebPageItemGuid = publishedEvent.Guid,
-            WebPageItemTreePath = publishedEvent.TreePath,
-        };
 
-        var task = algoliaTaskLogger?.HandleEvent(indexedItemModel, e.CurrentHandler.Name);
-        task.Wait();
+        var indexedItemModel = new IndexEventWebPageItemModel(
+            publishedEvent.ID,
+            publishedEvent.Guid,
+            publishedEvent.ContentLanguageName,
+            publishedEvent.ContentTypeName,
+            publishedEvent.Name,
+            publishedEvent.IsSecured,
+            publishedEvent.ContentTypeID,
+            publishedEvent.ContentLanguageID,
+            publishedEvent.WebsiteChannelName,
+            publishedEvent.TreePath,
+            publishedEvent.ParentID,
+            publishedEvent.Order)
+        { };
+
+        algoliaTaskLogger?.HandleEvent(indexedItemModel, e.CurrentHandler.Name).GetAwaiter().GetResult();
     }
 
     private void HandleContentItemEvent(object? sender, CMSEventArgs e)
     {
-        if (IndexingDisabled)
+        if (IndexingDisabled || e is not ContentItemEventArgsBase publishedEvent)
         {
             return;
         }
-        var publishedEvent = (ContentItemEventArgsBase)e;
 
-        var indexedContentItemModel = new IndexedContentItemModel
-        {
-            LanguageCode = publishedEvent.ContentLanguageName,
-            ClassName = publishedEvent.ContentTypeName,
-            ContentItemGuid = publishedEvent.Guid
-        };
+        var indexedContentItemModel = new IndexEventReusableItemModel(
+            publishedEvent.ID,
+            publishedEvent.Guid,
+            publishedEvent.ContentLanguageName,
+            publishedEvent.ContentTypeName,
+            publishedEvent.Name,
+            publishedEvent.IsSecured,
+            publishedEvent.ContentTypeID,
+            publishedEvent.ContentLanguageID
+        );
 
-        var task = algoliaTaskLogger?.HandleContentItemEvent(indexedContentItemModel, e.CurrentHandler.Name);
-
-        task.Wait();
+        algoliaTaskLogger?.HandleReusableItemEvent(indexedContentItemModel, e.CurrentHandler.Name).GetAwaiter().GetResult();
     }
 
-    public static async Task AddRegisteredIndices()
+    public static void AddRegisteredIndices()
     {
-        var configurationStorageService = Service.Resolve<IConfigurationStorageService>();
-        var indices = await configurationStorageService.GetAllIndexData();
+        var configurationStorageService = Service.Resolve<IAlgoliaConfigurationStorageService>();
+        var indices = configurationStorageService.GetAllIndexData();
 
-        IndexStore.Instance.AddIndices(indices);
+        AlgoliaIndexStore.Instance.AddIndices(indices);
     }
 }

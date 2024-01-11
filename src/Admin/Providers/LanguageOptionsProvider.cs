@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Kentico.Xperience.Algolia.Admin.Providers;
+namespace Kentico.Xperience.Algolia.Admin;
 
 public class LanguageOptionsProvider : IGeneralSelectorDataProvider
 {
