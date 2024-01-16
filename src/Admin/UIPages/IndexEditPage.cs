@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Kentico.Xperience.Algolia.Indexing;
 
 [assembly: UIPage(
-   parentType: typeof(ListingPage),
+   parentType: typeof(IndexListingPage),
    slug: PageParameterConstants.PARAMETERIZED_SLUG,
    uiPageType: typeof(IndexEditPage),
    name: "Edit index",

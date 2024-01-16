@@ -122,7 +122,7 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId),
+            Name = nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
@@ -169,7 +169,7 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId),
+            Name = nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
@@ -215,7 +215,7 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemId),
+            Name = nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIncludedPathItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
@@ -227,7 +227,7 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId),
+            Name = nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",

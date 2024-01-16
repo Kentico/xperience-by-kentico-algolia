@@ -26,7 +26,7 @@ public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, I
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexItemInfoProvider), OBJECT_TYPE, "algolia.algoliaindexitem", "AlgoliaIndexItemId", null, null, "IndexName", null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexItemInfoProvider), OBJECT_TYPE, "algolia.algoliaindexitem", "AlgoliaIndexItemId", null, null, "AlgoliaIndexItemIndexName", null, null, null, null)
     {
         TouchCacheDependencies = true,
     };

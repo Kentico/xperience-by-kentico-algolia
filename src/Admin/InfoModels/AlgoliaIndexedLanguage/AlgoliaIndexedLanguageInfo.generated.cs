@@ -27,12 +27,12 @@ public partial class AlgoliaIndexedLanguageInfo : AbstractInfo<AlgoliaIndexedLan
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexedLanguageInfoProvider), OBJECT_TYPE, "algolia.algoliaindexedlanguage", "IndexedLanguageId", null, null, null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexedLanguageInfoProvider), OBJECT_TYPE, "algolia.AlgoliaIndexedLanguage", "AlgoliaIndexedLanguageId", null, null, null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new ObjectDependency("AlgoliaIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
+            new ObjectDependency("AlgoliaIndexItemId", "AlgoliaIndexitemInfo", ObjectDependencyEnum.Required),
         },
     };
 

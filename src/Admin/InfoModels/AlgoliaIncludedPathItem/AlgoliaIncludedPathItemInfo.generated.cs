@@ -32,7 +32,7 @@ public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedP
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new ObjectDependency("AlgoliaIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
+            new ObjectDependency("AlgoliaIncludedPathIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
         },
     };
 

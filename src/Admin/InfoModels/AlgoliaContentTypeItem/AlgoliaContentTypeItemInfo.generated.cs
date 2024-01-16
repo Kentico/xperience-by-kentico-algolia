@@ -33,8 +33,8 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new ObjectDependency("AlgoliaIncludedPathItemId", "AlgoliaIncludedPathItemInfo", ObjectDependencyEnum.Required),
-            new ObjectDependency("AlgoliaIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
+            new ObjectDependency("AlgoliaContentTypeItemIncludedPathItemId", "AlgoliaIncludedPathItemInfo", ObjectDependencyEnum.Required),
+            new ObjectDependency("AlgoliaContentTypeItemIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
         },
     };
 

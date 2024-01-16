@@ -100,7 +100,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         }
 
         var paths = pathProvider.Get().WhereEquals(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId), indexInfo.AlgoliaIndexItemId).ToList();
-        var contentTypes = contentPathProvider.Get().WhereEquals(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId), indexInfo.AlgoliaIndexItemId).ToList();
+        var contentTypes = contentPathProvider.Get().WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).ToList();
 
         return new AlgoliaConfigurationModel()
         {
