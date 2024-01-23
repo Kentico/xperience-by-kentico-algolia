@@ -1,7 +1,7 @@
-﻿using Algolia.Search.Models.Settings;
-using Kentico.Xperience.Algolia.Admin;
+﻿using Kentico.Xperience.Algolia.Admin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing
 {
@@ -11,68 +11,48 @@ namespace Kentico.Xperience.Algolia.Indexing
     public sealed class AlgoliaIndex
     {
         /// <summary>
-        /// The type of the class which extends <see cref="IAlgoliaIndexingStrategy"/>.
+        /// An arbitrary ID used to identify the Algolia index in the admin UI.
         /// </summary>
-        public Type AlgoliaIndexingStrategyType
-        {
-            get;
-        }
-
-        /// <summary>
-        /// The Name of the WebSiteChannel.
-        /// </summary>
-        public string WebSiteChannelName
-        {
-            get;
-        }
-
-        /// <summary>
-        /// The Language used on the WebSite on the Channel which is indexed.
-        /// </summary>
-        public List<string> LanguageNames
-        {
-            get;
-        }
+        public int Identifier { get; set; }
 
         /// <summary>
         /// The code name of the Algolia index.
         /// </summary>
-        public string IndexName
-        {
-            get;
-        }
+        public string IndexName { get; }
 
         /// <summary>
-        /// An arbitrary ID used to identify the Algolia index in the admin UI.
+        /// The Name of the WebSiteChannel.
         /// </summary>
-        public int Identifier
-        {
-            get;
-            set;
-        }
+        public string WebSiteChannelName { get; }
 
-        internal IEnumerable<AlgoliaIndexIncludedPath> IncludedPaths
-        {
-            get;
-            set;
-        }
+        /// <summary>
+        /// The Language used on the WebSite on the Channel which is indexed.
+        /// </summary>
+        public List<string> LanguageNames { get; }
 
-        internal AlgoliaIndex(string indexName, string webSiteChannelName, List<string> languageNames, int identifier, IEnumerable<AlgoliaIndexIncludedPath> paths, Type? luceneIndexingStrategyType = null)
+        /// <summary>
+        /// The type of the class which extends <see cref="ILuceneIndexingStrategy"/>.
+        /// </summary>
+        public Type AlgoliaIndexingStrategyType { get; }
+
+        internal IEnumerable<AlgoliaIndexIncludedPath> IncludedPaths { get; set; }
+
+        internal AlgoliaIndex(AlgoliaConfigurationModel indexConfiguration, Dictionary<string, Type> strategies)
         {
-            if (string.IsNullOrEmpty(indexName))
+            Identifier = indexConfiguration.Id;
+            IndexName = indexConfiguration.IndexName;
+            WebSiteChannelName = indexConfiguration.ChannelName;
+            LanguageNames = indexConfiguration.LanguageNames.ToList();
+            IncludedPaths = indexConfiguration.Paths;
+
+            var strategy = typeof(DefaultAlgoliaIndexingStrategy);
+
+            if (strategies.ContainsKey(indexConfiguration.StrategyName))
             {
-                throw new ArgumentNullException(nameof(indexName));
+                strategy = strategies[indexConfiguration.StrategyName];
             }
 
-            IndexName = indexName;
-
-            Identifier = identifier;
-            WebSiteChannelName = webSiteChannelName;
-            LanguageNames = languageNames;
-
-            IncludedPaths = paths;
-
-            AlgoliaIndexingStrategyType = luceneIndexingStrategyType ?? typeof(DefaultAlgoliaIndexingStrategy);
+            AlgoliaIndexingStrategyType = strategy;
         }
     }
 }

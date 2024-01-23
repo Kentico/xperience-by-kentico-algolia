@@ -19,46 +19,10 @@ namespace Kentico.Xperience.Algolia.Indexing
         /// </summary>
         public static AlgoliaIndexStore Instance => mInstance.Value;
 
-
         /// <summary>
-        /// Adds an index to the store.
+        /// Gets all registered indexes.
         /// </summary>
-        /// <param name="index">The index to add.</param>
-        /// <exception cref="ArgumentNullException" />
-        /// <exception cref="InvalidOperationException" />
-        public void AddIndex(AlgoliaIndex index)
-        {
-            if (index == null)
-            {
-                throw new ArgumentNullException(nameof(index));
-            }
-
-            if (registeredIndexes.Any(i => i.IndexName.Equals(index.IndexName, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException($"Attempted to register Algolia index with name '{index.IndexName},' but it is already registered.");
-            }
-
-            index.Identifier = registeredIndexes.Count + 1;
-            registeredIndexes.Add(index);
-        }
-
-        public void AddIndices(IEnumerable<AlgoliaConfigurationModel> models)
-        {
-            registeredIndexes.Clear();
-            foreach (var index in models)
-            {
-                Instance.AddIndex(new AlgoliaIndex(
-                    index.IndexName,
-                    index.ChannelName,
-                    index.LanguageNames.ToList(),
-                    index.Id,
-                    index.Paths ?? new List<AlgoliaIndexIncludedPath>(),
-                    StrategyStorage.Strategies[index.StrategyName] ?? typeof(DefaultAlgoliaIndexingStrategy)
-                ));
-            }
-        }
-
-
+        public IEnumerable<AlgoliaIndex> GetAllIndices() => registeredIndexes;
 
         /// <summary>
         /// Gets a registered <see cref="AlgoliaIndex"/> with the specified <paramref name="indexName"/>,
@@ -77,26 +41,64 @@ namespace Kentico.Xperience.Algolia.Indexing
             return registeredIndexes.SingleOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Gets a registered <see cref="AlgoliaIndex"/> with the specified <paramref name="indexName"/>,
+        /// or <c>null</c>.
+        /// </summary>
+        /// <param name="indexName">The name of the index to retrieve.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        public AlgoliaIndex GetIndex(int identifier) => registeredIndexes.Find(i => i.Identifier == identifier);
 
         /// <summary>
-        /// Gets all registered indexes.
+        /// Gets a registered <see cref="AlgoliaIndex"/> with the specified <paramref name="indexName"/>. If no index is found, a <see cref="InvalidOperationException" /> is thrown.
         /// </summary>
-        public IEnumerable<AlgoliaIndex> GetAllIndices()
+        /// <param name="indexName">The name of the index to retrieve.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        public AlgoliaIndex GetRequiredIndex(string indexName)
         {
-            return registeredIndexes;
+            if (string.IsNullOrEmpty(indexName))
+            {
+                throw new ArgumentException("Value must not be null or empty");
+            }
+
+            return registeredIndexes.SingleOrDefault(i => i.IndexName.Equals(indexName, StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException($"The index '{indexName}' is not registered.");
         }
 
+        /// <summary>
+        /// Adds an index to the store.
+        /// </summary>
+        /// <param name="index">The index to add.</param>
+        /// <exception cref="ArgumentNullException" />
+        /// <exception cref="InvalidOperationException" />
+        public void AddIndex(AlgoliaIndex index)
+        {
+            if (index == null)
+            {
+                throw new ArgumentNullException(nameof(index));
+            }
 
+            if (registeredIndexes.Exists(i => i.IndexName.Equals(index.IndexName, StringComparison.OrdinalIgnoreCase) || index.Identifier == i.Identifier))
+            {
+                throw new InvalidOperationException($"Attempted to register Algolia index with identifer [{index.Identifier}] and name [{index.IndexName}] but it is already registered.");
+            }
 
-        internal void ClearIndexes()
+            registeredIndexes.Add(index);
+        }
+
+        /// <summary>
+        /// Resets all indicies
+        /// </summary>
+        /// <param name="models"></param>
+        internal void SetIndicies(IEnumerable<AlgoliaConfigurationModel> models)
         {
             registeredIndexes.Clear();
-        }
-
-
-        internal AlgoliaIndex GetIndex(int id)
-        {
-            return registeredIndexes.FirstOrDefault(i => i.Identifier == id);
+            foreach (var index in models)
+            {
+                Instance.AddIndex(new AlgoliaIndex(index, StrategyStorage.Strategies));
+            }
         }
     }
 }

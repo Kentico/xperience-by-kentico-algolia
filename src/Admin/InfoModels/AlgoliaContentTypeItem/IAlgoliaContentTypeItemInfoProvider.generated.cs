@@ -1,10 +1,19 @@
 using CMS.DataEngine;
+using Kentico.Xperience.Algolia.Models;
 
-namespace Kentico.Xperience.Algolia.Models;
+namespace Kentico.Xperience.Algolia.Admin;
 
 /// <summary>
-/// Declares members for <see cref="AlgoliaContentTypeItemInfo"/> management.
+/// Class providing <see cref="AlgoliaContentTypeItemInfo"/> management.
 /// </summary>
-public partial interface IAlgoliaContentTypeItemInfoProvider : IInfoProvider<AlgoliaContentTypeItemInfo>, IInfoByIdProvider<AlgoliaContentTypeItemInfo>, IInfoByNameProvider<AlgoliaContentTypeItemInfo>
+[ProviderInterface(typeof(IAlgoliaContentTypeItemInfoProvider))]
+public partial class LuceneContentTypeItemInfoProvider : AbstractInfoProvider<AlgoliaContentTypeItemInfo, AlgoliaContentTypeItemInfoProvider>, IAlgoliaContentTypeItemInfoProvider
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AlgoliaContentTypeItemInfoProvider"/> class.
+    /// </summary>
+    public LuceneContentTypeItemInfoProvider()
+        : base(AlgoliaContentTypeItemInfo.TYPEINFO)
+    {
+    }
 }

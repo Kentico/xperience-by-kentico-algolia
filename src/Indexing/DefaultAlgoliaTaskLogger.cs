@@ -4,10 +4,9 @@ using System.Threading.Tasks;
 using Algolia.Search.Clients;
 using CMS.Core;
 using CMS.Websites;
-using Kentico.Xperience.Algolia.Indexing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Kentico.Xperience.Algolia.Services
+namespace Kentico.Xperience.Algolia.Indexing
 {
     /// <summary>
     /// Default implementation of <see cref="IAlgoliaTaskLogger"/>.

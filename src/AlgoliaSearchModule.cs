@@ -115,6 +115,6 @@ internal class AlgoliaSearchModule : Module
         var configurationStorageService = Service.Resolve<IAlgoliaConfigurationStorageService>();
         var indices = configurationStorageService.GetAllIndexData();
 
-        AlgoliaIndexStore.Instance.AddIndices(indices);
+        AlgoliaIndexStore.Instance.SetIndicies(indices);
     }
 }

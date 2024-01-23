@@ -22,20 +22,24 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
     /// <summary>
     /// Object type.
     /// </summary>
-    public const string OBJECT_TYPE = "algolia.algoliacontenttypeitem";
+    public const string OBJECT_TYPE = "kenticoalgolia.algoliacontenttypeitem";
 
 
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaContentTypeItemInfoProvider), OBJECT_TYPE, "algolia.algoliacontenttypeitem", "AlgoliaContentTypeItemId", null, null, null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaContentTypeItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaContentTypeItem", nameof(AlgoliaContentTypeItemId), null, nameof(AlgoliaContentTypeItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new ObjectDependency("AlgoliaContentTypeItemIncludedPathItemId", "AlgoliaIncludedPathItemInfo", ObjectDependencyEnum.Required),
-            new ObjectDependency("AlgoliaContentTypeItemIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
+            new (nameof(AlgoliaContentTypeItemIncludedPathItemId), AlgoliaIncludedPathItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
+            new (nameof(AlgoliaContentTypeItemIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
         },
+        ContinuousIntegrationSettings =
+        {
+            Enabled = true
+        }
     };
 
 
@@ -49,6 +53,15 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
         set => SetValue(nameof(AlgoliaContentTypeItemId), value);
     }
 
+    /// <summary>
+    /// Algolia content type item guid.
+    /// </summary>
+    [DatabaseField]
+    public virtual Guid AlgoliaContentTypeItemGuid
+    {
+        get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaContentTypeItemGuid)), default);
+        set => SetValue(nameof(AlgoliaContentTypeItemGuid), value);
+    }
 
     /// <summary>
     /// Content type name.

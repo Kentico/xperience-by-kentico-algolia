@@ -135,7 +135,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             {
                 var queryBuilder = new ContentItemQueryBuilder();
 
-                if (includedPathAttribute.ContentTypes != null && includedPathAttribute.ContentTypes.Length > 0)
+                if (includedPathAttribute.ContentTypes != null && includedPathAttribute.ContentTypes.Count > 0)
                 {
                     foreach (var contentType in includedPathAttribute.ContentTypes)
                     {

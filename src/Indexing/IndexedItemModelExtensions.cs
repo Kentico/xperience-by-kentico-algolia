@@ -81,7 +81,7 @@ internal static class IndexedItemModelExtensions
 
         return algoliaIndex.IncludedPaths.Any(includedPathAttribute =>
         {
-            bool matchesContentType = includedPathAttribute.ContentTypes == null || includedPathAttribute.ContentTypes.Length == 0 || includedPathAttribute.ContentTypes.Contains(indexedItemModel.ContentTypeName);
+            bool matchesContentType = includedPathAttribute.ContentTypes == null || includedPathAttribute.ContentTypes.Count == 0 || includedPathAttribute.ContentTypes.Contains(indexedItemModel.ContentTypeName);
             if (includedPathAttribute.AliasPath.EndsWith("/"))
             {
                 string pathToMatch = includedPathAttribute.AliasPath;

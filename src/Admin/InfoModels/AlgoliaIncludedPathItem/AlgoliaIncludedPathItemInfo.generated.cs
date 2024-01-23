@@ -21,19 +21,23 @@ public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedP
     /// <summary>
     /// Object type.
     /// </summary>
-    public const string OBJECT_TYPE = "algolia.algoliaincludedpathitem";
+    public const string OBJECT_TYPE = "kenticoalgolia.algoliaincludedpathitem";
 
 
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIncludedPathItemInfoProvider), OBJECT_TYPE, "algolia.algoliaincludedpathitem", "AlgoliaIncludedPathItemId", null, null, null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIncludedPathItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIncludedPathItem", nameof(AlgoliaIncludedPathItemId), null, nameof(AlgoliaIncludedPathItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new ObjectDependency("AlgoliaIncludedPathIndexItemId", "AlgoliaIndexItemInfo", ObjectDependencyEnum.Required),
+            new (nameof(AlgoliaIncludedPathIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
         },
+        ContinuousIntegrationSettings =
+        {
+            Enabled = true
+        }
     };
 
 
@@ -67,6 +71,17 @@ public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedP
     {
         get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIncludedPathIndexItemId)), 0);
         set => SetValue(nameof(AlgoliaIncludedPathIndexItemId), value);
+    }
+
+
+    /// <summary>
+    /// Algolia included path item guid.
+    /// </summary>
+    [DatabaseField]
+    public virtual Guid AlgoliaIncludedPathItemGuid
+    {
+        get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaIncludedPathItemGuid)), default);
+        set => SetValue(nameof(AlgoliaIncludedPathItemGuid), value);
     }
 
 

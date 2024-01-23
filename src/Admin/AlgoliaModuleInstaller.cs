@@ -1,44 +1,70 @@
 ﻿using Kentico.Xperience.Algolia.Models;
-using CMS.Base;
 using CMS.DataEngine;
 using CMS.FormEngine;
+using CMS.Modules;
 
-namespace Kentico.Xperience.Algolia;
+namespace Kentico.Xperience.Algolia.Admin;
 
-public class AlgoliaModuleInstaller
+internal class AlgoliaModuleInstaller
 {
+    private readonly IResourceInfoProvider resourceProvider;
+
+    public AlgoliaModuleInstaller(IResourceInfoProvider resourceProvider) =>
+        this.resourceProvider = resourceProvider;
+
     public void Install()
     {
-        using (new CMSActionContext { ContinuousIntegrationAllowObjectSerialization = false })
-        {
-            InstallModuleClasses();
-        }
+        var resource = InstallResource();
+
+        InstallAlgoliaItemInfo(resource);
+        InstallAlgoliaLanguageItemInfo(resource);
+        InstallAlgoliaIndexPathItemInfo(resource);
+        InstallAlgoliaContentTypeItemInfo(resource);
     }
 
-    private void InstallModuleClasses()
+    private ResourceInfo InstallResource()
     {
-        InstallAlgoliaItemInfo();
-        InstallAlgoliaLanguageInfo();
-        InstallAlgoliaIndexPathItemInfo();
-        InstallAlgoliaContentTypeItemInfo();
+        var resourceInfo = resourceProvider.Get("Kentico.Xperience.Algolia") ?? new ResourceInfo();
+
+        resourceInfo.ResourceDisplayName = "Algolia Search";
+        resourceInfo.ResourceName = "Kentico.Xperience.Algolia";
+        resourceInfo.ResourceDescription = "Kentico Algolia custom data";
+        resourceInfo.ResourceIsInDevelopment = false;
+        if (resourceInfo.HasChanged)
+        {
+            resourceProvider.Set(resourceInfo);
+        }
+
+        return resourceInfo;
     }
 
-    private void InstallAlgoliaItemInfo()
+    private static void InstallAlgoliaItemInfo(ResourceInfo resource)
     {
         var algoliaItemInfo = DataClassInfoProvider.GetDataClassInfo(AlgoliaIndexItemInfo.OBJECT_TYPE);
         if (algoliaItemInfo is not null)
             return;
 
         algoliaItemInfo = DataClassInfo.New(AlgoliaIndexItemInfo.OBJECT_TYPE);
-
-        algoliaItemInfo.ClassName = AlgoliaIndexItemInfo.OBJECT_TYPE;
-        algoliaItemInfo.ClassTableName = AlgoliaIndexItemInfo.OBJECT_TYPE.Replace(".", "_");
+        algoliaItemInfo.ClassName = AlgoliaIndexItemInfo.TYPEINFO.ObjectClassName;
+        algoliaItemInfo.ClassTableName = AlgoliaIndexItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
         algoliaItemInfo.ClassDisplayName = "Algolia Index Item";
         algoliaItemInfo.ClassType = ClassType.OTHER;
+        algoliaItemInfo.ClassResourceID = resource.ResourceID;
 
         var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId));
 
         var formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemGuid),
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "guid",
+            Enabled = true
+        };
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
         {
             Name = nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName),
             AllowEmpty = false,
@@ -92,7 +118,7 @@ public class AlgoliaModuleInstaller
         DataClassInfoProvider.SetDataClassInfo(algoliaItemInfo);
     }
 
-    private void InstallAlgoliaIndexPathItemInfo()
+    private void InstallAlgoliaIndexPathItemInfo(ResourceInfo resource)
     {
         var pathItem = DataClassInfoProvider.GetDataClassInfo(AlgoliaIncludedPathItemInfo.OBJECT_TYPE);
 
@@ -100,15 +126,26 @@ public class AlgoliaModuleInstaller
             return;
 
         pathItem = DataClassInfo.New(AlgoliaIncludedPathItemInfo.OBJECT_TYPE);
-
-        pathItem.ClassName = AlgoliaIncludedPathItemInfo.OBJECT_TYPE;
-        pathItem.ClassTableName = AlgoliaIncludedPathItemInfo.OBJECT_TYPE.Replace(".", "_");
+        pathItem.ClassName = AlgoliaIncludedPathItemInfo.TYPEINFO.ObjectClassName;
+        pathItem.ClassTableName = AlgoliaIncludedPathItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
         pathItem.ClassDisplayName = "Algolia Path Item";
         pathItem.ClassType = ClassType.OTHER;
+        pathItem.ClassResourceID = resource.ResourceID;
 
         var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemId));
 
         var formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemGuid),
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "guid",
+            Enabled = true,
+        };
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
         {
             Name = nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathAliasPath),
             AllowEmpty = false,
@@ -126,7 +163,7 @@ public class AlgoliaModuleInstaller
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
-            ReferenceToObjectType = nameof(AlgoliaIndexItemInfo),
+            ReferenceToObjectType = AlgoliaIndexItemInfo.OBJECT_TYPE,
             ReferenceType = ObjectDependencyEnum.Required
         };
 
@@ -137,27 +174,25 @@ public class AlgoliaModuleInstaller
         DataClassInfoProvider.SetDataClassInfo(pathItem);
     }
 
-    private void InstallAlgoliaLanguageInfo()
+    private void InstallAlgoliaLanguageItemInfo(ResourceInfo resource)
     {
-        string languageInfoName = AlgoliaIndexedLanguageInfo.OBJECT_TYPE;
-        string idName = nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageId);
-        var language = DataClassInfoProvider.GetDataClassInfo(languageInfoName);
+        var language = DataClassInfoProvider.GetDataClassInfo(AlgoliaIndexLanguageItemInfo.OBJECT_TYPE);
 
         if (language is not null)
             return;
 
-        language = DataClassInfo.New();
-
-        language.ClassName = languageInfoName;
-        language.ClassTableName = languageInfoName.Replace(".", "_");
+        language = DataClassInfo.New(AlgoliaIndexLanguageItemInfo.OBJECT_TYPE);
+        language.ClassName = AlgoliaIndexLanguageItemInfo.TYPEINFO.ObjectClassName;
+        language.ClassTableName = AlgoliaIndexLanguageItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
         language.ClassDisplayName = "Algolia Indexed Language Item";
         language.ClassType = ClassType.OTHER;
+        language.ClassResourceID = resource.ResourceID;
 
-        var formInfo = FormHelper.GetBasicFormDefinition(idName);
+        var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemId));
 
         var formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageName),
+            Name = nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexedLanguageItemName),
             AllowEmpty = false,
             Visible = true,
             Precision = 0,
@@ -169,11 +204,23 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId),
+            Name = nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemGuid),
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "guid",
+            Enabled = true
+        };
+
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
-            ReferenceToObjectType = nameof(AlgoliaIndexItemInfo),
+            ReferenceToObjectType = AlgoliaIndexItemInfo.OBJECT_TYPE,
             ReferenceType = ObjectDependencyEnum.Required,
         };
 
@@ -184,19 +231,19 @@ public class AlgoliaModuleInstaller
         DataClassInfoProvider.SetDataClassInfo(language);
     }
 
-    private void InstallAlgoliaContentTypeItemInfo()
+    private void InstallAlgoliaContentTypeItemInfo(ResourceInfo resource)
     {
         var contentType = DataClassInfoProvider.GetDataClassInfo(AlgoliaContentTypeItemInfo.OBJECT_TYPE);
 
         if (contentType is not null)
             return;
 
-        contentType = DataClassInfo.New();
-
-        contentType.ClassName = AlgoliaContentTypeItemInfo.OBJECT_TYPE;
-        contentType.ClassTableName = AlgoliaContentTypeItemInfo.OBJECT_TYPE.Replace(".", "_");
+        contentType = DataClassInfo.New(AlgoliaContentTypeItemInfo.OBJECT_TYPE);
+        contentType.ClassName = AlgoliaContentTypeItemInfo.TYPEINFO.ObjectClassName;
+        contentType.ClassTableName = AlgoliaContentTypeItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
         contentType.ClassDisplayName = "Algolia Type Item";
         contentType.ClassType = ClassType.OTHER;
+        contentType.ClassResourceID = resource.ResourceID;
 
         var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemId));
 
@@ -227,11 +274,23 @@ public class AlgoliaModuleInstaller
 
         formItem = new FormFieldInfo
         {
+            Name = nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemGuid),
+            Enabled = true,
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "guid",
+        };
+
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
+        {
             Name = nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId),
             AllowEmpty = false,
             Visible = true,
             DataType = "integer",
-            ReferenceToObjectType = nameof(AlgoliaIndexItemInfo),
+            ReferenceToObjectType = AlgoliaIndexItemInfo.OBJECT_TYPE,
             ReferenceType = ObjectDependencyEnum.Required
         };
 

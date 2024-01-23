@@ -25,7 +25,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
 
         if (indexProvider.Get().WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName), configuration.IndexName).FirstOrDefault() != default)
         {
@@ -47,10 +47,10 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             foreach (string? language in configuration.LanguageNames)
             {
-                var languageInfo = new AlgoliaIndexedLanguageInfo()
+                var languageInfo = new AlgoliaIndexLanguageItemInfo()
                 {
-                    AlgoliaIndexedLanguageName = language,
-                    AlgoliaIndexedLanguageIndexItemId = newInfo.AlgoliaIndexItemId
+                    AlgoliaIndexedLanguageItemName = language,
+                    AlgoliaIndexLanguageItemIndexItemId = newInfo.AlgoliaIndexItemId
                 };
 
                 languageProvider.Set(languageInfo);
@@ -91,7 +91,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
 
         var indexInfo = indexProvider.Get().WithID(indexId).FirstOrDefault();
         if (indexInfo == default)
@@ -106,14 +106,14 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             ChannelName = indexInfo.AlgoliaIndexItemChannelName,
             IndexName = indexInfo.AlgoliaIndexItemIndexName,
-            LanguageNames = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId), indexInfo.AlgoliaIndexItemId).Select(x => x.AlgoliaIndexedLanguageName).ToList(),
+            LanguageNames = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).Select(x => x.AlgoliaIndexedLanguageItemName).ToList(),
             RebuildHook = indexInfo.AlgoliaIndexItemRebuildHook,
             Id = indexInfo.AlgoliaIndexItemId,
             StrategyName = indexInfo.AlgoliaIndexItemStrategyName,
             Paths = paths.Select(x => new AlgoliaIndexIncludedPath(x.AlgoliaIncludedPathAliasPath)
             {
                 Identifier = x.AlgoliaIncludedPathItemId.ToString(),
-                ContentTypes = contentTypes.Where(y => x.AlgoliaIncludedPathItemId == y.AlgoliaContentTypeItemIncludedPathItemId).Select(y => y.AlgoliaContentTypeItemContentTypeName).ToArray()
+                ContentTypes = contentTypes.Where(y => x.AlgoliaIncludedPathItemId == y.AlgoliaContentTypeItemIncludedPathItemId).Select(y => y.AlgoliaContentTypeItemContentTypeName).ToList()
             }).ToList()
         };
     }
@@ -124,7 +124,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
 
         var indexInfos = indexProvider.Get().ToList();
         if (indexInfos == default)
@@ -140,14 +140,14 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             ChannelName = x.AlgoliaIndexItemChannelName,
             IndexName = x.AlgoliaIndexItemIndexName,
-            LanguageNames = languages.Where(y => y.AlgoliaIndexedLanguageIndexItemId == x.AlgoliaIndexItemId).Select(y => y.AlgoliaIndexedLanguageName).ToList(),
+            LanguageNames = languages.Where(y => y.AlgoliaIndexLanguageItemIndexItemId == x.AlgoliaIndexItemId).Select(y => y.AlgoliaIndexedLanguageItemName).ToList(),
             RebuildHook = x.AlgoliaIndexItemRebuildHook,
             Id = x.AlgoliaIndexItemId,
             StrategyName = x.AlgoliaIndexItemStrategyName,
             Paths = paths.Where(y => y.AlgoliaIncludedPathIndexItemId == x.AlgoliaIndexItemId).Select(y => new AlgoliaIndexIncludedPath(y.AlgoliaIncludedPathAliasPath)
             {
                 Identifier = y.AlgoliaIncludedPathItemId.ToString(),
-                ContentTypes = contentTypes.Where(z => z.AlgoliaContentTypeItemIncludedPathItemId == y.AlgoliaIncludedPathItemId).Select(z => z.AlgoliaContentTypeItemContentTypeName).ToArray()
+                ContentTypes = contentTypes.Where(z => z.AlgoliaContentTypeItemIncludedPathItemId == y.AlgoliaIncludedPathItemId).Select(z => z.AlgoliaContentTypeItemContentTypeName).ToList()
             }).ToList()
         });
     }
@@ -156,7 +156,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
 
         configuration.IndexName = RemoveWhitespacesUsingStringBuilder(configuration.IndexName ?? "");
 
@@ -168,7 +168,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         }
 
         pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {configuration.Id}"));
-        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId)} = {configuration.Id}"));
+        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {configuration.Id}"));
         contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
 
         indexInfo.AlgoliaIndexItemChannelName = configuration.IndexName;
@@ -181,10 +181,10 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             foreach (string? language in configuration.LanguageNames)
             {
-                var languageInfo = new AlgoliaIndexedLanguageInfo()
+                var languageInfo = new AlgoliaIndexLanguageItemInfo()
                 {
-                    AlgoliaIndexedLanguageName = language,
-                    AlgoliaIndexedLanguageIndexItemId = indexInfo.AlgoliaIndexItemId
+                    AlgoliaIndexedLanguageItemName = language,
+                    AlgoliaIndexLanguageItemIndexItemId = indexInfo.AlgoliaIndexItemId
                 };
 
                 languageProvider.Set(languageInfo);
@@ -225,11 +225,11 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
 
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {id}"));
         pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {id}"));
-        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId)} = {id}"));
+        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {id}"));
         contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {id}"));
 
         return true;
@@ -239,10 +239,10 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
         var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
         var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexedLanguageInfoProvider.ProviderObject;
+        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {configuration.Id}"));
         pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {configuration.Id}"));
-        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexedLanguageInfo.AlgoliaIndexedLanguageIndexItemId)} = {configuration.Id}"));
+        languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {configuration.Id}"));
         contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
         return true;
     }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Algolia.Search.Models.Common;
 
 using CMS.Core;
+using CMS.Membership;
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
@@ -26,29 +27,28 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// <summary>
 /// An admin UI page that displays statistics about the registered Algolia indexes.
 /// </summary>
+[UIEvaluatePermission(SystemPermissions.VIEW)]
 internal class IndexListingPage : ListingPageBase<ListingConfiguration>
 {
     private readonly IAlgoliaClient algoliaClient;
     private readonly IPageUrlGenerator pageUrlGenerator;
+    private readonly IAlgoliaConfigurationStorageService configurationStorageService;
+    private readonly IUIPermissionEvaluator permissionEvaluator;
     private ListingConfiguration mPageConfiguration;
-
 
     /// <inheritdoc/>
     public override ListingConfiguration PageConfiguration
     {
         get
         {
-            if (mPageConfiguration == null)
-            {
-                mPageConfiguration = new ListingConfiguration()
-                {
-                    Caption = LocalizationService.GetString("List of indices"),
-                    ColumnConfigurations = new List<ColumnConfiguration>(),
-                    TableActions = new List<ActionConfiguration>(),
-                    HeaderActions = new List<ActionConfiguration>(),
-                    PageSizes = new List<int> { 10, 25 }
-                };
-            }
+            mPageConfiguration ??= new ListingConfiguration()
+            { 
+                Caption = LocalizationService.GetString("List of indices"),
+                ColumnConfigurations = new List<ColumnConfiguration>(),
+                TableActions = new List<ActionConfiguration>(),
+                HeaderActions = new List<ActionConfiguration>(),
+                PageSizes = new List<int> { 10, 25 }
+            };
 
             return mPageConfiguration;
             
@@ -63,15 +63,21 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
     /// <summary>
     /// Initializes a new instance of the <see cref="IndexListingPage"/> class.
     /// </summary>
-    public IndexListingPage(IAlgoliaClient algoliaClient, IPageUrlGenerator pageUrlGenerator)
+    public IndexListingPage(
+        IAlgoliaClient algoliaClient,
+        IPageUrlGenerator pageUrlGenerator,
+        IAlgoliaConfigurationStorageService configurationStorageService,
+        IUIPermissionEvaluator permissionEvaluator)
     {
         this.algoliaClient = algoliaClient;
         this.pageUrlGenerator = pageUrlGenerator;
+        this.configurationStorageService = configurationStorageService;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
 
     /// <inheritdoc/>
-    public override Task ConfigurePage()
+    public override async Task ConfigurePage()
     {
         if (!AlgoliaIndexStore.Instance.GetAllIndices().Any())
         {
@@ -80,7 +86,7 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
                 new CalloutConfiguration
                 {
                     Headline = "No indexes",
-                Content = "No Lucene indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-lucene'>our instructions</a> to read more about creating and registering Lucene indexes.",
+                Content = "No Algolia indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-lucene'>our instructions</a> to read more about creating and registering Lucene indexes.",
                     ContentAsHtml = true,
                     Type = CalloutType.FriendlyWarning,
                     Placement = CalloutPlacement.OnDesk
@@ -88,19 +94,31 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
             };
         }
 
-
-        PageConfiguration.HeaderActions.AddLink<IndexEditPage>("Create", parameters: "-1");
-
         PageConfiguration.ColumnConfigurations
             .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("Name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
-            .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("Entries"))
+            .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("Indexed items"))
             .AddColumn(nameof(IndicesResponse.LastBuildTimes), LocalizationService.GetString("Build Time"))
             .AddColumn(nameof(IndicesResponse.UpdatedAt), LocalizationService.GetString("Updated At"));
 
-        PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("Build index"), nameof(Rebuild), Icons.RotateRight);
-        PageConfiguration.TableActions.AddCommand("Edit", nameof(Edit));
-        PageConfiguration.TableActions.AddCommand("Delete", nameof(Delete));
-        return base.ConfigurePage();
+        var permissions = await GetUIPermissions();
+
+        if (permissions.Rebuild)
+        {
+            PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("Build index"), nameof(Rebuild), Icons.RotateRight);
+        }
+        if (permissions.Update)
+        {
+            PageConfiguration.TableActions.AddCommand("Edit", nameof(Edit));
+        }
+        if (permissions.Delete)
+        {
+            PageConfiguration.TableActions.AddCommand("Delete", nameof(Delete));
+        }
+        if (permissions.Create)
+        {
+            PageConfiguration.HeaderActions.AddLink<IndexCreatePage>("Create");
+        }
+        await base.ConfigurePage();
     }
 
 
@@ -114,18 +132,19 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         return await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<IndexEditPage>(id.ToString())));
     }
 
-    [PageCommand]
-    public async Task<ICommandResponse> Delete(int id, CancellationToken cancellationToken)
+    [PageCommand(Permission = SystemPermissions.DELETE)]
+    public Task<ICommandResponse> Delete(int id, CancellationToken _)
     {
-        var storageService = Service.Resolve<IAlgoliaConfigurationStorageService>();
-        var res = storageService.TryDeleteIndex(id);
+        bool res = configurationStorageService.TryDeleteIndex(id);
         if (res)
         {
-            var indices = storageService.GetAllIndexData();
+            var indices = configurationStorageService.GetAllIndexData();
 
-            AlgoliaIndexStore.Instance.AddIndices(indices);
+            AlgoliaIndexStore.Instance.SetIndicies(indices);
         }
-        return await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<IndexListingPage>()));
+        var response = NavigateTo(pageUrlGenerator.GenerateUrl<IndexListingPage>());
+
+        return Task.FromResult<ICommandResponse>(response);
     }
 
     /// <summary>
@@ -142,14 +161,14 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         if (index == null)
         {
             return ResponseFrom(result)
-            .AddErrorMessage(string.Format("Error loading Lucene index with identifier {0}.", id));
+            .AddErrorMessage(string.Format("Error loading Algolia index with identifier {0}.", id));
         }
 
         try
         {
             await algoliaClient.Rebuild(index.IndexName, cancellationToken);
             return ResponseFrom(result)
-                 .AddSuccessMessage("Indexing in progress. Visit your Lucene dashboard for details about the indexing process.");
+                 .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
         }
         catch(Exception ex)
         {
@@ -164,6 +183,8 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
     /// <inheritdoc/>
     protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
     {
+        var permissions = await GetUIPermissions();
+
         try
         {
             var statistics = await algoliaClient.GetStatistics(cancellationToken);
@@ -304,4 +325,27 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
             _ => statistics.OrderBy(stat => stat.GetType().GetProperty(settings.SortBy).GetValue(stat, null)),
         };
     }
+
+    private async Task<UIPermissions> GetUIPermissions()
+    {
+        var permissions = new UIPermissions
+        {
+            Create = (await permissionEvaluator.Evaluate(SystemPermissions.CREATE)).Succeeded,
+            Delete = (await permissionEvaluator.Evaluate(SystemPermissions.DELETE)).Succeeded,
+            Update = (await permissionEvaluator.Evaluate(SystemPermissions.UPDATE)).Succeeded,
+            Rebuild = (await permissionEvaluator.Evaluate(AlgoliaIndexPermissions.REBUILD)).Succeeded,
+            View = (await permissionEvaluator.Evaluate(SystemPermissions.VIEW)).Succeeded
+        };
+
+        return permissions;
+    }
+}
+
+internal record struct UIPermissions
+{
+    public bool View { get; set; }
+    public bool Update { get; set; }
+    public bool Delete { get; set; }
+    public bool Rebuild { get; set; }
+    public bool Create { get; set; }
 }

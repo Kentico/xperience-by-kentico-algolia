@@ -20,15 +20,19 @@ public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, I
     /// <summary>
     /// Object type.
     /// </summary>
-    public const string OBJECT_TYPE = "algolia.algoliaindexitem";
+    public const string OBJECT_TYPE = "kenticoalgolia.algoliaindexitem";
 
 
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexItemInfoProvider), OBJECT_TYPE, "algolia.algoliaindexitem", "AlgoliaIndexItemId", null, null, "AlgoliaIndexItemIndexName", null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexItem", nameof(AlgoliaIndexItemId), null, nameof(AlgoliaIndexItemGuid),nameof(AlgoliaIndexItemIndexName), null, null, null, null)
     {
         TouchCacheDependencies = true,
+        ContinuousIntegrationSettings =
+        {
+            Enabled = true,
+        },
     };
 
 
@@ -40,6 +44,17 @@ public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, I
     {
         get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexItemId)), 0);
         set => SetValue(nameof(AlgoliaIndexItemId), value);
+    }
+
+
+    /// <summary>
+    /// Algolia index item Guid.
+    /// </summary>
+    [DatabaseField]
+    public virtual Guid AlgoliaIndexItemGuid
+    {
+        get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaIndexItemGuid)), default);
+        set => SetValue(nameof(AlgoliaIndexItemGuid), value);
     }
 
 
