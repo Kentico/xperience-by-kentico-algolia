@@ -33,22 +33,19 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
         this.webCrawler = webCrawler;
     }
 
-    public override IndexSettings GetAlgoliaIndexSettings()
+    public override IndexSettings GetAlgoliaIndexSettings() => new()
     {
-        return new IndexSettings
-        {
-            AttributesToRetrieve = new List<string>
+        AttributesToRetrieve = new List<string>
             {
                 nameof(DancingGoatSearchResultModel.Title),
                 nameof(DancingGoatSearchResultModel.SortableTitle),
                 nameof(DancingGoatSearchResultModel.Content)
             },
-            AttributesForFaceting = new List<string>
+        AttributesForFaceting = new List<string>
             {
                 nameof(DancingGoatSearchResultModel.ContentTypeName)
             }
-        };
-    }
+    };
 
     public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {

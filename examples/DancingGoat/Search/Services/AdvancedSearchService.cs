@@ -1,9 +1,6 @@
 ﻿using Algolia.Search.Models.Search;
 using DancingGoat.Search.Models;
 using Kentico.Xperience.Algolia.Indexing;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 
 namespace DancingGoat.Search.Services;
 

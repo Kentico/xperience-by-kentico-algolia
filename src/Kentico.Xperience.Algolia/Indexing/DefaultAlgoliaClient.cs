@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
-using CMS.Base.Internal;
 using CMS.ContentEngine;
 using CMS.Core;
 using CMS.DataEngine;

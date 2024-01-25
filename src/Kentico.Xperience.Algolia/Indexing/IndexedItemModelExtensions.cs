@@ -1,9 +1,5 @@
-﻿using System;
-using System.Linq;
-
-using CMS.Core;
+﻿using CMS.Core;
 using CMS.Websites.Internal;
-using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Indexing;
 

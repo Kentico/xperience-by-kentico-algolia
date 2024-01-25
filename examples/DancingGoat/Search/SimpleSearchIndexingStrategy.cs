@@ -1,10 +1,6 @@
 ﻿using CMS.ContentEngine;
 using CMS.Websites;
 using Kentico.Xperience.Algolia.Indexing;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using DancingGoat.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -28,7 +24,7 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
     }
 
     public override IndexSettings GetAlgoliaIndexSettings() =>
-        new IndexSettings
+        new()
         {
             AttributesToRetrieve = new List<string>
             {
