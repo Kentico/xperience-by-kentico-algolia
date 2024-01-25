@@ -4,8 +4,17 @@ using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Lucene.Admin;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IFormItemCollectionProvider = Kentico.Xperience.Admin.Base.Forms.Internal.IFormItemCollectionProvider;
 using Kentico.Xperience.Algolia.Indexing;
+using Kentico.Xperience.Algolia.Admin;
+using IFormItemCollectionProvider = Kentico.Xperience.Admin.Base.Forms.Internal.IFormItemCollectionProvider;
+
+[assembly: UIPage(
+   parentType: typeof(IndexListingPage),
+   slug: "create",
+   uiPageType: typeof(IndexCreatePage),
+   name: "Create index",
+   templateName: TemplateNames.EDIT,
+   order: UIPageOrder.NoOrder)]
 
 namespace Kentico.Xperience.Algolia.Admin;
 

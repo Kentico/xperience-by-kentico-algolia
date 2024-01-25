@@ -181,7 +181,6 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             content.ContentItemCommonDataContentLanguageID,
             channelName,
             content.WebPageItemTreePath,
-            content.WebPageItemParentID,
             content.WebPageItemOrder);
 
         return item;
@@ -191,12 +190,13 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         var upsertedCount = 0;
         var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
+        
         var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true, ct: cancellationToken).ConfigureAwait(false);
         foreach (var response in batchIndexingResponse.Responses)
         {
             upsertedCount += response.ObjectIDs.Count();
         }
-
+        
         return upsertedCount;
     }
 

@@ -49,7 +49,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
             {
                 var languageInfo = new AlgoliaIndexLanguageItemInfo()
                 {
-                    AlgoliaIndexedLanguageItemName = language,
+                    AlgoliaIndexLanguageItemName = language,
                     AlgoliaIndexLanguageItemIndexItemId = newInfo.AlgoliaIndexItemId
                 };
 
@@ -106,7 +106,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             ChannelName = indexInfo.AlgoliaIndexItemChannelName,
             IndexName = indexInfo.AlgoliaIndexItemIndexName,
-            LanguageNames = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).Select(x => x.AlgoliaIndexedLanguageItemName).ToList(),
+            LanguageNames = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).Select(x => x.AlgoliaIndexLanguageItemName).ToList(),
             RebuildHook = indexInfo.AlgoliaIndexItemRebuildHook,
             Id = indexInfo.AlgoliaIndexItemId,
             StrategyName = indexInfo.AlgoliaIndexItemStrategyName,
@@ -140,7 +140,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             ChannelName = x.AlgoliaIndexItemChannelName,
             IndexName = x.AlgoliaIndexItemIndexName,
-            LanguageNames = languages.Where(y => y.AlgoliaIndexLanguageItemIndexItemId == x.AlgoliaIndexItemId).Select(y => y.AlgoliaIndexedLanguageItemName).ToList(),
+            LanguageNames = languages.Where(y => y.AlgoliaIndexLanguageItemIndexItemId == x.AlgoliaIndexItemId).Select(y => y.AlgoliaIndexLanguageItemName).ToList(),
             RebuildHook = x.AlgoliaIndexItemRebuildHook,
             Id = x.AlgoliaIndexItemId,
             StrategyName = x.AlgoliaIndexItemStrategyName,
@@ -183,7 +183,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
             {
                 var languageInfo = new AlgoliaIndexLanguageItemInfo()
                 {
-                    AlgoliaIndexedLanguageItemName = language,
+                    AlgoliaIndexLanguageItemName = language,
                     AlgoliaIndexLanguageItemIndexItemId = indexInfo.AlgoliaIndexItemId
                 };
 

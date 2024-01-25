@@ -32,7 +32,7 @@ public class AlgoliaConfigurationModel
     public string RebuildHook { get; set; } = "";
 
     [AlgoliaIndexConfigurationComponent(Label = "Included Paths")]
-    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = Enumerable.Empty<AlgoliaIndexIncludedPath>();
+    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = new List<AlgoliaIndexIncludedPath>();
 
     public AlgoliaConfigurationModel() { }
 
@@ -48,7 +48,7 @@ public class AlgoliaConfigurationModel
         ChannelName = index.AlgoliaIndexItemChannelName;
         RebuildHook = index.AlgoliaIndexItemRebuildHook;
         StrategyName = index.AlgoliaIndexItemStrategyName;
-        LanguageNames = indexLanguages.Select(l => l.AlgoliaIndexedLanguageItemName).ToList();
+        LanguageNames = indexLanguages.Select(l => l.AlgoliaIndexLanguageItemName).ToList();
         Paths = indexPaths.Select(p => new AlgoliaIndexIncludedPath(p, contentTypes)).ToList();
     }
 }

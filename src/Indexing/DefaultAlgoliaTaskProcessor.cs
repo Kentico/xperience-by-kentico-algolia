@@ -103,8 +103,10 @@ namespace Kentico.Xperience.Algolia.Indexing
             data[BaseJObjectProperties.CONTENT_TYPE_NAME] = item.ContentTypeName;
             data[BaseJObjectProperties.LANGUAGE_NAME] = item.LanguageName;
             data[BaseJObjectProperties.ITEM_GUID] = item.ItemGuid;
+            data[BaseJObjectProperties.OBJECT_ID] = item.ItemGuid;
 
-            if (item is IndexEventWebPageItemModel webpageItem && !string.IsNullOrEmpty((string?)data.GetValue(BaseJObjectProperties.URL)))
+            var url = (string?)data.GetValue(BaseJObjectProperties.URL);
+            if (item is IndexEventWebPageItemModel webpageItem && string.IsNullOrEmpty((string?)data.GetValue(BaseJObjectProperties.URL)))
             {
                 try
                 {

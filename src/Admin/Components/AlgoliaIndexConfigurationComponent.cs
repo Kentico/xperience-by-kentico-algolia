@@ -21,27 +21,26 @@ public class AlgoliaIndexConfigurationComponentProperties : FormComponentPropert
 }
 #pragma warning restore
 
-public class AlgoliaIndexConfigurationComponentClientProperties : FormComponentClientProperties<List<AlgoliaIndexIncludedPath>>
+public class AlgoliaIndexConfigurationComponentClientProperties : FormComponentClientProperties<IEnumerable<AlgoliaIndexIncludedPath>>
 {
-    public List<string>? PossibleItems { get; set; }
+    public IEnumerable<string>? PossibleItems { get; set; }
 }
 
 public sealed class AlgoliaIndexConfigurationComponentAttribute : FormComponentAttribute
 {
 }
 
-
 [ComponentAttribute(typeof(AlgoliaIndexConfigurationComponentAttribute))]
-public class AlgoliaIndexConfigurationComponent : FormComponent<AlgoliaIndexConfigurationComponentProperties, AlgoliaIndexConfigurationComponentClientProperties, List<AlgoliaIndexIncludedPath>>
+public class AlgoliaIndexConfigurationComponent : FormComponent<AlgoliaIndexConfigurationComponentProperties, AlgoliaIndexConfigurationComponentClientProperties, IEnumerable<AlgoliaIndexIncludedPath>>
 {
     public const string IDENTIFIER = "kentico.xperience-integrations-algolia.algolia-index-configuration";
 
-    public List<AlgoliaIndexIncludedPath>? Value { get; set; }
+    internal List<AlgoliaIndexIncludedPath>? Value { get; set; }
 
     public override string ClientComponentName => "@kentico/xperience-integrations-algolia/AlgoliaIndexConfiguration";
 
-    public override List<AlgoliaIndexIncludedPath> GetValue() => Value ?? new();
-    public override void SetValue(List<AlgoliaIndexIncludedPath> value) => Value = value;
+    public override IEnumerable<AlgoliaIndexIncludedPath> GetValue() => Value ?? new();
+    public override void SetValue(IEnumerable<AlgoliaIndexIncludedPath> value) => Value = value.ToList();
 
     [FormComponentCommand]
     public Task<ICommandResponse<RowActionResult>> DeletePath(string path)
@@ -84,18 +83,17 @@ public class AlgoliaIndexConfigurationComponent : FormComponent<AlgoliaIndexConf
         }
     }
 
-    protected override Task ConfigureClientProperties(AlgoliaIndexConfigurationComponentClientProperties properties)
+    protected override async Task ConfigureClientProperties(AlgoliaIndexConfigurationComponentClientProperties properties)
     {
-        var allPageItems = DataClassInfoProvider
+        var allWebsiteContentTypes = await DataClassInfoProvider
             .GetClasses()
             .WhereEquals(nameof(DataClassInfo.ClassContentTypeType), "Website")
-            .ToList()
-            .Select(x => x.ClassName)
-            .ToList();
+            .Columns(nameof(DataClassInfo.ClassName))
+            .GetEnumerableTypedResultAsync();
 
-        properties.Value = Value;
-        properties.PossibleItems = allPageItems;
+        properties.Value = Value ?? new();
+        properties.PossibleItems = allWebsiteContentTypes.Select(x => x.ClassName).ToList();
 
-        return base.ConfigureClientProperties(properties);
+        await base.ConfigureClientProperties(properties);
     }
 }

@@ -21,13 +21,13 @@ public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLan
     /// <summary>
     /// Object type.
     /// </summary>
-    public const string OBJECT_TYPE = "kenticoalgolia.algoliaindexedlanguage";
+    public const string OBJECT_TYPE = "kenticoalgolia.algoliaindexlanguageitem";
 
 
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexLanguageInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguage", nameof(AlgoliaIndexLanguageItemId), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaIndexLanguageInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguageItem", nameof(AlgoliaIndexLanguageItemID), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
@@ -45,10 +45,10 @@ public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLan
     /// Indexed language id.
     /// </summary>
     [DatabaseField]
-    public virtual int AlgoliaIndexLanguageItemId
+    public virtual int AlgoliaIndexLanguageItemID
     {
-        get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemId)), 0);
-        set => SetValue(nameof(AlgoliaIndexLanguageItemId), value);
+        get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemID)), 0);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemID), value);
     }
 
 
@@ -67,10 +67,10 @@ public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLan
     /// Code.
     /// </summary>
     [DatabaseField]
-    public virtual string AlgoliaIndexedLanguageItemName
+    public virtual string AlgoliaIndexLanguageItemName
     {
-        get => ValidationHelper.GetString(GetValue(nameof(AlgoliaIndexedLanguageItemName)), String.Empty);
-        set => SetValue(nameof(AlgoliaIndexedLanguageItemName), value);
+        get => ValidationHelper.GetString(GetValue(nameof(AlgoliaIndexLanguageItemName)), String.Empty);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemName), value);
     }
 
 

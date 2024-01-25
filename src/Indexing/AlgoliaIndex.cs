@@ -31,7 +31,7 @@ namespace Kentico.Xperience.Algolia.Indexing
         public List<string> LanguageNames { get; }
 
         /// <summary>
-        /// The type of the class which extends <see cref="ILuceneIndexingStrategy"/>.
+        /// The type of the class which extends <see cref="IAlgoliaIndexingStrategy"/>.
         /// </summary>
         public Type AlgoliaIndexingStrategyType { get; }
 

@@ -184,15 +184,15 @@ internal class AlgoliaModuleInstaller
         language = DataClassInfo.New(AlgoliaIndexLanguageItemInfo.OBJECT_TYPE);
         language.ClassName = AlgoliaIndexLanguageItemInfo.TYPEINFO.ObjectClassName;
         language.ClassTableName = AlgoliaIndexLanguageItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
-        language.ClassDisplayName = "Algolia Indexed Language Item";
+        language.ClassDisplayName = "Algolia Index Language Item";
         language.ClassType = ClassType.OTHER;
         language.ClassResourceID = resource.ResourceID;
 
-        var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemId));
+        var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemID));
 
         var formItem = new FormFieldInfo
         {
-            Name = nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexedLanguageItemName),
+            Name = nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemName),
             AllowEmpty = false,
             Visible = true,
             Precision = 0,

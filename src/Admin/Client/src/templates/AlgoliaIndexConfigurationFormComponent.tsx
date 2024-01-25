@@ -1,7 +1,11 @@
 import { type FormComponentProps } from '@kentico/xperience-admin-base';
 import {
+    type ActionCell,
+    Button,
+    ButtonType,
     CellType,
     ColumnContentType,
+    Input,
     Stack,
     type StringCell,
     Table,
@@ -9,13 +13,9 @@ import {
     type TableCell,
     type TableColumn,
     type TableRow,
-    type ActionCell,
     TextArea,
-    Input,
-    Button,
-    ButtonType
 } from '@kentico/xperience-admin-components';
-import React, { Component, ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export interface IncludedPath {
     aliasPath: string | null;
@@ -23,7 +23,8 @@ export interface IncludedPath {
     identifier: string | null;
 }
 
-export interface AlgoliaIndexConfigurationComponentClientProperties extends FormComponentProps {
+export interface AlgoliaIndexConfigurationComponentClientProperties
+    extends FormComponentProps {
     value: IncludedPath[];
     possibleItems: string[];
 }
@@ -142,9 +143,9 @@ export const AlgoliaIndexConfigurationFormComponent = (
         return columns;
     }
     const showContentItems = (identifier: unknown): void => {
-        var rowIndex = -1;
+        let rowIndex = -1;
         for (let i = 0; i < rows.length; i++) {
-            if (rows[i].identifier as string === identifier as string) {
+            if ((rows[i].identifier as string) === (identifier as string)) {
                 rowIndex = i;
             }
         }
@@ -154,24 +155,23 @@ export const AlgoliaIndexConfigurationFormComponent = (
 
         if (!showPathEdit) {
             setEditedIdentifier((row.cells[0] as StringCell).value);
-        }
-        else {
-            setEditedIdentifier("");
+        } else {
+            setEditedIdentifier('');
         }
 
-        var contentTypes = props.value.find((x) => {
-            return x.aliasPath === identifier
+        const contentTypes = props.value.find((x) => {
+            return x.aliasPath === identifier;
         })?.contentTypes;
 
         let contentTypesAsString: string = '';
-        contentTypes?.forEach(x => {
+        contentTypes?.forEach((x) => {
             contentTypesAsString += x + '\n';
-        })
+        });
 
         setContentTypesValue(contentTypesAsString);
         setShowPathEdit(!showPathEdit);
         setShowAddNewPath(!showAddNewPath);
-    }
+    };
     const handleTextareaChange = (
         event: React.ChangeEvent<HTMLTextAreaElement>,
     ): void => {
@@ -183,32 +183,31 @@ export const AlgoliaIndexConfigurationFormComponent = (
         setPath(event.target.value);
     };
     const savePath = (): void => {
-        const contentTypesSplit = contentTypesValue.split('\n').filter(x => {
-            return x !== "" && x != "" && x != null && x != undefined;
+        const contentTypesSplit = contentTypesValue.split('\n').filter((x) => {
+            return x !== '' && x !== '' && x !== null && x !== undefined;
         });
-        if (editedIdentifier === "") {
-            if (!rows.some(x => {
-                return x.identifier === path;
-            })) {
+        if (editedIdentifier === '') {
+            if (
+                !rows.some((x) => {
+                    return x.identifier === path;
+                })
+            ) {
                 if (path === '') {
                     alert('Invalid path');
-                }
-                else {
+                } else {
                     const newPath: IncludedPath = {
                         aliasPath: path,
                         identifier: null,
-                        contentTypes: contentTypesSplit
+                        contentTypes: contentTypesSplit,
                     };
                     props.value.push(newPath);
                     setRows(prepareRows(props.value));
                 }
-            }
-            else {
+            } else {
                 alert('This path already exists!');
             }
-        }
-        else {
-            const rowIndex = rows.findIndex(x => {
+        } else {
+            const rowIndex = rows.findIndex((x) => {
                 return x.identifier === editedIdentifier;
             });
 
@@ -220,6 +219,15 @@ export const AlgoliaIndexConfigurationFormComponent = (
             const editedRow = rows[rowIndex];
             const pathCellInNewRow = rows[rowIndex].cells[0] as StringCell;
             pathCellInNewRow.value = path;
+            const propPathIndex = props.value.findIndex(
+                (p) => p.aliasPath === editedIdentifier,
+            );
+            const updatedPath: IncludedPath = {
+                aliasPath: path,
+                identifier: props.value[propPathIndex].identifier,
+                contentTypes: contentTypesSplit,
+            };
+            props.value[propPathIndex] = updatedPath;
 
             editedRow.cells[0] = pathCellInNewRow;
             editedRow.identifier = path;
@@ -228,10 +236,10 @@ export const AlgoliaIndexConfigurationFormComponent = (
             setRows(newRows);
         }
 
-        setEditedIdentifier("");
+        setEditedIdentifier('');
         setShowPathEdit(false);
         setShowAddNewPath(true);
-    }
+    };
     const addNewPath = (): void => {
         setShowPathEdit(true);
         setContentTypesValue('');

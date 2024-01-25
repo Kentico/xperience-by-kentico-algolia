@@ -60,6 +60,12 @@ public static class AlgoliaStartupExtensions
 
         configure(builder);
 
+        if (builder.IncludeDefaultStrategy)
+        {
+            serviceCollection.AddTransient<DefaultAlgoliaIndexingStrategy>();
+            builder.RegisterStrategy<DefaultAlgoliaIndexingStrategy>("Default");
+        }
+
         return serviceCollection;
     }
 }
@@ -70,7 +76,7 @@ public interface IAlgoliaBuilder
     /// <summary>
     /// Registers the given <typeparamref name="TStrategy" /> as a transient service under <paramref name="strategyName" />
     /// </summary>
-    /// <typeparam name="TStrategy">The custom type of <see cref="ILuceneIndexingStrategy"/> </typeparam>
+    /// <typeparam name="TStrategy">The custom type of <see cref="IAlgoliaIndexingStrategy"/> </typeparam>
     /// <param name="strategyName">Used internally <typeparamref name="TStrategy" /> to enable dynamic assignment of strategies to search indexes. Names must be unique.</param>
     /// <exception cref="ArgumentException">
     ///     Thrown if an strategy has already been registered with the given <paramref name="strategyName"/>
@@ -82,6 +88,12 @@ public interface IAlgoliaBuilder
 internal class AlgoliaBuilder : IAlgoliaBuilder
 {
     private readonly IServiceCollection serviceCollection;
+
+    /// <summary>
+    /// If true, the <see cref="DefaultAlgoliaIndexingStrategy" /> will be available as an explicitly selectable indexing strategy
+    /// within the Admin UI. Defaults to <c>true</c>
+    /// </summary>
+    public bool IncludeDefaultStrategy { get; set; } = true;
 
     public AlgoliaBuilder(IServiceCollection serviceCollection) => this.serviceCollection = serviceCollection;
 

@@ -73,6 +73,33 @@ public class IndexEventWebPageItemModel : IIndexEventItemModel
         ContentTypeID = contentTypeID;
         ContentLanguageID = contentLanguageID;
     }
+
+    public IndexEventWebPageItemModel(
+        int itemID,
+        Guid itemGuid,
+        string languageName,
+        string contentTypeName,
+        string name,
+        bool isSecured,
+        int contentTypeID,
+        int contentLanguageID,
+        string websiteChannelName,
+        string webPageItemTreePath,
+        int order
+    )
+    {
+        ItemID = itemID;
+        ItemGuid = itemGuid;
+        LanguageName = languageName;
+        ContentTypeName = contentTypeName;
+        WebsiteChannelName = websiteChannelName;
+        WebPageItemTreePath = webPageItemTreePath;
+        Order = order;
+        Name = name;
+        IsSecured = isSecured;
+        ContentTypeID = contentTypeID;
+        ContentLanguageID = contentLanguageID;
+    }
 }
 
 public class IndexEventReusableItemModel : IIndexEventItemModel

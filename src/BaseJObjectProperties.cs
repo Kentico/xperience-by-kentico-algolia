@@ -8,7 +8,7 @@ namespace Kentico.Xperience.Algolia;
 /// </summary>
 public static class BaseJObjectProperties
 {
-    public const string ID = "ID";
+    public const string OBJECT_ID = "objectID";
     public const string CONTENT_TYPE_NAME = "ContentTypeName";
     public const string ITEM_GUID = "ItemGuid";
     public const string LANGUAGE_NAME = "LanguageName";

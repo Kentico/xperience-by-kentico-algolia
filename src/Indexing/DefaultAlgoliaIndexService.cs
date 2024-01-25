@@ -1,10 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Algolia.Search.Clients;
-using Algolia.Search.Models.Settings;
-using CMS.DataEngine;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kentico.Xperience.Algolia.Indexing;
@@ -40,6 +39,9 @@ internal class DefaultAlgoliaIndexService : IAlgoliaIndexService
         var algoliaStrategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
         var indexSettings = algoliaStrategy.GetAlgoliaIndexSettings();
 
+        indexSettings.AttributesToRetrieve ??= new List<string>();
+
+        indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.OBJECT_ID);
         indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.URL);
         indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.CONTENT_TYPE_NAME);
         indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.LANGUAGE_NAME);
