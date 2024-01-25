@@ -4,11 +4,7 @@ using CMS.Websites;
 using DancingGoat.Models;
 using Kentico.Xperience.Algolia.Indexing;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
 using Microsoft.IdentityModel.Tokens;
-using System.Linq;
 using DancingGoat.Search.Services;
 using DancingGoat.Search.Models;
 using Kentico.Xperience.Algolia.Search;
@@ -37,8 +33,9 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
         this.webCrawler = webCrawler;
     }
 
-    public override IndexSettings GetAlgoliaIndexSettings() =>
-        new IndexSettings
+    public override IndexSettings GetAlgoliaIndexSettings()
+    {
+        return new IndexSettings
         {
             AttributesToRetrieve = new List<string>
             {
@@ -47,12 +44,13 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
                 nameof(DancingGoatSearchResultModel.Content)
             },
             AttributesForFaceting = new List<string>
-            { 
+            {
                 nameof(DancingGoatSearchResultModel.ContentTypeName)
             }
         };
+    }
 
-    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         var resultProperties = new DancingGoatSearchResultModel();
 
@@ -144,7 +142,7 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 
             foreach (var articlePage in result)
             {
-                // This will be a IIndexEventItemModel passed to our MapToLuceneDocumentOrNull method above
+                // This will be a IIndexEventItemModel passed to our MapToAlgoliaDocumentOrNull method above
                 reindexedItems.Add(new IndexEventWebPageItemModel(
                     articlePage.SystemFields.WebPageItemID,
                     articlePage.SystemFields.WebPageItemGUID,
