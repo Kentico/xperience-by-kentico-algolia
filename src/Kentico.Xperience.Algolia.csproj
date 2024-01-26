@@ -52,7 +52,7 @@
 	<ItemGroup>
 		<PackageReference Include="Algolia.Search" Version="6.13.0" />
 		<PackageReference Include="Kentico.Xperience.Admin" Version="26.2.0" />
-		<PackageReference Include="Kentico.Xperience.WebApp" Version="26.2.0" />
+		<PackageReference Include="Kentico.Xperience.WebApp" Version="26.6.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Html.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
