@@ -24,7 +24,7 @@ internal class AlgoliaModuleInstaller
 
     private ResourceInfo InstallResource()
     {
-        var resourceInfo = resourceProvider.Get("Kentico.Xperience.Algolia") ?? new ResourceInfo();
+        var resourceInfo = resourceProvider.Get("CMS.Integration.Algolia") ?? new ResourceInfo();
 
         resourceInfo.ResourceDisplayName = "Algolia Search";
         resourceInfo.ResourceName = "Kentico.Xperience.Algolia";
