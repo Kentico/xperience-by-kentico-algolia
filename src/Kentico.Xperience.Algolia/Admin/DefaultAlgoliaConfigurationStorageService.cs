@@ -1,5 +1,4 @@
 ﻿using CMS.DataEngine;
-using Kentico.Xperience.Algolia.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

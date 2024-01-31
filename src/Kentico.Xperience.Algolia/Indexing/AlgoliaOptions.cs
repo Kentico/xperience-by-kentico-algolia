@@ -10,8 +10,7 @@ namespace Kentico.Xperience.Algolia.Indexing
         /// <summary>
         /// Configuration section name.
         /// </summary>
-        public const string SECTION_NAME = "xperience.algolia";
-
+        public const string CMS_ALGOLIA_SECTION_NAME = "CMSAlgoliaSearch";
 
         /// <summary>
         /// Algolia application ID.

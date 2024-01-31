@@ -1,5 +1,4 @@
-﻿using Kentico.Xperience.Algolia.Models;
-using CMS.DataEngine;
+﻿using CMS.DataEngine;
 using CMS.FormEngine;
 using CMS.Modules;
 

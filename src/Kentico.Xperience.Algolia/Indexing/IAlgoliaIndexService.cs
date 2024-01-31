@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Algolia.Search.Clients;
-using Kentico.Xperience.Algolia.Models;
 
 namespace Kentico.Xperience.Algolia.Indexing
 {

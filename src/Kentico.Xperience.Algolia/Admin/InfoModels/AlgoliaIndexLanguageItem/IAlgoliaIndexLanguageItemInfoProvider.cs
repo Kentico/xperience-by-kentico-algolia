@@ -1,6 +1,6 @@
 using CMS.DataEngine;
 
-namespace Kentico.Xperience.Algolia.Models;
+namespace Kentico.Xperience.Algolia.Admin;
 
 public partial interface IAlgoliaIndexLanguageItemInfoProvider
 {

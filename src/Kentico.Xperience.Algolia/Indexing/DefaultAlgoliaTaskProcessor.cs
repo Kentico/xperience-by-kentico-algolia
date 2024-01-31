@@ -77,8 +77,8 @@ namespace Kentico.Xperience.Algolia.Indexing
         /// <inheritdoc/>
         public async Task<IEnumerable<JObject>?> GetDocument(AlgoliaQueueItem queueItem)
         {
-            var algoliaIndex = AlgoliaIndexStore.Instance.GetIndex(queueItem.IndexName) ?? throw new Exception($"AlgoliaIndex {queueItem.IndexName} not found!");
-            
+            var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(queueItem.IndexName);
+
             var algoliaStrategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
 
             var data = await algoliaStrategy.MapToAlgoliaJObjectsOrNull(queueItem.ItemToIndex);

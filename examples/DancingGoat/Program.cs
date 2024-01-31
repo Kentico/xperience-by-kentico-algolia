@@ -68,7 +68,7 @@ builder.Services.AddLocalization()
 
 builder.Services.AddDancingGoatServices();
 
-builder.Services.AddAlgoliaServices(builder.Configuration);
+builder.Services.AddKenticoAlgoliaServices(builder.Configuration);
 
 ConfigureMembershipServices(builder.Services);
 

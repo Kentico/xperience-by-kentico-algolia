@@ -7,9 +7,9 @@ namespace DancingGoat.Search;
 
 public static class DancingGoatSearchStartupExtensions
 {
-    public static IServiceCollection AddAlgoliaServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddKenticoAlgoliaServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAlgolia(builder => {
+        services.AddKenticoAlgolia(builder => {
             builder.RegisterStrategy<AdvancedSearchIndexingStrategy>("DancingGoatAdvancedExampleStrategy");
             builder.RegisterStrategy<SimpleSearchIndexingStrategy>("DancingGoatMinimalExampleStrategy");
         }, configuration);

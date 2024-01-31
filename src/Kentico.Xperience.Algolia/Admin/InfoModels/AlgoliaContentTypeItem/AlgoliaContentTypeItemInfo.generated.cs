@@ -7,11 +7,11 @@ using CMS;
 using CMS.DataEngine;
 using CMS.Helpers;
 
-using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Admin;
 
 [assembly: RegisterObjectType(typeof(AlgoliaContentTypeItemInfo), AlgoliaContentTypeItemInfo.OBJECT_TYPE)]
 
-namespace Kentico.Xperience.Algolia.Models;
+namespace Kentico.Xperience.Algolia.Admin;
 
 /// <summary>
 /// Data container class for <see cref="AlgoliaContentTypeItemInfo"/>.

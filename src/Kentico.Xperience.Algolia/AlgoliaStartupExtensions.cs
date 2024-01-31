@@ -23,7 +23,7 @@ public static class AlgoliaStartupExtensions
     {
         return services
             .AddSingleton<AlgoliaModuleInstaller>()
-            .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.SECTION_NAME))
+            .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME))
             .AddSingleton<IInsightsClient>(s =>
             {
                 var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
@@ -53,7 +53,7 @@ public static class AlgoliaStartupExtensions
     /// <param name="configure"></param>
     /// <param name="configuration">The application configuration.</param>
     /// <returns></returns>
-    public static IServiceCollection AddAlgolia(this IServiceCollection serviceCollection, Action<IAlgoliaBuilder> configure, IConfiguration configuration)
+    public static IServiceCollection AddKenticoAlgolia(this IServiceCollection serviceCollection, Action<IAlgoliaBuilder> configure, IConfiguration configuration)
     {
         serviceCollection.AddAlgolia(configuration);
 

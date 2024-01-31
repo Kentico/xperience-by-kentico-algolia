@@ -91,7 +91,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 Some properties of the `IIndexEventItemModel` are added to the document by default by the library and these can be found in the `AlgoliaSearchResultModel` class.
 
 ```csharp
-// BaseDocumentProperties.cs
+// BaseJObjectProperties.cs
 
 public class AlgoliaSearchResultModel
 {

@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using CMS;
 using CMS.DataEngine;
 using CMS.Helpers;
-using Kentico.Xperience.Algolia.Models;
+using Kentico.Xperience.Algolia.Admin;
 
 [assembly: RegisterObjectType(typeof(AlgoliaIncludedPathItemInfo), AlgoliaIncludedPathItemInfo.OBJECT_TYPE)]
 
-namespace Kentico.Xperience.Algolia.Models;
+namespace Kentico.Xperience.Algolia.Admin;
 
 /// <summary>
 /// Data container class for <see cref="AlgoliaIncludedPathItemInfo"/>.

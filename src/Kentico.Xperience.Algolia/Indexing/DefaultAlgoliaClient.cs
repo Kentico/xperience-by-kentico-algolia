@@ -20,7 +20,6 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     private readonly IInfoProvider<ContentLanguageInfo> languageProvider;
     private readonly IInfoProvider<ChannelInfo> channelProvider;
     private readonly IConversionService conversionService;
-    private readonly ICacheAccessor cacheAccessor;
     private readonly IContentQueryExecutor executor;
     private readonly IProgressiveCache cache;
     private readonly ISearchClient searchClient;
@@ -41,7 +40,6 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
         IContentQueryExecutor executor)
     {
         this.algoliaIndexService = algoliaIndexService;
-        this.cacheAccessor = cacheAccessor;
         this.cache = cache;
         this.searchClient = searchClient;
         this.executor = executor;
@@ -118,9 +116,6 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
 
     private async Task RebuildInternal(AlgoliaIndex algoliaIndex, CancellationToken cancellationToken)
     {
-        // Clear statistics cache so listing displays updated data after rebuild
-        cacheAccessor.Remove(CACHEKEY_STATISTICS);
-
         var indexedItems = new List<IndexEventWebPageItemModel>();
         foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
         {

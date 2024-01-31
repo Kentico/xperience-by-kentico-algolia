@@ -40,8 +40,8 @@ dotnet add package Kentico.Xperience.Algolia
 3. Add this library to the application services, registering your custom `DefaultAlgoliaIndexingStrategy` and Algolia services
   ```csharp
   // Program.cs
-    services.AddAlgolia(configuration);
-    services.RegisterStrategy<GlobalAlgoliaIndexingStrategy>("DefaulSrategy");
+    services.AddKenticoAlgolia(configuration);
+    services.RegisterStrategy<GlobalAlgoliaIndexingStrategy>("DefaultStrategy");
    ```
 4. Create an index in Xperience's Administration within the Search application added by this library.
 5. Rebuild the index in Xperience's Administration within the Search application added by this library.
