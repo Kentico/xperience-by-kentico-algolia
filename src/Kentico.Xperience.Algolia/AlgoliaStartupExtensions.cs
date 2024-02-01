@@ -1,11 +1,9 @@
 ﻿using Algolia.Search.Clients;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
-using Kentico.Xperience.Algolia.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System;
 
 namespace Kentico.Xperience.Algolia;
 
@@ -19,10 +17,8 @@ public static class AlgoliaStartupExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
-    public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration)
-    {
-        return services
-            .AddSingleton<AlgoliaModuleInstaller>()
+    public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration) =>
+        services.AddSingleton<AlgoliaModuleInstaller>()
             .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME))
             .AddSingleton<IInsightsClient>(s =>
             {
@@ -43,7 +39,6 @@ public static class AlgoliaStartupExtensions
             .AddSingleton<IAlgoliaTaskProcessor, DefaultAlgoliaTaskProcessor>()
             .AddSingleton<IAlgoliaConfigurationStorageService, DefaultAlgoliaConfigurationStorageService>()
             .AddSingleton<IAlgoliaIndexService, DefaultAlgoliaIndexService>();
-    }
 
     /// <summary>
     /// Adds Algolia services and custom module to application with customized options provided by the <see cref="IAlgoliaBuilder"/>

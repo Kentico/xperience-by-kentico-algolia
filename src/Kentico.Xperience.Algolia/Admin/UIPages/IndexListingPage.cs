@@ -1,12 +1,8 @@
-﻿using Algolia.Search.Models.Common;
-
-using CMS.Core;
+﻿using CMS.Core;
 using CMS.Membership;
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
-using Kentico.Xperience.Algolia.Services;
-using Action = Kentico.Xperience.Admin.Base.Action;
 
 [assembly: UIPage(
    parentType: typeof(AlgoliaApplicationPage),
@@ -22,37 +18,14 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// An admin UI page that displays statistics about the registered Algolia indexes.
 /// </summary>
 [UIEvaluatePermission(SystemPermissions.VIEW)]
-internal class IndexListingPage : ListingPageBase<ListingConfiguration>
+internal class IndexListingPage : ListingPage
 {
     private readonly IAlgoliaClient algoliaClient;
     private readonly IPageUrlGenerator pageUrlGenerator;
     private readonly IAlgoliaConfigurationStorageService configurationStorageService;
-    private readonly IUIPermissionEvaluator permissionEvaluator;
-    private ListingConfiguration? mPageConfiguration;
+    private readonly IConversionService conversionService;
 
-    /// <inheritdoc/>
-    public override ListingConfiguration PageConfiguration
-    {
-        get
-        {
-            mPageConfiguration ??= new ListingConfiguration()
-            { 
-                Caption = LocalizationService.GetString("List of indices"),
-                ColumnConfigurations = new List<ColumnConfiguration>(),
-                TableActions = new List<ActionConfiguration>(),
-                HeaderActions = new List<ActionConfiguration>(),
-                PageSizes = new List<int> { 10, 25 }
-            };
-
-            return mPageConfiguration;
-            
-        }
-        set
-        {
-            mPageConfiguration = value;
-        }
-    }
-
+    protected override string ObjectType => AlgoliaIndexItemInfo.OBJECT_TYPE;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IndexListingPage"/> class.
@@ -61,12 +34,12 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         IAlgoliaClient algoliaClient,
         IPageUrlGenerator pageUrlGenerator,
         IAlgoliaConfigurationStorageService configurationStorageService,
-        IUIPermissionEvaluator permissionEvaluator)
+        IConversionService conversionService)
     {
         this.algoliaClient = algoliaClient;
         this.pageUrlGenerator = pageUrlGenerator;
         this.configurationStorageService = configurationStorageService;
-        this.permissionEvaluator = permissionEvaluator;
+        this.conversionService = conversionService;
     }
 
 
@@ -77,10 +50,10 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         {
             PageConfiguration.Callouts = new List<CalloutConfiguration>
             {
-                new CalloutConfiguration
+                new()
                 {
                     Headline = "No indexes",
-                Content = "No Algolia indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-algolia'>our instructions</a> to read more about creating and registering Algolia indexes.",
+                    Content = "No Algolia indexes registered. See <a target='_blank' href='https://github.com/Kentico/kentico-xperience-algolia'>our instructions</a> to read more about creating and registering Algolia indexes.",
                     ContentAsHtml = true,
                     Type = CalloutType.FriendlyWarning,
                     Placement = CalloutPlacement.OnDesk
@@ -89,41 +62,19 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         }
 
         PageConfiguration.ColumnConfigurations
-            .AddColumn(nameof(IndicesResponse.Name), LocalizationService.GetString("Name"), defaultSortDirection: SortTypeEnum.Asc, searchable: true)
-            .AddColumn(nameof(IndicesResponse.Entries), LocalizationService.GetString("Indexed items"))
-            .AddColumn(nameof(IndicesResponse.LastBuildTimes), LocalizationService.GetString("Build Time"))
-            .AddColumn(nameof(IndicesResponse.UpdatedAt), LocalizationService.GetString("Updated At"));
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId), "ID", defaultSortDirection: SortTypeEnum.Asc, sortable: true)
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName), "Name", sortable: true, searchable: true)
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemChannelName), "Channel", searchable: true, sortable: true)
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemStrategyName), "Index Strategy", searchable: true, sortable: true)
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId), "Entries", sortable: true)
+            .AddColumn(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId), "Last Updated", sortable: true);
 
-        var permissions = await GetUIPermissions();
+        PageConfiguration.AddEditRowAction<IndexEditPage>();
+        PageConfiguration.TableActions.AddCommand("Rebuild", nameof(Rebuild), icon: Icons.RotateRight);
+        PageConfiguration.TableActions.AddDeleteAction(nameof(Delete), "Delete");
+        PageConfiguration.HeaderActions.AddLink<IndexCreatePage>("Create");
 
-        if (permissions.Rebuild)
-        {
-            PageConfiguration.TableActions.AddCommand(LocalizationService.GetString("Build index"), nameof(Rebuild), Icons.RotateRight);
-        }
-        if (permissions.Update)
-        {
-            PageConfiguration.TableActions.AddCommand("Edit", nameof(Edit));
-        }
-        if (permissions.Delete)
-        {
-            PageConfiguration.TableActions.AddCommand("Delete", nameof(Delete));
-        }
-        if (permissions.Create)
-        {
-            PageConfiguration.HeaderActions.AddLink<IndexCreatePage>("Create");
-        }
         await base.ConfigurePage();
-    }
-
-
-    [PageCommand]
-    public async Task<INavigateResponse> RowClick(int id)
-       => await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<IndexEditPage>(id.ToString())));
-
-    [PageCommand]
-    public async Task<INavigateResponse> Edit(int id, CancellationToken cancellationToken)
-    {
-        return await Task.FromResult(NavigateTo(pageUrlGenerator.GenerateUrl<IndexEditPage>(id.ToString())));
     }
 
     [PageCommand(Permission = SystemPermissions.DELETE)]
@@ -132,9 +83,7 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
         bool res = configurationStorageService.TryDeleteIndex(id);
         if (res)
         {
-            var indices = configurationStorageService.GetAllIndexData();
-
-            AlgoliaIndexStore.Instance.SetIndicies(indices);
+            AlgoliaIndexStore.SetIndicies(configurationStorageService);
         }
         var response = NavigateTo(pageUrlGenerator.GenerateUrl<IndexListingPage>());
 
@@ -170,172 +119,76 @@ internal class IndexListingPage : ListingPageBase<ListingConfiguration>
             return ResponseFrom(result)
                .AddErrorMessage(string.Format("Errors occurred while rebuilding the '{0}' index. Please check the Event Log for more details.", index.IndexName));
         }
-        
     }
 
+    private AlgoliaIndexStatisticsViewModel? GetStatistic(Row row, ICollection<AlgoliaIndexStatisticsViewModel> statistics)
+    {
+        int indexID = conversionService.GetInteger(row.Identifier, 0);
+        string indexName = AlgoliaIndexStore.Instance.GetIndex(indexID) is AlgoliaIndex index
+            ? index.IndexName
+            : "";
+
+        return statistics.FirstOrDefault(s => string.Equals(s.Name, indexName, StringComparison.OrdinalIgnoreCase));
+    }
 
     /// <inheritdoc/>
     protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
     {
-        try
+       var result = await base.LoadData(settings, cancellationToken);
+
+        var statistics = await algoliaClient.GetStatistics(default);
+        // Add statistics for indexes that are registered but not created in Algolia
+        AddMissingStatistics(ref statistics);
+
+        if (PageConfiguration.ColumnConfigurations is not List<ColumnConfiguration> columns)
         {
-            var statistics = await algoliaClient.GetStatistics(cancellationToken);
-
-            // Add statistics for indexes that are registered but not created in Algolia
-            AddMissingStatistics(ref statistics);
-
-            // Remove statistics for indexes that are not registered in this instance
-            var filteredStatistics = statistics.Where(stat =>
-                AlgoliaIndexStore.Instance.GetAllIndices().Any(index => index.IndexName.Equals(stat.Name, StringComparison.OrdinalIgnoreCase)));
-
-            var searchedStatistics = DoSearch(filteredStatistics, settings.SearchTerm);
-            var orderedStatistics = SortStatistics(searchedStatistics, settings);
-            var rows = orderedStatistics.Select(stat => GetRow(stat));
-
-            return new LoadDataResult
-            {
-                Rows = rows,
-                TotalCount = rows.Count()
-            };
+            return result;
         }
-        catch (Exception ex)
+
+        int entriesColIndex = columns.FindIndex(c => c.Caption == "Entries");
+        int updatedColIndex = columns.FindIndex(c => c.Caption == "Last Updated");
+
+        foreach (var row in result.Rows)
         {
-            EventLogService.LogException(nameof(IndexListingPage), nameof(LoadData), ex);
-            return new LoadDataResult
+            if (row.Cells is not List<Cell> cells)
             {
-                Rows = Enumerable.Empty<Row>(),
-                TotalCount = 0
-            };
+                continue;
+            }
+
+            var stats = GetStatistic(row, statistics);
+
+            if (stats is null)
+            {
+                continue;
+            }
+
+            if (cells[entriesColIndex] is StringCell entriesCell)
+            {
+                entriesCell.Value = stats.Entries.ToString();
+            }
+            if (cells[updatedColIndex] is StringCell updatedCell)
+            {
+                updatedCell.Value = stats.UpdatedAt.ToLocalTime().ToString();
+            }
         }
+
+        return result;
     }
 
 
-    private static void AddMissingStatistics(ref ICollection<IndicesResponse> statistics)
+    private static void AddMissingStatistics(ref ICollection<AlgoliaIndexStatisticsViewModel> statistics)
     {
-        foreach (var indexName in AlgoliaIndexStore.Instance.GetAllIndices().Select(i => i.IndexName))
+        foreach (string indexName in AlgoliaIndexStore.Instance.GetAllIndices().Select(i => i.IndexName))
         {
-            if (!statistics.Any(stat => stat.Name.Equals(indexName, StringComparison.OrdinalIgnoreCase)))
+            if (!statistics.Any(stat => stat.Name?.Equals(indexName, StringComparison.OrdinalIgnoreCase) ?? false))
             {
-                statistics.Add(new IndicesResponse
+                statistics.Add(new AlgoliaIndexStatisticsViewModel
                 {
                     Name = indexName,
                     Entries = 0,
-                    LastBuildTimes = 0,
                     UpdatedAt = DateTime.MinValue
                 });
             }
         }
     }
-
-
-    private static IEnumerable<IndicesResponse> DoSearch(IEnumerable<IndicesResponse> statistics, string searchTerm)
-    {
-        if (string.IsNullOrEmpty(searchTerm))
-        {
-            return statistics;
-        }
-
-        return statistics.Where(stat => stat.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-    }
-
-
-    private Row GetRow(IndicesResponse statistics)
-    {
-        var algoliaIdex = AlgoliaIndexStore.Instance.GetIndex(statistics.Name);
-        if (algoliaIdex == null)
-        {
-            throw new InvalidOperationException($"Unable to retrieve Algolia index with name '{statistics.Name}.'");
-        }
-
-        return new Row
-        {
-            Identifier = algoliaIdex.Identifier,
-            Action = new Action(ActionType.Command)
-            {
-                Parameter = nameof(RowClick)
-            },
-            Cells = new List<Cell>
-            {
-                new StringCell
-                {
-                    Value = statistics.Name
-                },
-                new StringCell
-                {
-                    Value = statistics.Entries.ToString()
-                },
-                new StringCell
-                {
-                    Value = statistics.LastBuildTimes.ToString()
-                },
-                new StringCell
-                {
-                    Value = statistics.UpdatedAt.ToString()
-                },
-                new ActionCell
-                {
-                    Actions = new List<Action>
-                    {
-                        new Action(ActionType.Command)
-                        {
-                            Title = "Build index",
-                            Label = "Build index",
-                            Icon = Icons.RotateRight,
-                            Parameter = nameof(Rebuild)
-                        },
-                        new Action(ActionType.Command)
-                        {
-                            Title = "Edit",
-                            Label = "Edit",
-                            Parameter = nameof(Edit),
-                            Icon = Icons.Edit
-                        },
-                        new Action(ActionType.Command)
-                        {
-                            Title = "Delete",
-                            Label = "Delete",
-                            Parameter = nameof(Delete),
-                            Icon = Icons.Bin
-                        }
-                    }
-                }
-            }
-        };
-    }
-
-
-    private static IEnumerable<IndicesResponse> SortStatistics(IEnumerable<IndicesResponse> statistics, LoadDataSettings settings)
-    {
-        if (string.IsNullOrEmpty(settings.SortBy))
-        {
-            return statistics;
-        }
-
-        return settings.SortType == SortTypeEnum.Desc
-            ? statistics.OrderByDescending(stat => stat.GetType().GetProperty(settings.SortBy)?.GetValue(stat, null))
-            : statistics.OrderBy(stat => stat.GetType().GetProperty(settings.SortBy)?.GetValue(stat, null));
-    }
-
-    private async Task<UIPermissions> GetUIPermissions()
-    {
-        var permissions = new UIPermissions
-        {
-            Create = (await permissionEvaluator.Evaluate(SystemPermissions.CREATE)).Succeeded,
-            Delete = (await permissionEvaluator.Evaluate(SystemPermissions.DELETE)).Succeeded,
-            Update = (await permissionEvaluator.Evaluate(SystemPermissions.UPDATE)).Succeeded,
-            Rebuild = (await permissionEvaluator.Evaluate(AlgoliaIndexPermissions.REBUILD)).Succeeded,
-            View = (await permissionEvaluator.Evaluate(SystemPermissions.VIEW)).Succeeded
-        };
-
-        return permissions;
-    }
-}
-
-internal record struct UIPermissions
-{
-    public bool View { get; set; }
-    public bool Update { get; set; }
-    public bool Delete { get; set; }
-    public bool Rebuild { get; set; }
-    public bool Create { get; set; }
 }

@@ -1,13 +1,28 @@
 ﻿using CMS.DataEngine;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Kentico.Xperience.Algolia.Admin;
 
-public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationStorageService
+internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationStorageService
 {
+    private readonly IAlgoliaIndexItemInfoProvider indexProvider;
+    private readonly IAlgoliaIncludedPathItemInfoProvider pathProvider;
+    private readonly IAlgoliaContentTypeItemInfoProvider contentTypeProvider;
+    private readonly IAlgoliaIndexLanguageItemInfoProvider languageProvider;
+
+    public DefaultAlgoliaConfigurationStorageService(
+        IAlgoliaIndexItemInfoProvider indexProvider,
+        IAlgoliaIncludedPathItemInfoProvider pathProvider,
+        IAlgoliaContentTypeItemInfoProvider contentTypeProvider,
+        IAlgoliaIndexLanguageItemInfoProvider languageProvider
+    )
+    {
+        this.indexProvider = indexProvider;
+        this.pathProvider = pathProvider;
+        this.contentTypeProvider = contentTypeProvider;
+        this.languageProvider = languageProvider;
+    }
+
     private static string RemoveWhitespacesUsingStringBuilder(string source)
     {
         var builder = new StringBuilder(source.Length);
@@ -15,27 +30,30 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
         {
             char c = source[i];
             if (!char.IsWhiteSpace(c))
+            {
                 builder.Append(c);
+            }
         }
         return source.Length == builder.Length ? source : builder.ToString();
     }
     public bool TryCreateIndex(AlgoliaConfigurationModel configuration)
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
+        var existingIndex = indexProvider.Get()
+            .WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName), configuration.IndexName)
+            .TopN(1)
+            .FirstOrDefault();
 
-        if (indexProvider.Get().WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName), configuration.IndexName).FirstOrDefault() != default)
+        if (existingIndex is not null)
         {
             return false;
         }
 
         var newInfo = new AlgoliaIndexItemInfo()
         {
-            AlgoliaIndexItemIndexName = configuration.IndexName,
-            AlgoliaIndexItemChannelName = configuration.ChannelName,
-            AlgoliaIndexItemStrategyName = configuration.StrategyName
+            AlgoliaIndexItemIndexName = configuration.IndexName ?? "",
+            AlgoliaIndexItemChannelName = configuration.ChannelName ?? "",
+            AlgoliaIndexItemStrategyName = configuration.StrategyName ?? "",
+            AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? ""
         };
 
         indexProvider.Set(newInfo);
@@ -52,7 +70,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
                     AlgoliaIndexLanguageItemIndexItemId = newInfo.AlgoliaIndexItemId
                 };
 
-                languageProvider.Set(languageInfo);
+                languageInfo.Insert();
             }
         }
 
@@ -62,8 +80,8 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
             {
                 var pathInfo = new AlgoliaIncludedPathItemInfo()
                 {
-                    AlgoliaIncludedPathAliasPath = path.AliasPath,
-                    AlgoliaIncludedPathIndexItemId = newInfo.AlgoliaIndexItemId
+                    AlgoliaIncludedPathItemAliasPath = path.AliasPath,
+                    AlgoliaIncludedPathItemIndexItemId = newInfo.AlgoliaIndexItemId
                 };
                 pathProvider.Set(pathInfo);
 
@@ -77,7 +95,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
                             AlgoliaContentTypeItemIncludedPathItemId = pathInfo.AlgoliaIncludedPathItemId,
                             AlgoliaContentTypeItemIndexItemId = newInfo.AlgoliaIndexItemId
                         };
-                        contentPathProvider.Set(contentInfo);
+                        contentInfo.Insert();
                     }
                 }
             }
@@ -87,92 +105,56 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
     }
     public AlgoliaConfigurationModel? GetIndexDataOrNull(int indexId)
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
-
         var indexInfo = indexProvider.Get().WithID(indexId).FirstOrDefault();
         if (indexInfo == default)
         {
             return default;
         }
 
-        var paths = pathProvider.Get().WhereEquals(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId), indexInfo.AlgoliaIndexItemId).ToList();
-        var contentTypes = contentPathProvider.Get().WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).ToList();
+        var paths = pathProvider.Get().WhereEquals(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
+        var contentTypes = contentTypeProvider.Get().WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
+        var languages = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
-        return new AlgoliaConfigurationModel()
-        {
-            ChannelName = indexInfo.AlgoliaIndexItemChannelName,
-            IndexName = indexInfo.AlgoliaIndexItemIndexName,
-            LanguageNames = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).Select(x => x.AlgoliaIndexLanguageItemName).ToList(),
-            RebuildHook = indexInfo.AlgoliaIndexItemRebuildHook,
-            Id = indexInfo.AlgoliaIndexItemId,
-            StrategyName = indexInfo.AlgoliaIndexItemStrategyName,
-            Paths = paths.Select(x => new AlgoliaIndexIncludedPath(x.AlgoliaIncludedPathAliasPath)
-            {
-                Identifier = x.AlgoliaIncludedPathItemId.ToString(),
-                ContentTypes = contentTypes.Where(y => x.AlgoliaIncludedPathItemId == y.AlgoliaContentTypeItemIncludedPathItemId).Select(y => y.AlgoliaContentTypeItemContentTypeName).ToList()
-            }).ToList()
-        };
+        return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypes);
     }
-    public List<string> GetExistingIndexNames() => AlgoliaIndexItemInfoProvider.ProviderObject.Get().Select(x => x.AlgoliaIndexItemIndexName).ToList();
-    public List<int> GetIndexIds() => AlgoliaIndexItemInfoProvider.ProviderObject.Get().Select(x => x.AlgoliaIndexItemId).ToList();
+    public List<string> GetExistingIndexNames() => indexProvider.Get().Select(x => x.AlgoliaIndexItemIndexName).ToList();
+    public List<int> GetIndexIds() => indexProvider.Get().Select(x => x.AlgoliaIndexItemId).ToList();
     public IEnumerable<AlgoliaConfigurationModel> GetAllIndexData()
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
-
-        var indexInfos = indexProvider.Get().ToList();
-        if (indexInfos == default)
+        var indexInfos = indexProvider.Get().GetEnumerableTypedResult().ToList();
+        if (indexInfos.Count == 0)
         {
             return new List<AlgoliaConfigurationModel>();
         }
 
         var paths = pathProvider.Get().ToList();
-        var contentTypes = contentPathProvider.Get().ToList();
+        var contentTypes = contentTypeProvider.Get().ToList();
         var languages = languageProvider.Get().ToList();
 
-        return indexInfos.Select(x => new AlgoliaConfigurationModel
-        {
-            ChannelName = x.AlgoliaIndexItemChannelName,
-            IndexName = x.AlgoliaIndexItemIndexName,
-            LanguageNames = languages.Where(y => y.AlgoliaIndexLanguageItemIndexItemId == x.AlgoliaIndexItemId).Select(y => y.AlgoliaIndexLanguageItemName).ToList(),
-            RebuildHook = x.AlgoliaIndexItemRebuildHook,
-            Id = x.AlgoliaIndexItemId,
-            StrategyName = x.AlgoliaIndexItemStrategyName,
-            Paths = paths.Where(y => y.AlgoliaIncludedPathIndexItemId == x.AlgoliaIndexItemId).Select(y => new AlgoliaIndexIncludedPath(y.AlgoliaIncludedPathAliasPath)
-            {
-                Identifier = y.AlgoliaIncludedPathItemId.ToString(),
-                ContentTypes = contentTypes.Where(z => z.AlgoliaContentTypeItemIncludedPathItemId == y.AlgoliaIncludedPathItemId).Select(z => z.AlgoliaContentTypeItemContentTypeName).ToList()
-            }).ToList()
-        });
+        return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypes));
     }
     public bool TryEditIndex(AlgoliaConfigurationModel configuration)
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
-
         configuration.IndexName = RemoveWhitespacesUsingStringBuilder(configuration.IndexName ?? "");
 
-        var indexInfo = indexProvider.Get().WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemIndexName), configuration.IndexName).FirstOrDefault();
+        var indexInfo = indexProvider.Get()
+            .WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId), configuration.Id)
+            .TopN(1)
+            .FirstOrDefault();
 
-        if (indexInfo == default)
+        if (indexInfo is null)
         {
             return false;
         }
 
-        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {configuration.Id}"));
+        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemIndexItemId)} = {configuration.Id}"));
         languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {configuration.Id}"));
-        contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
+        contentTypeProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
 
-        indexInfo.AlgoliaIndexItemChannelName = configuration.IndexName;
-        indexInfo.AlgoliaIndexItemStrategyName = configuration.StrategyName;
-        indexInfo.AlgoliaIndexItemChannelName = configuration.ChannelName;
+        indexInfo.AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? "";
+        indexInfo.AlgoliaIndexItemStrategyName = configuration.StrategyName ?? "";
+        indexInfo.AlgoliaIndexItemChannelName = configuration.ChannelName ?? "";
+        indexInfo.AlgoliaIndexItemIndexName = configuration.IndexName ?? "";
 
         indexProvider.Set(indexInfo);
 
@@ -183,7 +165,7 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
                 var languageInfo = new AlgoliaIndexLanguageItemInfo()
                 {
                     AlgoliaIndexLanguageItemName = language,
-                    AlgoliaIndexLanguageItemIndexItemId = indexInfo.AlgoliaIndexItemId
+                    AlgoliaIndexLanguageItemIndexItemId = indexInfo.AlgoliaIndexItemId,
                 };
 
                 languageProvider.Set(languageInfo);
@@ -196,8 +178,8 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
             {
                 var pathInfo = new AlgoliaIncludedPathItemInfo()
                 {
-                    AlgoliaIncludedPathAliasPath = path.AliasPath,
-                    AlgoliaIncludedPathIndexItemId = indexInfo.AlgoliaIndexItemId
+                    AlgoliaIncludedPathItemAliasPath = path.AliasPath,
+                    AlgoliaIncludedPathItemIndexItemId = indexInfo.AlgoliaIndexItemId,
                 };
                 pathProvider.Set(pathInfo);
 
@@ -207,11 +189,11 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
                     {
                         var contentInfo = new AlgoliaContentTypeItemInfo()
                         {
-                            AlgoliaContentTypeItemContentTypeName = contentType,
+                            AlgoliaContentTypeItemContentTypeName = contentType ?? "",
                             AlgoliaContentTypeItemIncludedPathItemId = pathInfo.AlgoliaIncludedPathItemId,
-                            AlgoliaContentTypeItemIndexItemId = indexInfo.AlgoliaIndexItemId
+                            AlgoliaContentTypeItemIndexItemId = indexInfo.AlgoliaIndexItemId,
                         };
-                        contentPathProvider.Set(contentInfo);
+                        contentInfo.Insert();
                     }
                 }
             }
@@ -221,28 +203,20 @@ public class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationSt
     }
     public bool TryDeleteIndex(int id)
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
-
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {id}"));
-        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {id}"));
+        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemIndexItemId)} = {id}"));
         languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {id}"));
-        contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {id}"));
+        contentTypeProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {id}"));
 
         return true;
     }
     public bool TryDeleteIndex(AlgoliaConfigurationModel configuration)
     {
-        var pathProvider = AlgoliaIncludedPathItemInfoProvider.ProviderObject;
-        var contentPathProvider = AlgoliaContentTypeItemInfoProvider.ProviderObject;
-        var indexProvider = AlgoliaIndexItemInfoProvider.ProviderObject;
-        var languageProvider = AlgoliaIndexLanguageInfoProvider.ProviderObject;
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {configuration.Id}"));
-        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathIndexItemId)} = {configuration.Id}"));
+        pathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemIndexItemId)} = {configuration.Id}"));
         languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {configuration.Id}"));
-        contentPathProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
+        contentTypeProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
+
         return true;
     }
 }

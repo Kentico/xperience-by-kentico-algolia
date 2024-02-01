@@ -47,7 +47,13 @@ public class AlgoliaConfigurationModel
         ChannelName = index.AlgoliaIndexItemChannelName;
         RebuildHook = index.AlgoliaIndexItemRebuildHook;
         StrategyName = index.AlgoliaIndexItemStrategyName;
-        LanguageNames = indexLanguages.Select(l => l.AlgoliaIndexLanguageItemName).ToList();
-        Paths = indexPaths.Select(p => new AlgoliaIndexIncludedPath(p, contentTypes)).ToList();
+        LanguageNames = indexLanguages
+            .Where(l => l.AlgoliaIndexLanguageItemIndexItemId == index.AlgoliaIndexItemId)
+            .Select(l => l.AlgoliaIndexLanguageItemName)
+            .ToList();
+        Paths = indexPaths
+            .Where(p => p.AlgoliaIncludedPathItemIndexItemId == index.AlgoliaIndexItemId)
+            .Select(p => new AlgoliaIndexIncludedPath(p, contentTypes))
+            .ToList();
     }
 }

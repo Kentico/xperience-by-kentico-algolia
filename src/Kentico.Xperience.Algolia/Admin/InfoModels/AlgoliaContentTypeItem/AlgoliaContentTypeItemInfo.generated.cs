@@ -1,7 +1,6 @@
-using System;
+
 using System.Data;
 using System.Runtime.Serialization;
-using System.Collections.Generic;
 
 using CMS;
 using CMS.DataEngine;
@@ -28,13 +27,13 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new ObjectTypeInfo(typeof(AlgoliaContentTypeItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaContentTypeItem", nameof(AlgoliaContentTypeItemId), null, nameof(AlgoliaContentTypeItemGuid), null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaContentTypeItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaContentTypeItem", nameof(AlgoliaContentTypeItemId), null, nameof(AlgoliaContentTypeItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()
         {
-            new (nameof(AlgoliaContentTypeItemIncludedPathItemId), AlgoliaIncludedPathItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
-            new (nameof(AlgoliaContentTypeItemIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
+            new(nameof(AlgoliaContentTypeItemIncludedPathItemId), AlgoliaIncludedPathItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
+            new(nameof(AlgoliaContentTypeItemIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
         },
         ContinuousIntegrationSettings =
         {
@@ -53,6 +52,7 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
         set => SetValue(nameof(AlgoliaContentTypeItemId), value);
     }
 
+
     /// <summary>
     /// Algolia content type item guid.
     /// </summary>
@@ -62,6 +62,7 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
         get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaContentTypeItemGuid)), default);
         set => SetValue(nameof(AlgoliaContentTypeItemGuid), value);
     }
+
 
     /// <summary>
     /// Content type name.

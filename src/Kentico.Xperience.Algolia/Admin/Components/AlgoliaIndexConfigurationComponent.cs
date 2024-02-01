@@ -2,11 +2,7 @@
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Admin.Base.FormAnnotations;
 using Kentico.Xperience.Admin.Base.Forms;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Kentico.Xperience.Algolia.Admin;
-using System;
 
 [assembly: RegisterFormComponent(
     identifier: AlgoliaIndexConfigurationComponent.IDENTIFIER,

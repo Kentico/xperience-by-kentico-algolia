@@ -96,5 +96,16 @@ namespace Kentico.Xperience.Algolia.Indexing
                 Instance.AddIndex(new AlgoliaIndex(index, StrategyStorage.Strategies));
             }
         }
+
+        /// <summary>
+        /// Sets the current indicies to those provided by <paramref name="configurationService"/>
+        /// </summary>
+        /// <param name="configurationService"></param>
+        internal static void SetIndicies(IAlgoliaConfigurationStorageService configurationService)
+        {
+            var indices = configurationService.GetAllIndexData();
+
+            Instance.SetIndicies(indices);
+        }
     }
 }

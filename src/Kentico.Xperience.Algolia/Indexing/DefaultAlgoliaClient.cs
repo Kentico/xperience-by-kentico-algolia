@@ -4,9 +4,8 @@ using CMS.ContentEngine;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.Helpers;
-using CMS.Helpers.Caching.Abstractions;
 using CMS.Websites;
-using Kentico.Xperience.Algolia.Services;
+using Kentico.Xperience.Algolia.Admin;
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing;
@@ -62,8 +61,19 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     }
 
     /// <inheritdoc/>
-    public async Task<ICollection<IndicesResponse>> GetStatistics(CancellationToken cancellationToken) =>
+    private async Task<ICollection<IndicesResponse>> GetStatisticsInternal(CancellationToken cancellationToken) =>
         (await searchClient.ListIndicesAsync(ct: cancellationToken).ConfigureAwait(false)).Items;
+
+    /// <inheritdoc/>
+    public async Task<ICollection<AlgoliaIndexStatisticsViewModel>> GetStatistics(CancellationToken cancellationToken) =>
+        (await GetStatisticsInternal(cancellationToken))
+        .Select(i => new AlgoliaIndexStatisticsViewModel
+        {
+            Name = i.Name,
+            Entries = i.Entries,
+            UpdatedAt = i.UpdatedAt
+        })
+        .ToList();
 
     /// <inheritdoc />
     public Task Rebuild(string indexName, CancellationToken cancellationToken)
@@ -175,13 +185,13 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         var upsertedCount = 0;
         var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
-        
+
         var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true, ct: cancellationToken).ConfigureAwait(false);
         foreach (var response in batchIndexingResponse.Responses)
         {
             upsertedCount += response.ObjectIDs.Count();
         }
-        
+
         return upsertedCount;
     }
 

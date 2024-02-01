@@ -18,6 +18,10 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// The root application page for the Algolia integration.
 /// </summary>
 [UIPermission(SystemPermissions.VIEW)]
+[UIPermission(SystemPermissions.CREATE)]
+[UIPermission(SystemPermissions.UPDATE)]
+[UIPermission(SystemPermissions.DELETE)]
+[UIPermission(AlgoliaIndexPermissions.REBUILD, "Rebuild")]
 internal class AlgoliaApplicationPage : ApplicationPage
 {
     public const string IDENTIFIER = "Kentico.Xperience.Integrations.Algolia";

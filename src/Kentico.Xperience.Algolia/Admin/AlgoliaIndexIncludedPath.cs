@@ -33,7 +33,7 @@ public class AlgoliaIndexIncludedPath
     /// <param name="contentTypes"></param>
     public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaContentTypeItemInfo> contentTypes)
     {
-        AliasPath = indexPath.AlgoliaIncludedPathAliasPath;
+        AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
         ContentTypes = contentTypes.Where(y => indexPath.AlgoliaIncludedPathItemId == y.AlgoliaContentTypeItemIncludedPathItemId).Select(y => y.AlgoliaContentTypeItemContentTypeName).ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }

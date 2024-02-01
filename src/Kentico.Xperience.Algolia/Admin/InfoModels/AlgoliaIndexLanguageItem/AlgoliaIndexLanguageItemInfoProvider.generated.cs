@@ -1,18 +1,19 @@
 using CMS.DataEngine;
 
-namespace Kentico.Xperience.Algolia.Admin;
-
-/// <summary>
-/// Class providing <see cref="AlgoliaIndexLanguageItemInfo"/> management.
-/// </summary>
-[ProviderInterface(typeof(IAlgoliaIndexLanguageItemInfoProvider))]
-public partial class AlgoliaIndexLanguageInfoProvider : AbstractInfoProvider<AlgoliaIndexLanguageItemInfo, AlgoliaIndexLanguageInfoProvider>, IAlgoliaIndexLanguageItemInfoProvider
+namespace Kentico.Xperience.Algolia.Admin
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="AlgoliaIndexLanguageInfoProvider"/> class.
+    /// Class providing <see cref="AlgoliaIndexLanguageItemInfo"/> management.
     /// </summary>
-    public AlgoliaIndexLanguageInfoProvider()
-        : base(AlgoliaIndexLanguageItemInfo.TYPEINFO)
+    [ProviderInterface(typeof(IAlgoliaIndexLanguageItemInfoProvider))]
+    public partial class AlgoliaIndexedLanguageInfoProvider : AbstractInfoProvider<AlgoliaIndexLanguageItemInfo, AlgoliaIndexedLanguageInfoProvider>, IAlgoliaIndexLanguageItemInfoProvider
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AlgoliaIndexedLanguageInfoProvider"/> class.
+        /// </summary>
+        public AlgoliaIndexedLanguageInfoProvider()
+            : base(AlgoliaIndexLanguageItemInfo.TYPEINFO)
+        {
+        }
     }
 }

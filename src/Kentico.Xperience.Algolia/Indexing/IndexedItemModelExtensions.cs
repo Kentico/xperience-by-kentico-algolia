@@ -9,12 +9,12 @@ namespace Kentico.Xperience.Algolia.Indexing;
 internal static class IndexedItemModelExtensions
 {
     /// <summary>
-    /// Returns true if the node is included in the Lucene index based on the index's defined paths
+    /// Returns true if the node is included in the Algolia index based on the index's defined paths
     /// </summary>
     /// <remarks>Logs an error if the search model cannot be found.</remarks>
     /// <param name="indexedItemModel">The node to check for indexing.</param>
     /// <param name="log"></param>
-    /// <param name="indexName">The Lucene index code name.</param>
+    /// <param name="indexName">The Algolia index code name.</param>
     /// <param name="eventName"></param>
     /// <exception cref="ArgumentNullException" />
     public static bool IsIndexedByIndex(this IndexEventWebPageItemModel indexedItemModel, IEventLogService log, string indexName, string eventName)
@@ -31,7 +31,7 @@ internal static class IndexedItemModelExtensions
         var algoliaIndex = AlgoliaIndexStore.Instance.GetIndex(indexName);
         if (algoliaIndex is null)
         {
-            log.LogError(nameof(IndexedItemModelExtensions), nameof(IsIndexedByIndex), $"Error loading registered Lucene index '{indexName}' for event [{eventName}].");
+            log.LogError(nameof(IndexedItemModelExtensions), nameof(IsIndexedByIndex), $"Error loading registered Algolia index '{indexName}' for event [{eventName}].");
             return false;
         }
 
