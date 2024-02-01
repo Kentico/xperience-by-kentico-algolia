@@ -24,14 +24,11 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     private readonly IProgressiveCache cache;
     private readonly ISearchClient searchClient;
 
-    internal const string CACHEKEY_STATISTICS = "Algolia|ListIndices";
-
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultAlgoliaClient"/> class.
     /// </summary>
     public DefaultAlgoliaClient(
         IAlgoliaIndexService algoliaIndexService,
-        ICacheAccessor cacheAccessor,
         IInfoProvider<ContentLanguageInfo> languageProvider,
         IInfoProvider<ChannelInfo> channelProvider,
         IConversionService conversionService,
