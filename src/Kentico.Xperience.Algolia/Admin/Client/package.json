@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "start": "npm run lint && webpack serve --mode development",
+    "build:dev": "npm run lint && webpack --mode=development",
     "build": "npm run lint && webpack --mode=production",
     "lint": "npx eslint src/**/*.tsx"
   },
