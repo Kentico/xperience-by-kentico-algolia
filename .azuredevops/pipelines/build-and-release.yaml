@@ -36,6 +36,9 @@ stages:
           - name: Configuration
             value: Release
 
+          - name: SIGN_FILE
+            value: true
+
           - name: ProjectPath
             value: src/Kentico.Xperience.Algolia/Kentico.Xperience.Algolia.csproj
 
@@ -114,7 +117,7 @@ stages:
                       displayName: NuGet push
                       inputs:
                         command: push
-                        packagesToPush: $(Pipeline.Workspace)/artifact/*.nupkg
+                        packagesToPush: $(Pipeline.Workspace)/**/*.nupkg
                         nuGetFeedType: external
                         publishFeedCredentials: nuget.org
                         allowPackageConflicts: true
