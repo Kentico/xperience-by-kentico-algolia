@@ -7,7 +7,10 @@ namespace Kentico.Xperience.Algolia.Tests.Tests;
 
 internal class MockEventLogService : IEventLogService
 {
-    public void LogEvent(EventLogData eventLogData) { }
+    public void LogEvent(EventLogData eventLogData)
+    {
+        // Method intentionally left empty.
+    }
 }
 
 internal class IndexedItemModelExtensionsTests
