@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 using DancingGoat;
 using DancingGoat.Models;
 
@@ -13,16 +10,10 @@ using Kentico.Web.Mvc;
 
 using Kentico.Xperience.Cloud;
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-
-using Microsoft.Extensions.Hosting;
 using DancingGoat.Search;
 
 
