@@ -17,7 +17,7 @@ public static class AlgoliaStartupExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
-    public static IServiceCollection AddAlgolia(this IServiceCollection services, IConfiguration configuration) =>
+    public static IServiceCollection AddKenticoAlgolia(this IServiceCollection services, IConfiguration configuration) =>
         services.AddSingleton<AlgoliaModuleInstaller>()
             .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME))
             .AddSingleton<IInsightsClient>(s =>
