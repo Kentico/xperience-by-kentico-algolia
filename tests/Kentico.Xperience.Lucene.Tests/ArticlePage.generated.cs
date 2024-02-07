@@ -9,55 +9,52 @@
 // </auto-generated>
 //--------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using CMS.Websites;
 
-namespace DancingGoat.Models
+namespace DancingGoat.Models;
+
+/// <summary>
+/// Represents a page of type <see cref="ArticlePage"/>.
+/// </summary>
+public partial class ArticlePage : IWebPageFieldsSource
 {
 	/// <summary>
-	/// Represents a page of type <see cref="ArticlePage"/>.
+	/// Code name of the content type.
 	/// </summary>
-	public partial class ArticlePage : IWebPageFieldsSource
-	{
-		/// <summary>
-		/// Code name of the content type.
-		/// </summary>
-		public const string CONTENT_TYPE_NAME = "DancingGoat.ArticlePage";
+	public const string CONTENT_TYPE_NAME = "DancingGoat.ArticlePage";
 
 
-		/// <summary>
-		/// Represents system properties for a web page item.
-		/// </summary>
-		public WebPageFields SystemFields { get; set; }
+	/// <summary>
+	/// Represents system properties for a web page item.
+	/// </summary>
+	public WebPageFields SystemFields { get; set; }
 
 
-		/// <summary>
-		/// ArticleTitle.
-		/// </summary>
-		public string ArticleTitle { get; set; }
+	/// <summary>
+	/// ArticleTitle.
+	/// </summary>
+	public string ArticleTitle { get; set; }
 
 
-		/// <summary>
-		/// ArticlePagePublishDate.
-		/// </summary>
-		public DateTime ArticlePagePublishDate { get; set; }
+	/// <summary>
+	/// ArticlePagePublishDate.
+	/// </summary>
+	public DateTime ArticlePagePublishDate { get; set; }
 
-		/// <summary>
-		/// ArticlePageSummary.
-		/// </summary>
-		public string ArticlePageSummary { get; set; }
-
-
-		/// <summary>
-		/// ArticlePageText.
-		/// </summary>
-		public string ArticlePageText { get; set; }
+	/// <summary>
+	/// ArticlePageSummary.
+	/// </summary>
+	public string ArticlePageSummary { get; set; }
 
 
-		/// <summary>
-		/// ArticleRelatedArticles.
-		/// </summary>
-		public IEnumerable<WebPageRelatedItem> ArticleRelatedArticles { get; set; }
-	}
+	/// <summary>
+	/// ArticlePageText.
+	/// </summary>
+	public string ArticlePageText { get; set; }
+
+
+	/// <summary>
+	/// ArticleRelatedArticles.
+	/// </summary>
+	public IEnumerable<WebPageRelatedItem> ArticleRelatedArticles { get; set; }
 }

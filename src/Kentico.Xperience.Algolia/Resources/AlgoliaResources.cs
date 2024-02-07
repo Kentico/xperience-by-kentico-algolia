@@ -9,6 +9,6 @@ namespace Kentico.Xperience.Algolia.Resources;
 internal class AlgoliaResources
 {
     public AlgoliaResources()
-    { 
+    {
     }
 }

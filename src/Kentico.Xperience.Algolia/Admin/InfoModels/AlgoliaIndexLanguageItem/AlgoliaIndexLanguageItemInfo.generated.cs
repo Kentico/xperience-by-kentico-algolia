@@ -9,126 +9,125 @@ using Kentico.Xperience.Algolia.Admin;
 
 [assembly: RegisterObjectType(typeof(AlgoliaIndexLanguageItemInfo), AlgoliaIndexLanguageItemInfo.OBJECT_TYPE)]
 
-namespace Kentico.Xperience.Algolia.Admin
+namespace Kentico.Xperience.Algolia.Admin;
+
+/// <summary>
+/// Data container class for <see cref="AlgoliaIndexLanguageItemInfo"/>.
+/// </summary>
+[Serializable]
+public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLanguageItemInfo, IAlgoliaIndexLanguageItemInfoProvider>
 {
     /// <summary>
-    /// Data container class for <see cref="AlgoliaIndexLanguageItemInfo"/>.
+    /// Object type.
     /// </summary>
-    [Serializable]
-    public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLanguageItemInfo, IAlgoliaIndexLanguageItemInfoProvider>
+    public const string OBJECT_TYPE = "kenticoalgolia.algoliaindexlanguageitem";
+
+
+    /// <summary>
+    /// Type information.
+    /// </summary>
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaIndexedLanguageInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguageItem", nameof(AlgoliaIndexLanguageItemID), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
     {
-        /// <summary>
-        /// Object type.
-        /// </summary>
-        public const string OBJECT_TYPE = "kenticoalgolia.algoliaindexlanguageitem";
-
-
-        /// <summary>
-        /// Type information.
-        /// </summary>
-        public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaIndexedLanguageInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguageItem", nameof(AlgoliaIndexLanguageItemID), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
+        TouchCacheDependencies = true,
+        DependsOn = new List<ObjectDependency>()
         {
-            TouchCacheDependencies = true,
-            DependsOn = new List<ObjectDependency>()
-            {
-                new(nameof(AlgoliaIndexLanguageItemIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
-            },
-            ContinuousIntegrationSettings =
-            {
-                Enabled = true
-            }
-        };
-
-
-        /// <summary>
-        /// Indexed language id.
-        /// </summary>
-        [DatabaseField]
-        public virtual int AlgoliaIndexLanguageItemID
+            new(nameof(AlgoliaIndexLanguageItemIndexItemId), AlgoliaIndexItemInfo.OBJECT_TYPE, ObjectDependencyEnum.Required),
+        },
+        ContinuousIntegrationSettings =
         {
-            get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemID)), 0);
-            set => SetValue(nameof(AlgoliaIndexLanguageItemID), value);
+            Enabled = true
         }
+    };
 
 
-        /// <summary>
-        /// Indexed language id.
-        /// </summary>
-        [DatabaseField]
-        public virtual Guid AlgoliaIndexLanguageItemGuid
-        {
-            get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaIndexLanguageItemGuid)), default);
-            set => SetValue(nameof(AlgoliaIndexLanguageItemGuid), value);
-        }
+    /// <summary>
+    /// Indexed language id.
+    /// </summary>
+    [DatabaseField]
+    public virtual int AlgoliaIndexLanguageItemID
+    {
+        get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemID)), 0);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemID), value);
+    }
 
 
-        /// <summary>
-        /// Code.
-        /// </summary>
-        [DatabaseField]
-        public virtual string AlgoliaIndexLanguageItemName
-        {
-            get => ValidationHelper.GetString(GetValue(nameof(AlgoliaIndexLanguageItemName)), String.Empty);
-            set => SetValue(nameof(AlgoliaIndexLanguageItemName), value);
-        }
+    /// <summary>
+    /// Indexed language id.
+    /// </summary>
+    [DatabaseField]
+    public virtual Guid AlgoliaIndexLanguageItemGuid
+    {
+        get => ValidationHelper.GetGuid(GetValue(nameof(AlgoliaIndexLanguageItemGuid)), default);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemGuid), value);
+    }
 
 
-        /// <summary>
-        /// Algolia index item id.
-        /// </summary>
-        [DatabaseField]
-        public virtual int AlgoliaIndexLanguageItemIndexItemId
-        {
-            get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemIndexItemId)), 0);
-            set => SetValue(nameof(AlgoliaIndexLanguageItemIndexItemId), value);
-        }
+    /// <summary>
+    /// Code.
+    /// </summary>
+    [DatabaseField]
+    public virtual string AlgoliaIndexLanguageItemName
+    {
+        get => ValidationHelper.GetString(GetValue(nameof(AlgoliaIndexLanguageItemName)), String.Empty);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemName), value);
+    }
 
 
-        /// <summary>
-        /// Deletes the object using appropriate provider.
-        /// </summary>
-        protected override void DeleteObject()
-        {
-            Provider.Delete(this);
-        }
+    /// <summary>
+    /// Algolia index item id.
+    /// </summary>
+    [DatabaseField]
+    public virtual int AlgoliaIndexLanguageItemIndexItemId
+    {
+        get => ValidationHelper.GetInteger(GetValue(nameof(AlgoliaIndexLanguageItemIndexItemId)), 0);
+        set => SetValue(nameof(AlgoliaIndexLanguageItemIndexItemId), value);
+    }
 
 
-        /// <summary>
-        /// Updates the object using appropriate provider.
-        /// </summary>
-        protected override void SetObject()
-        {
-            Provider.Set(this);
-        }
+    /// <summary>
+    /// Deletes the object using appropriate provider.
+    /// </summary>
+    protected override void DeleteObject()
+    {
+        Provider.Delete(this);
+    }
 
 
-        /// <summary>
-        /// Constructor for de-serialization.
-        /// </summary>
-        /// <param name="info">Serialization info.</param>
-        /// <param name="context">Streaming context.</param>
-        protected AlgoliaIndexLanguageItemInfo(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
+    /// <summary>
+    /// Updates the object using appropriate provider.
+    /// </summary>
+    protected override void SetObject()
+    {
+        Provider.Set(this);
+    }
 
 
-        /// <summary>
-        /// Creates an empty instance of the <see cref="AlgoliaIndexLanguageItemInfo"/> class.
-        /// </summary>
-        public AlgoliaIndexLanguageItemInfo()
-            : base(TYPEINFO)
-        {
-        }
+    /// <summary>
+    /// Constructor for de-serialization.
+    /// </summary>
+    /// <param name="info">Serialization info.</param>
+    /// <param name="context">Streaming context.</param>
+    protected AlgoliaIndexLanguageItemInfo(SerializationInfo info, StreamingContext context)
+        : base(info, context)
+    {
+    }
 
 
-        /// <summary>
-        /// Creates a new instances of the <see cref="AlgoliaIndexLanguageItemInfo"/> class from the given <see cref="DataRow"/>.
-        /// </summary>
-        /// <param name="dr">DataRow with the object data.</param>
-        public AlgoliaIndexLanguageItemInfo(DataRow dr)
-            : base(TYPEINFO, dr)
-        {
-        }
+    /// <summary>
+    /// Creates an empty instance of the <see cref="AlgoliaIndexLanguageItemInfo"/> class.
+    /// </summary>
+    public AlgoliaIndexLanguageItemInfo()
+        : base(TYPEINFO)
+    {
+    }
+
+
+    /// <summary>
+    /// Creates a new instances of the <see cref="AlgoliaIndexLanguageItemInfo"/> class from the given <see cref="DataRow"/>.
+    /// </summary>
+    /// <param name="dr">DataRow with the object data.</param>
+    public AlgoliaIndexLanguageItemInfo(DataRow dr)
+        : base(TYPEINFO, dr)
+    {
     }
 }
