@@ -13,8 +13,6 @@ internal class AlgoliaModuleInstaller
     public void Install()
     {
         var resource = resourceProvider.Get("CMS.Integration.Algolia")
-            // Handle v4.0.0 resource name manually until migrations are enabled
-            ?? resourceProvider.Get("Kentico.Xperience.Algolia")
             ?? new ResourceInfo();
 
         InitializeResource(resource);
