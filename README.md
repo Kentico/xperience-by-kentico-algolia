@@ -30,10 +30,10 @@ dotnet add package Kentico.Xperience.Algolia
 
 1. Add configuration from your Algolia account to the ASP.NET Core `appsettings.json` file:
    ```json
-   "xperience.algolia": {
-       "applicationId": "<your application ID>",
-       "apiKey": "<your Indexing API key>",
-       "searchKey": "<your Search API key>"
+   "CMSAlgoliaSearch": {
+       "ApplicationId": "<your application ID>",
+       "ApiKey": "<your Indexing API key>",
+       "SearchKey": "<your Search API key>"
    }
    ```  
 2. Define a custom `DefaultAlgoliaIndexingStrategy` implementation to customize how content pages/content items are processed for the index.
