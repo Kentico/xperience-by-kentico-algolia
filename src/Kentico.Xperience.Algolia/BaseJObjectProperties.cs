@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using Kentico.Xperience.Algolia.Indexing;
+﻿using Kentico.Xperience.Algolia.Indexing;
+using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia;
 

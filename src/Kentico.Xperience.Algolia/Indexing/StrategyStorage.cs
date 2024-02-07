@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Kentico.Xperience.Algolia.Indexing;
+﻿namespace Kentico.Xperience.Algolia.Indexing;
 
 internal static class StrategyStorage
 {

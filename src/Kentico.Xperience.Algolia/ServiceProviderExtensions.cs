@@ -1,5 +1,4 @@
 using Kentico.Xperience.Algolia.Indexing;
-using System;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Kentico.Xperience.Algolia.Admin;
+﻿namespace Kentico.Xperience.Algolia.Admin;
 
 public interface IAlgoliaConfigurationStorageService
 {

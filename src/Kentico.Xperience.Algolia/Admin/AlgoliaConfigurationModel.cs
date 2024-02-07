@@ -1,8 +1,6 @@
-﻿using Kentico.Xperience.Admin.Base.FormAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Kentico.Xperience.Admin.Base.FormAnnotations;
 using Kentico.Xperience.Algolia.Admin.Providers;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
 namespace Kentico.Xperience.Algolia.Admin;
 

@@ -1,7 +1,5 @@
 ﻿using Algolia.Search.Models.Settings;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Kentico.Xperience.Algolia.Indexing;
 
@@ -10,7 +8,7 @@ namespace Kentico.Xperience.Algolia.Indexing;
 /// </summary>
 public class DefaultAlgoliaIndexingStrategy : IAlgoliaIndexingStrategy
 {
-    public virtual IndexSettings GetAlgoliaIndexSettings() => new IndexSettings();
+    public virtual IndexSettings GetAlgoliaIndexSettings() => new();
 
     /// <inheritdoc />
     public virtual Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
@@ -19,9 +17,11 @@ public class DefaultAlgoliaIndexingStrategy : IAlgoliaIndexingStrategy
         {
             return Task.FromResult<IEnumerable<JObject>?>(null);
         }
-        
-        var jObject = new JObject();
-        jObject[nameof(IIndexEventItemModel.Name)] = algoliaPageItem.Name;
+
+        var jObject = new JObject
+        {
+            [nameof(IIndexEventItemModel.Name)] = algoliaPageItem.Name
+        };
 
         var result = new List<JObject>()
         {

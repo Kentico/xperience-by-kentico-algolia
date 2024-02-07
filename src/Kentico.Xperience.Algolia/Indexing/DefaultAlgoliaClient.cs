@@ -83,11 +83,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             throw new ArgumentNullException(nameof(indexName));
         }
 
-        var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(indexName);
-        if (algoliaIndex == null)
-        {
-            throw new InvalidOperationException($"The index '{indexName}' is not registered.");
-        }
+        var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(indexName) ?? throw new InvalidOperationException($"The index '{indexName}' is not registered.");
 
         return RebuildInternal(algoliaIndex, cancellationToken);
     }
@@ -110,7 +106,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
 
     private async Task<int> DeleteRecordsInternal(IEnumerable<string> objectIds, string indexName, CancellationToken cancellationToken)
     {
-        var deletedCount = 0;
+        int deletedCount = 0;
         var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
         var batchIndexingResponse = await searchIndex.DeleteObjectsAsync(objectIds, ct: cancellationToken).ConfigureAwait(false);
         foreach (var response in batchIndexingResponse.Responses)
@@ -126,13 +122,13 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
         var indexedItems = new List<IndexEventWebPageItemModel>();
         foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
         {
-            foreach (var language in algoliaIndex.LanguageNames)
+            foreach (string language in algoliaIndex.LanguageNames)
             {
                 var queryBuilder = new ContentItemQueryBuilder();
 
                 if (includedPathAttribute.ContentTypes != null && includedPathAttribute.ContentTypes.Count > 0)
                 {
-                    foreach (var contentType in includedPathAttribute.ContentTypes)
+                    foreach (string contentType in includedPathAttribute.ContentTypes)
                     {
                         queryBuilder.ForContentType(contentType, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
                     }
@@ -183,7 +179,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
 
     private async Task<int> UpsertRecordsInternal(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
     {
-        var upsertedCount = 0;
+        int upsertedCount = 0;
         var searchIndex = await algoliaIndexService.InitializeIndex(indexName, cancellationToken);
 
         var batchIndexingResponse = await searchIndex.PartialUpdateObjectsAsync(dataObjects, createIfNotExists: true, ct: cancellationToken).ConfigureAwait(false);

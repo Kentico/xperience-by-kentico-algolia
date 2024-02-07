@@ -26,7 +26,7 @@ internal class DefaultAlgoliaTaskProcessor : IAlgoliaTaskProcessor
     /// <inheritdoc />
     public async Task<int> ProcessAlgoliaTasks(IEnumerable<AlgoliaQueueItem> queueItems, CancellationToken cancellationToken)
     {
-        var successfulOperations = 0;
+        int successfulOperations = 0;
 
         // Group queue items based on index name
         var groups = queueItems.GroupBy(item => item.IndexName);

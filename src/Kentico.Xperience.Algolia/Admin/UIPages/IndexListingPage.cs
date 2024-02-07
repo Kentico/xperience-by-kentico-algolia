@@ -113,7 +113,7 @@ internal class IndexListingPage : ListingPage
             return ResponseFrom(result)
                  .AddSuccessMessage("Indexing in progress. Visit your Algolia dashboard for details about the indexing process.");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             EventLogService.LogException(nameof(IndexListingPage), nameof(Rebuild), ex);
             return ResponseFrom(result)
@@ -134,7 +134,7 @@ internal class IndexListingPage : ListingPage
     /// <inheritdoc/>
     protected override async Task<LoadDataResult> LoadData(LoadDataSettings settings, CancellationToken cancellationToken)
     {
-       var result = await base.LoadData(settings, cancellationToken);
+        var result = await base.LoadData(settings, cancellationToken);
 
         var statistics = await algoliaClient.GetStatistics(default);
         // Add statistics for indexes that are registered but not created in Algolia

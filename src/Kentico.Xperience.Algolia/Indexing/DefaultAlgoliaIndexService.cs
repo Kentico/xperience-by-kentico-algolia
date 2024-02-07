@@ -1,8 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-
 using Algolia.Search.Clients;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,11 +25,7 @@ internal class DefaultAlgoliaIndexService : IAlgoliaIndexService
     /// <inheritdoc />
     public async Task<ISearchIndex> InitializeIndex(string indexName, CancellationToken cancellationToken)
     {
-        var algoliaIndex = AlgoliaIndexStore.Instance.GetIndex(indexName);
-        if (algoliaIndex == null)
-        {
-            throw new InvalidOperationException($"Registered index with name '{indexName}' doesn't exist.");
-        }
+        var algoliaIndex = AlgoliaIndexStore.Instance.GetIndex(indexName) ?? throw new InvalidOperationException($"Registered index with name '{indexName}' doesn't exist.");
 
         var algoliaStrategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
         var indexSettings = algoliaStrategy.GetAlgoliaIndexSettings();

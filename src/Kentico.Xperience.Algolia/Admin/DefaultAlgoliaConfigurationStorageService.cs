@@ -1,5 +1,5 @@
-﻿using CMS.DataEngine;
-using System.Text;
+﻿using System.Text;
+using CMS.DataEngine;
 
 namespace Kentico.Xperience.Algolia.Admin;
 

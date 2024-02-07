@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-
-using CMS.Base;
+﻿using CMS.Base;
 using CMS.Core;
 using Kentico.Xperience.Algolia.Indexing;
 
@@ -26,10 +22,7 @@ internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQ
     /// Should not be called directly- the worker should be initialized during startup using
     /// <see cref="ThreadWorker{T}.EnsureRunningThread"/>.
     /// </summary>
-    public AlgoliaQueueWorker()
-    {
-        algoliaTaskProcessor = Service.Resolve<IAlgoliaTaskProcessor>();
-    }
+    public AlgoliaQueueWorker() => algoliaTaskProcessor = Service.Resolve<IAlgoliaTaskProcessor>();
 
 
     /// <summary>
@@ -39,7 +32,7 @@ internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQ
     /// <exception cref="InvalidOperationException" />
     public static void EnqueueAlgoliaQueueItem(AlgoliaQueueItem queueItem)
     {
-        if (queueItem == null || queueItem.ItemToIndex == null || String.IsNullOrEmpty(queueItem.IndexName))
+        if (queueItem == null || queueItem.ItemToIndex == null || string.IsNullOrEmpty(queueItem.IndexName))
         {
             return;
         }
@@ -59,10 +52,7 @@ internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQ
 
 
     /// <inheritdoc />
-    protected override void Finish()
-    {
-        RunProcess();
-    }
+    protected override void Finish() => RunProcess();
 
 
     /// <inheritdoc/>
@@ -72,8 +62,5 @@ internal class AlgoliaQueueWorker : ThreadQueueWorker<AlgoliaQueueItem, AlgoliaQ
 
 
     /// <inheritdoc />
-    protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items)
-    {
-        return algoliaTaskProcessor.ProcessAlgoliaTasks(items, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-    }
+    protected override int ProcessItems(IEnumerable<AlgoliaQueueItem> items) => algoliaTaskProcessor.ProcessAlgoliaTasks(items, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 }

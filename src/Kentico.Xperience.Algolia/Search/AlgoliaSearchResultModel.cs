@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Kentico.Xperience.Algolia.Search;
+﻿namespace Kentico.Xperience.Algolia.Search;
 
 public class AlgoliaSearchResultModel
 {

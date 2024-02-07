@@ -1,7 +1,7 @@
-﻿using Kentico.Xperience.Admin.Base;
+﻿using CMS.Membership;
+using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Admin.Base.Forms;
 using Kentico.Xperience.Algolia.Admin;
-using CMS.Membership;
 
 [assembly: UIPage(
    parentType: typeof(IndexListingPage),
