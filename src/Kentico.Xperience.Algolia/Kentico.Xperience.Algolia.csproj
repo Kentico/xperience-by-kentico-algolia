@@ -48,4 +48,8 @@
 		<PackageReference Include="Kentico.Xperience.WebApp" />
 		<PackageReference Include="Algolia.Search" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Admin\Client\dist\" />
+	</ItemGroup>
 </Project>

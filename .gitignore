@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-src/Admin/Client/dist/**
+src/Kentico.Xperience.Algolia/Admin/Client/dist/**
 
 # User-specific files
 *.rsuser
