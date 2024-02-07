@@ -50,7 +50,7 @@ public static class AlgoliaStartupExtensions
     /// <returns></returns>
     public static IServiceCollection AddKenticoAlgolia(this IServiceCollection serviceCollection, Action<IAlgoliaBuilder> configure, IConfiguration configuration)
     {
-        serviceCollection.AddAlgolia(configuration);
+        serviceCollection.AddKenticoAlgolia(configuration);
 
         var builder = new AlgoliaBuilder(serviceCollection);
 
