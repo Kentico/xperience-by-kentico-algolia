@@ -83,7 +83,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             throw new ArgumentNullException(nameof(indexName));
         }
 
-        var algoliaIndex = AlgoliaIndexStore.Instance.GetIndex(indexName);
+        var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(indexName);
         if (algoliaIndex == null)
         {
             throw new InvalidOperationException($"The index '{indexName}' is not registered.");
@@ -134,7 +134,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
                 {
                     foreach (var contentType in includedPathAttribute.ContentTypes)
                     {
-                        queryBuilder.ForContentType(contentType, config => config.WithLinkedItems(1).ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
+                        queryBuilder.ForContentType(contentType, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
                     }
                 }
                 queryBuilder.InLanguage(language);
