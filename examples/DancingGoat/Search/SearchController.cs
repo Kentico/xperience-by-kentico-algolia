@@ -10,6 +10,8 @@ public class SearchController : Controller
     private readonly SimpleSearchService simpleSearchService;
     private readonly AdvancedSearchService advancedSearchService;
 
+    private const string NAME_OF_DEFAULT_INDEX = "Default";
+
     public SearchController(
         SimpleSearchService simpleSearchService,
         AdvancedSearchService advancedSearchService
@@ -23,7 +25,7 @@ public class SearchController : Controller
     {
         try
         {
-            var results = await advancedSearchService.GlobalSearch(indexName ?? "Advanced", query, page, pageSize, facet);
+            var results = await advancedSearchService.GlobalSearch(indexName ?? NAME_OF_DEFAULT_INDEX, query, page, pageSize, facet);
             return View(results);
         }
         catch
@@ -35,7 +37,7 @@ public class SearchController : Controller
     [HttpGet("Simple")]
     public async Task<IActionResult> Simple(string query, int pageSize = 10, int page = 1)
     {
-        var results = await simpleSearchService.GlobalSearch("Default", query, page, pageSize);
+        var results = await simpleSearchService.GlobalSearch(NAME_OF_DEFAULT_INDEX, query, page, pageSize);
 
         return View(results);
     }
