@@ -387,12 +387,12 @@ Finally, add this library to the application services, registering your custom `
 // Program.cs
 
 // Registers all services and uses default indexing behavior (no custom data will be indexed)
-services.AddAlgolia();
+services.AddKenticoAlgolia();
 
 // or
 
 // Registers all services and enables custom indexing behavior
-services.AddAlgolia(builder =>
+services.AddKenticoAlgolia(builder =>
     builder
         .RegisterStrategy<ExampleSearchIndexingStrategy>("ExampleStrategy")
         ,configuration);
