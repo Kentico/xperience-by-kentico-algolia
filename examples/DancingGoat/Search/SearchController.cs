@@ -1,7 +1,5 @@
 ﻿using DancingGoat.Search.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DancingGoat.Search;
 

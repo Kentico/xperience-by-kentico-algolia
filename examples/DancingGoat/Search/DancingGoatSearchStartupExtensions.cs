@@ -1,7 +1,5 @@
 ﻿using DancingGoat.Search.Services;
 using Kentico.Xperience.Algolia;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DancingGoat.Search;
 
