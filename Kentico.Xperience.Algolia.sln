@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{964730F6
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kentico.Xperience.Algolia.Tests", "tests\Kentico.Xperience.Lucene.Tests\Kentico.Xperience.Algolia.Tests.csproj", "{548FA67F-1B88-4064-AA5C-910A4DBAB086}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kentico.Xperience.Algolia.Tests", "tests\Kentico.Xperience.Algolia.Tests\Kentico.Xperience.Algolia.Tests.csproj", "{548FA67F-1B88-4064-AA5C-910A4DBAB086}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{37200C7D-4A46-4A57-A943-2AE64799B1AA}"
 EndProject
