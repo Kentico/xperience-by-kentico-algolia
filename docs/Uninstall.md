@@ -12,9 +12,9 @@ To remove this configuration and the added database tables perform one of the fo
 1. Remove any code references to the package and recompile your solution
 1. If you are using Xperience's Continuous Integration (CI), delete the files with the paths from your CI repository folder:
 
-   - `\App_Data\CIRepository\@global\cms.class\kenticoAlgolia.*\**`
-   - `\App_Data\CIRepository\@global\cms.class\kentico.xperience.Algolia\**`
-   - `\App_Data\CIRepository\@global\kenticoAlgolia.*\**`
+   - `\App_Data\CIRepository\@global\cms.class\kenticoalgolia.*\**`
+   - `\App_Data\CIRepository\@global\cms.class\kentico.xperience.algolia\**`
+   - `\App_Data\CIRepository\@global\kenticoalgolia.*\**`
 
 1. Run a CI restore, which will clean up the database tables and `CMS_Class` records.
 
@@ -34,5 +34,3 @@ FROM [dbo].[CMS_Class] where ClassName like 'kenticoalgolia%'
 delete
 from [CMS_Resource] where ResourceName = 'Kentico.Xperience.Algolia'
 ```
-
-> Note: there is currently no way to migrate index configuration in the database between versions of this integration in the case that the database schema includes breaking changes. This feature could be added in a future update.
