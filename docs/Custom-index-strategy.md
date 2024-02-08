@@ -133,7 +133,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
             }
     };
 
-    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         var resultProperties = new DancingGoatSearchResultModel();
 
@@ -276,7 +276,7 @@ a reindex of the original web page item, you can override the `Task<IEnumerable<
 
 In our example an `ArticlePage` web page item has a `ArticlePageArticle` field which represents a reference to related reusable content items that contain the full article content. We include content from the reusable item in our indexed web page, so changes to the reusable item should result in the index being updated for the web page item.
 
-All items returned from either `FindItemsToReindex` method will be passed to `Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)` for indexing.
+All items returned from either `FindItemsToReindex` method will be passed to `Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)` for indexing.
 
 ```csharp
 public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
@@ -304,7 +304,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
         // ...
     }
 
-    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         // Implementation detailed in previous examples, including GetPage<T> call
         // ...
