@@ -83,7 +83,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             throw new ArgumentNullException(nameof(indexName));
         }
 
-        var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(indexName) ?? throw new InvalidOperationException($"The index '{indexName}' is not registered.");
+        var algoliaIndex = AlgoliaIndexStore.Instance.GetRequiredIndex(indexName);
 
         return RebuildInternal(algoliaIndex, cancellationToken);
     }
