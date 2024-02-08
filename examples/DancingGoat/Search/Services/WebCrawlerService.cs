@@ -1,9 +1,6 @@
 ﻿using CMS.Core;
 using CMS.Websites;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Net.Http.Headers;
-using System;
 
 namespace DancingGoat.Search.Services;
 

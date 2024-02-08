@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Algolia.Search.Models.Search;
+﻿using Algolia.Search.Models.Search;
 using DancingGoat.Search.Models;
 using Kentico.Xperience.Algolia.Indexing;
 
@@ -27,7 +25,6 @@ public class SimpleSearchService
             Page = page - 1,
             HitsPerPage = pageSize
         };
-            
         var results = await index.SearchAsync<DancingGoatSimpleSearchResultModel>(query);
         return results;
     }
