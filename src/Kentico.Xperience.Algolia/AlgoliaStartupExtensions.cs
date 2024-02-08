@@ -1,4 +1,5 @@
-﻿using Algolia.Search.Clients;
+﻿using System.Diagnostics;
+using Algolia.Search.Clients;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 using Microsoft.Extensions.Configuration;
@@ -30,7 +31,9 @@ public static class AlgoliaStartupExtensions
             {
                 var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
                 var configuration = new SearchConfig(options.Value.ApplicationId, options.Value.ApiKey);
-                configuration.DefaultHeaders["User-Agent"] = "Kentico Xperience for Algolia (2.0.2)";
+                var fileVersion = FileVersionInfo.GetVersionInfo(typeof(AlgoliaOptions).Assembly.Location);
+                string versioNumber = new Version(fileVersion.FileVersion ?? "").ToString(3);
+                configuration.DefaultHeaders["User-Agent"] = $"Kentico Xperience for Algolia ({versioNumber})";
 
                 return new SearchClient(configuration);
             })

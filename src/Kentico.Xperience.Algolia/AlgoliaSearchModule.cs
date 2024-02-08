@@ -21,7 +21,7 @@ internal class AlgoliaSearchModule : Module
     private IAlgoliaTaskLogger? algoliaTaskLogger;
     private IAppSettingsService? appSettingsService;
     private IConversionService? conversionService;
-    private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "AlgoliaSearchDisableIndexing";
+    private const string APP_SETTINGS_KEY_INDEXING_DISABLED = "CMSAlgoliaSearchDisableIndexing";
 
     private bool IndexingDisabled => conversionService?.GetBoolean(appSettingsService?[APP_SETTINGS_KEY_INDEXING_DISABLED], false) ?? false;
 

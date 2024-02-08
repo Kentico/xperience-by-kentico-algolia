@@ -347,10 +347,6 @@ dotnet_naming_rule.members_are_pascal_case.symbols                        = memb
 dotnet_naming_rule.members_are_pascal_case.style = const_field_symbols
 csharp_style_prefer_method_group_conversion = true:silent
 csharp_style_prefer_top_level_statements = true:silent
-csharp_style_prefer_primary_constructors = true:suggestion
-[*.{cs,vb}]
-dotnet_style_operator_placement_when_wrapping = beginning_of_line
-tab_width = 4
 indent_size = 4
 end_of_line = crlf
 dotnet_style_coalesce_expression = true:error
