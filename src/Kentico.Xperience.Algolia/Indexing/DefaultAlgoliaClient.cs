@@ -89,6 +89,19 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     }
 
     /// <inheritdoc />
+    public async Task DeleteIndex(string indexName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(indexName))
+        {
+            throw new ArgumentNullException(nameof(indexName));
+        }
+
+        var searchIndex = searchClient.InitIndex(indexName);
+
+        await searchIndex.DeleteAsync(ct: cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<int> UpsertRecords(IEnumerable<JObject> dataObjects, string indexName, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(indexName))

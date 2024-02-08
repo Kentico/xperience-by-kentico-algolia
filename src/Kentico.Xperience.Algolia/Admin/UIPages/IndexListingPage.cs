@@ -78,16 +78,39 @@ internal class IndexListingPage : ListingPage
     }
 
     [PageCommand(Permission = SystemPermissions.DELETE)]
-    public Task<ICommandResponse> Delete(int id, CancellationToken _)
+    public async Task<INavigateResponse> Delete(int id, CancellationToken cancellationToken)
     {
-        bool res = configurationStorageService.TryDeleteIndex(id);
-        if (res)
-        {
-            AlgoliaIndexStore.SetIndicies(configurationStorageService);
-        }
         var response = NavigateTo(pageUrlGenerator.GenerateUrl<IndexListingPage>());
+        var index = AlgoliaIndexStore.Instance.GetIndex(id);
+        if (index == null)
+        {
+            return response
+                .AddErrorMessage(string.Format("Error deleting Algolia index with identifier {0}.", id));
+        }
+        try
+        {
+            bool res = configurationStorageService.TryDeleteIndex(id);
 
-        return Task.FromResult<ICommandResponse>(response);
+            if (res)
+            {
+                AlgoliaIndexStore.SetIndicies(configurationStorageService);
+
+                await algoliaClient.DeleteIndex(index.IndexName, cancellationToken);
+            }
+            else
+            {
+                return response
+                    .AddErrorMessage(string.Format("Error deleting Algolia index with identifier {0}.", id));
+            }
+
+            return response.AddSuccessMessage("Index deletion in progress. Visit your Algolia dashboard for details about your indexes.");
+        }
+        catch (Exception ex)
+        {
+            EventLogService.LogException(nameof(IndexListingPage), nameof(Delete), ex);
+            return response
+               .AddErrorMessage(string.Format("Errors occurred while deleting the '{0}' index. Please check the Event Log for more details.", index.IndexName));
+        }
     }
 
     /// <summary>

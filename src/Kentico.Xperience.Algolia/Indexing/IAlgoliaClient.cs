@@ -56,4 +56,15 @@ public interface IAlgoliaClient
     /// <exception cref="OperationCanceledException" />
     /// <exception cref="ObjectDisposedException" />
     Task Rebuild(string indexName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes the Algolia index by removing existing index data from Algolia.
+    /// </summary>
+    /// <param name="indexName">The index to delete.</param>
+    /// <param name="cancellationToken">The cancellation token for the task.</param>
+    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="ArgumentNullException" />
+    /// <exception cref="OperationCanceledException" />
+    /// <exception cref="ObjectDisposedException" />
+    Task DeleteIndex(string indexName, CancellationToken cancellationToken);
 }

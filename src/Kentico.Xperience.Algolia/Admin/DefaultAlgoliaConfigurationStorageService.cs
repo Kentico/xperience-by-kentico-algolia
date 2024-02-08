@@ -201,6 +201,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         return true;
     }
+
     public bool TryDeleteIndex(int id)
     {
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {id}"));
@@ -210,6 +211,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         return true;
     }
+
     public bool TryDeleteIndex(AlgoliaConfigurationModel configuration)
     {
         indexProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId)} = {configuration.Id}"));
