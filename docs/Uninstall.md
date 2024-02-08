@@ -32,5 +32,5 @@ delete
 FROM [dbo].[CMS_Class] where ClassName like 'kenticoalgolia%'
 
 delete
-from [CMS_Resource] where ResourceName = 'Kentico.Xperience.Algolia'
+from [CMS_Resource] where ResourceName = 'CMS.Integration.Algolia'
 ```
