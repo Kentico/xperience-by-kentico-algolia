@@ -30,7 +30,7 @@ public static class AlgoliaStartupExtensions
             {
                 var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
                 var configuration = new SearchConfig(options.Value.ApplicationId, options.Value.ApiKey);
-                configuration.DefaultHeaders["User-Agent"] = "Kentico Xperience for Algolia (4.0.0)";
+                configuration.DefaultHeaders["User-Agent"] = "Kentico Xperience for Algolia (2.0.2)";
 
                 return new SearchClient(configuration);
             })

@@ -13,16 +13,16 @@ Your custom implemention of `DefaultAlgoliaIndexingStrategy` can use dependency 
 
 Override the `IndexSettings GetAlgoliaIndexSettings()` method to specify saved attributes and their functionality. See Algolia documentation for this.
 
-Override the `Task<Document?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel item)` method and define a process for mapping custom fields of each content item event provided.
+Override the `Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel item)` method and define a process for mapping custom fields of each content item event provided.
 
 The method is given an `IIndexEventItemModel` which is a abstraction of any item being processed for indexing, which includes both `IndexEventWebPageItemModel` for web page items and `IndexEventReusableItemModel` for reusable content items. Every item specified in the admin ui is rebuilt. In the UI you need to specify one or more language, channel name, indexingStrategy and paths with content types. This strategy than evaluates all web page items specified in the administration.
 
 Let's say we specified `ArticlePage` in the admin ui.
-Now we implement how we want to save ArticlePage document in our strategy.
+Now we implement how we want to save ArticlePage page in our strategy.
 
 The JObject is indexed representation of the webpageitem.
 
-You specify what fields should be indexed in the JObject by adding them to the `IndexSettings`. You later retrieve data from document based on your implementation.
+You specify what fields should be indexed in the JObject by adding them to the `IndexSettings`. You later retrieve data from the JObject based on your implementation.
 
 ```csharp
 public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
@@ -88,7 +88,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 }
 ```
 
-Some properties of the `IIndexEventItemModel` are added to the document by default by the library and these can be found in the `AlgoliaSearchResultModel` class.
+Some properties of the `IIndexEventItemModel` are added to the JObjects by default by the library and these can be found in the `AlgoliaSearchResultModel` class.
 
 ```csharp
 // BaseJObjectProperties.cs
@@ -173,7 +173,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 }
 ```
 
-The `Url` field is a relative path by default. You can change this by adding this field manually in the `MapToAlgoliaDocumentOrNull` method.
+The `Url` field is a relative path by default. You can change this by adding this field manually in the `MapToAlgoliaJObjectsOrNull` method.
 
 ```csharp
 public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel item)
@@ -337,7 +337,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 
             foreach (var articlePage in result)
             {
-                // This will be a IIndexEventItemModel passed to our MapToAlgoliaDocumentOrNull method above
+                // This will be a IIndexEventItemModel passed to our MapToAlgoliaJObjectsOrNull method above
                 reindexable.Add(new IndexEventWebPageItemModel(
                     page.SystemFields.WebPageItemID,
                     page.SystemFields.WebPageItemGUID,
@@ -372,7 +372,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 }
 ```
 
-Note that we are not preparing the Algolia `Document` in `FindItemsToReindex`, but instead are generating a collection of
+Note that we are not preparing the Algolia `JObject` in `FindItemsToReindex`, but instead are generating a collection of
 additional items that will need reindexing based on the modification of a related `IIndexEventItemModel`.
 
 ## Indexing web page content
