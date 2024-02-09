@@ -1,0 +1,124 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": ".NET: build (Solution)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": ".NET: rebuild (Solution)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "--no-incremental",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": ".NET: clean (Solution)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "clean",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": ".NET: test (Solution)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": ".NET: format (Algolia)",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["format", "Kentico.Xperience.Algolia.csproj"],
+      "problemMatcher": "$msCompile",
+      "options": {
+        "cwd": "${workspaceFolder}/src/Kentico.Xperience.Algolia"
+      }
+    },
+    {
+      "label": ".NET: watch (DancingGoat)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/examples/DancingGoat/DancingGoat.csproj"
+      ],
+      "options": {
+        "env": {
+          "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
+        }
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": ".NET: run (DancingGoat)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/examples/DancingGoat/DancingGoat.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "isBackground": true
+    },
+    {
+      "type": "npm",
+      "script": "install",
+      "path": "src/Kentico.Xperience.Algolia/Admin/Client",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: install - src/Kentico.Xperience.Algolia/Admin/Client",
+      "detail": "install dependencies from package"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "src/Kentico.Xperience.Algolia/Admin/Client",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build - src/Kentico.Xperience.Algolia/Admin/Client",
+      "detail": "webpack --mode=production"
+    },
+    {
+      "type": "npm",
+      "script": "build:dev",
+      "path": "src/Kentico.Xperience.Algolia/Admin/Client",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build:dev - src/Kentico.Xperience.Algolia/Admin/Client",
+      "detail": "webpack --mode=development"
+    },
+    {
+      "type": "npm",
+      "script": "start",
+      "path": "src/Kentico.Xperience.Algolia/Admin/Client",
+      "problemMatcher": [],
+      "label": "npm: start - src/Kentico.Xperience.Algolia/Admin/Client",
+      "detail": "webpack serve --mode development"
+    }
+  ]
+}

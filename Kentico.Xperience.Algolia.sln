@@ -1,10 +1,35 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kentico.Xperience.Algolia", "src\Kentico.Xperience.Algolia.csproj", "{74045600-BC2C-4CDE-8015-41D8B0BACD61}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34322.80
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kentico.Xperience.Algolia", "src\Kentico.Xperience.Algolia\Kentico.Xperience.Algolia.csproj", "{74045600-BC2C-4CDE-8015-41D8B0BACD61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kentico.Xperience.Algolia.Tests", "tests\Kentico.Xperience.Algolia.Tests.csproj", "{F9917061-F99C-488C-9095-20B8ACF0AC0E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DancingGoat", "examples\DancingGoat\DancingGoat.csproj", "{AB996F96-93F9-4439-A9F2-554714805727}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B8FE48FC-1183-4A9B-8179-0FBE158687AF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9A85B7E1-45A3-43F1-BC38-79E11D733EEE}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{964730F6-B0A3-4410-A04E-38C6D906DCE8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		Directory.build.targets = Directory.build.targets
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kentico.Xperience.Algolia.Tests", "tests\Kentico.Xperience.Algolia.Tests\Kentico.Xperience.Algolia.Tests.csproj", "{548FA67F-1B88-4064-AA5C-910A4DBAB086}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{37200C7D-4A46-4A57-A943-2AE64799B1AA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{98AC16AE-7202-4AFC-AA17-AE0CE6061BF8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{68369D16-0756-4636-A03B-919721CDAE04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,12 +41,24 @@ Global
 		{74045600-BC2C-4CDE-8015-41D8B0BACD61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74045600-BC2C-4CDE-8015-41D8B0BACD61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74045600-BC2C-4CDE-8015-41D8B0BACD61}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F9917061-F99C-488C-9095-20B8ACF0AC0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F9917061-F99C-488C-9095-20B8ACF0AC0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F9917061-F99C-488C-9095-20B8ACF0AC0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F9917061-F99C-488C-9095-20B8ACF0AC0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB996F96-93F9-4439-A9F2-554714805727}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB996F96-93F9-4439-A9F2-554714805727}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB996F96-93F9-4439-A9F2-554714805727}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB996F96-93F9-4439-A9F2-554714805727}.Release|Any CPU.Build.0 = Release|Any CPU
+		{548FA67F-1B88-4064-AA5C-910A4DBAB086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{548FA67F-1B88-4064-AA5C-910A4DBAB086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{548FA67F-1B88-4064-AA5C-910A4DBAB086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{548FA67F-1B88-4064-AA5C-910A4DBAB086}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{F9917061-F99C-488C-9095-20B8ACF0AC0E} = {B8FE48FC-1183-4A9B-8179-0FBE158687AF}
+		{74045600-BC2C-4CDE-8015-41D8B0BACD61} = {37200C7D-4A46-4A57-A943-2AE64799B1AA}
+		{AB996F96-93F9-4439-A9F2-554714805727} = {68369D16-0756-4636-A03B-919721CDAE04}
+		{548FA67F-1B88-4064-AA5C-910A4DBAB086} = {98AC16AE-7202-4AFC-AA17-AE0CE6061BF8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F792F3C2-CE3E-4296-BFF7-4ED783575D7C}
 	EndGlobalSection
 EndGlobal

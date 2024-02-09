@@ -50,7 +50,7 @@ To run the Sample app Admin customization in development mode, add the following
 
 ```json
 "CMSAdminClientModuleSettings": {
-  "kentico-xperience-integrations-lucene": {
+  "kentico-xperience-integrations-algolia": {
     "Mode": "Proxy",
     "Port": 3009
   }
