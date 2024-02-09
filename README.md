@@ -8,10 +8,10 @@ This integration enables you to create [Algolia](https://www.algolia.com/) searc
 
 ## Library Version Matrix
 
-| Xperience Version   | Library Version   |
-| ------------------- | ----------------- |
-| 28.x                | 3.x               |
-| >= 26.2.0, < 27.0.0 | 2.x               |
+| Xperience Version   | Library Version |
+| ------------------- | --------------- |
+| 28.x                | 3.x             |
+| >= 26.2.0, < 27.0.0 | 2.x             |
 
 ## Dependencies
 
@@ -29,20 +29,24 @@ dotnet add package Kentico.Xperience.Algolia
 ## Quick Start
 
 1. Add configuration from your Algolia account to the ASP.NET Core `appsettings.json` file:
+
    ```json
    "CMSAlgoliaSearch": {
        "ApplicationId": "<your application ID>",
        "ApiKey": "<your Indexing API key>",
        "SearchKey": "<your Search API key>"
    }
-   ```  
+   ```
+
 2. Define a custom `DefaultAlgoliaIndexingStrategy` implementation to customize how content pages/content items are processed for the index.
 3. Add this library to the application services, registering your custom `DefaultAlgoliaIndexingStrategy` and Algolia services
-  ```csharp
-  // Program.cs
-    services.AddKenticoAlgolia(configuration);
-    services.RegisterStrategy<GlobalAlgoliaIndexingStrategy>("DefaultStrategy");
+
+   ```csharp
+   // Program.cs
+   services.AddKenticoAlgolia(configuration);
+   services.RegisterStrategy<GlobalAlgoliaIndexingStrategy>("DefaultStrategy");
    ```
+
 4. Create an index in Xperience's Administration within the Search application added by this library.
 5. Rebuild the index in Xperience's Administration within the Search application added by this library.
 6. Display the results on your site with a Razor View 👍.
