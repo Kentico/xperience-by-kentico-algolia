@@ -10,7 +10,7 @@
     "lint": "npx eslint src/**/*.tsx"
   },
   "engines": {
-    "node": ">=18.12.0 <=19"
+    "node": ">=20.11.0 <21"
   },
   "dependencies": {
     "@kentico/xperience-admin-base": "28.1.2",
