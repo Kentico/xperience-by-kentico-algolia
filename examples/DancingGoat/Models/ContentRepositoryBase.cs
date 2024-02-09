@@ -23,15 +23,6 @@ namespace DancingGoat.Models
         private readonly IWebPageQueryResultMapper mapper;
         private readonly IProgressiveCache cache;
 
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ContentRepositoryBase"/> class.
-        /// </summary>
-        /// <param name="pageRetriever">The pages retriever.</param>
-        /// <param name="websiteChannelContext">Website channel context.</param>
-        /// <param name="executor">Content query executor.</param>
-        /// <param name="mapper">Mapper to provide mapping from data container to model.</param>
-        /// <param name="cache">Cache.</param>
         public ContentRepositoryBase(IWebsiteChannelContext websiteChannelContext, IContentQueryExecutor executor, IWebPageQueryResultMapper mapper, IProgressiveCache cache)
         {
             WebsiteChannelContext = websiteChannelContext;
