@@ -32,4 +32,4 @@ See [Search index querying](Search-index-querying.md)
 
 ## Upgrades and Uninstalling
 
-See [Upgrades](Upgrades.md)
+See [Uninstall](Uninstall.md)
