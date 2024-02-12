@@ -35,9 +35,12 @@ internal class AlgoliaSearchModule : Module
     {
         base.OnInit();
 
-        algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
-        appSettingsService = Service.Resolve<IAppSettingsService>();
-        conversionService = Service.Resolve<IConversionService>();
+        var services = parameters.Services;
+
+        algoliaTaskLogger = services.GetRequiredService<IAlgoliaTaskLogger>();
+        appSettingsService = services.GetRequiredService<IAppSettingsService>();
+        conversionService = services.GetRequiredService<IConversionService>();
+
 
         WebPageEvents.Publish.Execute += HandleEvent;
         WebPageEvents.Delete.Execute += HandleEvent;
