@@ -16,26 +16,24 @@ namespace Kentico.Xperience.Algolia.Admin;
 internal class AlgoliaAdminModule : AdminModule
 {
     private IAlgoliaConfigurationStorageService storageService = null!;
-    private AlgoliaModuleInstaller installer = null!;
+    private IServiceProvider serviceProvider = null!;
 
     public AlgoliaAdminModule() : base(nameof(AlgoliaAdminModule)) { }
 
     protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit(parameters);
-
         RegisterClientModule("kentico", "xperience-integrations-algolia");
 
-        var services = parameters.Services;
+        serviceProvider = parameters.Services;
+        storageService = serviceProvider.GetRequiredService<IAlgoliaConfigurationStorageService>();
 
-        installer = services.GetRequiredService<AlgoliaModuleInstaller>();
-        storageService = services.GetRequiredService<IAlgoliaConfigurationStorageService>();
-
-        ApplicationEvents.Initialized.Execute += InitializeModule;
+        ApplicationEvents.PostStart.Execute += InitializeModule;
     }
 
     private void InitializeModule(object? sender, EventArgs e)
     {
+        var installer = serviceProvider.GetRequiredService<AlgoliaModuleInstaller>();
         installer.Install();
 
         AlgoliaIndexStore.SetIndicies(storageService);
