@@ -10,7 +10,7 @@ Create a new index or select and index to edit by clicking the index row or the 
 
 Fill out the search index form, populating the fields with your custom values.
 
-![Administration search index list](/images/xperience-administration-search-index-edit-form.jpg)
+![Administration search edit form](/images/xperience-administration-search-index-edit-form.jpg)
 
 - Rebuild Hook - for validating a request rebuild of the search index from an external source (ex: API request)
 - Indexed Languages - the index will only include content in the selected languages

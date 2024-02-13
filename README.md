@@ -38,7 +38,7 @@ dotnet add package Kentico.Xperience.Algolia
    }
    ```
 
-2. Define a custom `DefaultAlgoliaIndexingStrategy` implementation to customize how content pages/content items are processed for the index.
+2. Define a custom `DefaultAlgoliaIndexingStrategy` implementation to customize how content pages/content items are processed for the index. See [`Custom-index-strategy.md`](docs/Custom-index-strategy.md)
 3. Add this library to the application services, registering your custom `DefaultAlgoliaIndexingStrategy` and Algolia services
 
    ```csharp
@@ -48,8 +48,10 @@ dotnet add package Kentico.Xperience.Algolia
    ```
 
 4. Create an index in Xperience's Administration within the Search application added by this library.
-5. Rebuild the index in Xperience's Administration within the Search application added by this library.
-6. Display the results on your site with a Razor View 👍.
+![Administration search edit form](/images/xperience-administration-search-index-edit-form.jpg)
+1. Rebuild the index in Xperience's Administration within the Search application added by this library.
+![Administration search edit form](/images/xperience-administration-search-index-list.jpg)
+1. Display the results on your site with a Razor View 👍.
 
 ## Full Instructions
 
