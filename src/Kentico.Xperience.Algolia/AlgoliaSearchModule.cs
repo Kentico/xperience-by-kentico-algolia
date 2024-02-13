@@ -34,15 +34,14 @@ internal class AlgoliaSearchModule : Module
     protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit();
+
         var services = parameters.Services;
 
-        services.GetRequiredService<AlgoliaModuleInstaller>().Install();
-        algoliaTaskLogger = Service.Resolve<IAlgoliaTaskLogger>();
-        appSettingsService = Service.Resolve<IAppSettingsService>();
-        conversionService = Service.Resolve<IConversionService>();
+        algoliaTaskLogger = services.GetRequiredService<IAlgoliaTaskLogger>();
+        appSettingsService = services.GetRequiredService<IAppSettingsService>();
+        conversionService = services.GetRequiredService<IConversionService>();
 
 
-        AddRegisteredIndices();
         WebPageEvents.Publish.Execute += HandleEvent;
         WebPageEvents.Delete.Execute += HandleEvent;
         ContentItemEvents.Publish.Execute += HandleContentItemEvent;

@@ -18,7 +18,7 @@ public static class AlgoliaStartupExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
-    public static IServiceCollection AddKenticoAlgolia(this IServiceCollection services, IConfiguration configuration) =>
+    private static IServiceCollection AddKenticoAlgoliaInternal(this IServiceCollection services, IConfiguration configuration) =>
         services.AddSingleton<AlgoliaModuleInstaller>()
             .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME))
             .AddSingleton<IInsightsClient>(s =>
@@ -53,7 +53,7 @@ public static class AlgoliaStartupExtensions
     /// <returns></returns>
     public static IServiceCollection AddKenticoAlgolia(this IServiceCollection serviceCollection, Action<IAlgoliaBuilder> configure, IConfiguration configuration)
     {
-        serviceCollection.AddKenticoAlgolia(configuration);
+        serviceCollection.AddKenticoAlgoliaInternal(configuration);
 
         var builder = new AlgoliaBuilder(serviceCollection);
 
@@ -64,6 +64,24 @@ public static class AlgoliaStartupExtensions
             serviceCollection.AddTransient<DefaultAlgoliaIndexingStrategy>();
             builder.RegisterStrategy<DefaultAlgoliaIndexingStrategy>("Default");
         }
+
+        return serviceCollection;
+    }
+
+    /// <summary>
+    /// Adds Algolia services and custom module to application with <see cref="DefaultAlgoliaIndexingStrategy"/>
+    /// </summary>
+    /// <param name="serviceCollection"></param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns></returns>
+    public static IServiceCollection AddKenticoAlgolia(this IServiceCollection serviceCollection, IConfiguration configuration)
+    {
+        serviceCollection.AddKenticoAlgoliaInternal(configuration);
+
+        var builder = new AlgoliaBuilder(serviceCollection);
+
+        serviceCollection.AddTransient<DefaultAlgoliaIndexingStrategy>();
+        builder.RegisterStrategy<DefaultAlgoliaIndexingStrategy>("Default");
 
         return serviceCollection;
     }

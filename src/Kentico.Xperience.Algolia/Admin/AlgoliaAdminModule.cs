@@ -23,7 +23,6 @@ internal class AlgoliaAdminModule : AdminModule
     protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit(parameters);
-
         RegisterClientModule("kentico", "xperience-integrations-algolia");
 
         var services = parameters.Services;
@@ -31,7 +30,7 @@ internal class AlgoliaAdminModule : AdminModule
         installer = services.GetRequiredService<AlgoliaModuleInstaller>();
         storageService = services.GetRequiredService<IAlgoliaConfigurationStorageService>();
 
-        ApplicationEvents.Initialized.Execute += InitializeModule;
+        ApplicationEvents.PostStart.Execute += InitializeModule;
     }
 
     private void InitializeModule(object? sender, EventArgs e)
