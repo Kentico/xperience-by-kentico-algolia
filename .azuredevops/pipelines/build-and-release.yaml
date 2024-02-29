@@ -55,13 +55,6 @@ stages:
             value: src/Kentico.Xperience.Algolia/Kentico.Xperience.Algolia.csproj
 
         steps:
-          - task: DotNetCoreCLI@2
-            displayName: Install AzureSignTool
-            inputs:
-              command: custom
-              custom: tool
-              arguments: install --global azuresigntool
-
           - task: PowerShell@2
             displayName: Set Node.js version from package.json
             inputs:
@@ -85,6 +78,13 @@ stages:
             inputs:
               packageType: sdk
               useGlobalJson: true
+
+          - task: DotNetCoreCLI@2
+            displayName: Install AzureSignTool
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --global azuresigntool
 
           - task: DotNetCoreCLI@2
             displayName: Restore dependencies
