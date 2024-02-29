@@ -80,11 +80,12 @@ stages:
               useGlobalJson: true
 
           - task: DotNetCoreCLI@2
-            displayName: Install AzureSignTool
+            displayName: Restore dotnet tools
             inputs:
               command: custom
               custom: tool
-              arguments: install --global azuresigntool
+              arguments: restore
+              workingDirectory: $(System.DefaultWorkingDirectory)
 
           - task: DotNetCoreCLI@2
             displayName: Restore dependencies
