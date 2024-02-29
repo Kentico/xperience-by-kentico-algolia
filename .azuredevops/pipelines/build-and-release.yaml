@@ -16,7 +16,7 @@ parameters:
 
 variables:
   - name: SIGN_FILE
-    value: true
+    value: false
 
 stages:
   - stage: Build
@@ -31,7 +31,19 @@ stages:
               - Agent.Name -equals ${{ parameters.AgentName }}
 
         variables:
-          - group: 14.0 Authenticode signature parameters
+          - group: Code Sign KV Auth
+
+          - name: AuthenticodeKeyVaultUrl
+            value: https://kxdevopsvstsagents.vault.azure.net/
+
+          - name: AuthenticodeTenantId
+            value: e4fb6bec-b1f4-46dc-9ab8-c67549adc56d
+
+          - name: AuthenticodeCertificateName
+            value: code-signing
+
+          - name: AuthenticodeClientId
+            value: 783c0e5e-5065-4afe-a128-2d91f7a8d3f8
 
           - name: Configuration
             value: Release
@@ -43,6 +55,13 @@ stages:
             value: src/Kentico.Xperience.Algolia/Kentico.Xperience.Algolia.csproj
 
         steps:
+          - task: DotNetCoreCLI@2
+            displayName: Install AzureSignTool
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --global azuresigntool
+
           - task: PowerShell@2
             displayName: Set Node.js version from package.json
             inputs:
@@ -82,6 +101,8 @@ stages:
               projects: ${{ variables.ProjectFilePath }}
               configuration: ${{ variables.Configuration }}
               arguments: --no-restore
+            env:
+              AuthenticodeClientSecret: $(AuthenticodeClientSecret)
 
           - task: DotNetCoreCLI@2
             displayName: Create NuGet package
