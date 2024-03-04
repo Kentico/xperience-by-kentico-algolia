@@ -33,18 +33,6 @@ stages:
         variables:
           - group: Code Sign KV Auth
 
-          - name: AuthenticodeKeyVaultUrl
-            value: https://kxdevopsvstsagents.vault.azure.net/
-
-          - name: AuthenticodeTenantId
-            value: e4fb6bec-b1f4-46dc-9ab8-c67549adc56d
-
-          - name: AuthenticodeCertificateName
-            value: code-signing
-
-          - name: AuthenticodeClientId
-            value: 783c0e5e-5065-4afe-a128-2d91f7a8d3f8
-
           - name: Configuration
             value: Release
 
