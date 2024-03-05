@@ -16,7 +16,7 @@ parameters:
 
 variables:
   - name: SIGN_FILE
-    value: false
+    value: true
 
 stages:
   - stage: Build
