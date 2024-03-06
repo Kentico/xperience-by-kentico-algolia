@@ -7,7 +7,7 @@ parameters:
   - name: AgentPoolName
     displayName: Agent pool name
     type: string
-    default: ADO Ubuntu 22.04 Scale Set
+    default: ADO Windows Server 2022
 
   - name: AgentName
     displayName: Agent name - single char for any
@@ -21,7 +21,7 @@ resources:
 
   containers:
     - container: Windows
-      image: base/mcr-dotnet-sdk-8.0-ubuntu-22.04:latest
+      image: base/mcr-servercore-ltsc2022:latest
       endpoint: xperienceagentshub.azurecr.io
 
 variables:
