@@ -7,7 +7,7 @@ using Kentico.Xperience.Algolia.Admin;
     identifier: AlgoliaApplicationPage.IDENTIFIER,
     type: typeof(AlgoliaApplicationPage),
     slug: "algolia",
-    name: "Search",
+    name: "Algolia Search",
     category: BaseApplicationCategories.DEVELOPMENT,
     icon: Icons.Magnifier,
     templateName: TemplateNames.SECTION_LAYOUT)]
