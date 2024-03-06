@@ -18,15 +18,31 @@ public static class AlgoliaStartupExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
-    private static IServiceCollection AddKenticoAlgoliaInternal(this IServiceCollection services, IConfiguration configuration) =>
-        services.AddSingleton<AlgoliaModuleInstaller>()
-            .Configure<AlgoliaOptions>(configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME))
-            .AddSingleton<IInsightsClient>(s =>
-            {
-                var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
+    private static IServiceCollection AddKenticoAlgoliaInternal(this IServiceCollection services, IConfiguration configuration)
+    {
+        var algoliaSection = configuration.GetSection(AlgoliaOptions.CMS_ALGOLIA_SECTION_NAME);
+        var algoliaOptions = algoliaSection.GetChildren();
 
-                return new InsightsClient(options.Value.ApplicationId, options.Value.ApiKey);
-            })
+        bool isConfigured = false;
+
+        if (algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.SearchKey)).Value != ""
+            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApiKey)).Value != ""
+            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApplicationId)).Value != "")
+        {
+            isConfigured = true;
+        }
+
+        services
+            .Configure<AlgoliaOptions>(algoliaSection)
+            .PostConfigure<AlgoliaOptions>(options => options.IsConfigured = isConfigured);
+
+        if (!isConfigured)
+        {
+            return services;
+        }
+
+        return services
+            .AddSingleton<AlgoliaModuleInstaller>()
             .AddSingleton<ISearchClient>(s =>
             {
                 var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
@@ -37,12 +53,12 @@ public static class AlgoliaStartupExtensions
 
                 return new SearchClient(configuration);
             })
-            .AddSingleton<IAlgoliaClient, DefaultAlgoliaClient>()
-            .AddSingleton<IAlgoliaTaskLogger, DefaultAlgoliaTaskLogger>()
-            .AddSingleton<IAlgoliaTaskProcessor, DefaultAlgoliaTaskProcessor>()
-            .AddSingleton<IAlgoliaConfigurationStorageService, DefaultAlgoliaConfigurationStorageService>()
-            .AddSingleton<IAlgoliaIndexService, DefaultAlgoliaIndexService>();
-
+           .AddSingleton<IAlgoliaClient, DefaultAlgoliaClient>()
+           .AddSingleton<IAlgoliaTaskLogger, DefaultAlgoliaTaskLogger>()
+           .AddSingleton<IAlgoliaTaskProcessor, DefaultAlgoliaTaskProcessor>()
+           .AddSingleton<IAlgoliaConfigurationStorageService, DefaultAlgoliaConfigurationStorageService>()
+           .AddSingleton<IAlgoliaIndexService, DefaultAlgoliaIndexService>();
+    }
     /// <summary>
     /// Adds Algolia services and custom module to application with customized options provided by the <see cref="IAlgoliaBuilder"/>
     /// in the <paramref name="configure" /> action.

@@ -11,6 +11,15 @@ public sealed class AlgoliaOptions
     public const string CMS_ALGOLIA_SECTION_NAME = "CMSAlgoliaSearch";
 
     /// <summary>
+    /// /// Turn off functionality if application is not configured in the appsettings
+    /// </summary>
+    public bool IsConfigured
+    {
+        get;
+        set;
+    } = false;
+
+    /// <summary>
     /// Algolia application ID.
     /// </summary>
     public string ApplicationId
