@@ -21,7 +21,7 @@ resources:
 
   containers:
     - container: Windows
-      image: base/mcr-servercore-ltsc2022:latest
+      image: base/mcr-servercore-ltsc2022:release
       endpoint: xperienceagentshub.azurecr.io
 
 variables:
