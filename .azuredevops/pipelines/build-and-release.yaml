@@ -21,7 +21,7 @@ resources:
 
   containers:
     - container: Windows
-      image: base/mcr-dotnet-sdk-6.0-servercore-ltsc2022:release
+      image: base/mcr-dotnet-sdk-8.0-servercore-ltsc2022:release
       endpoint: xperienceagentshub.azurecr.io
 
 variables:
