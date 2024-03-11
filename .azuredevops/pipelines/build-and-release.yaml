@@ -97,7 +97,7 @@ stages:
               arguments: --no-restore
             env:
               AuthenticodeClientSecret: $(AuthenticodeClientSecret)
-              DOTNET_ROLL_FORWARD: LatestMajor
+              DOTNET_ROLL_FORWARD: Major
 
           - task: DotNetCoreCLI@2
             displayName: Create NuGet package
