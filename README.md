@@ -15,9 +15,9 @@ This integration enables you to create [Algolia](https://www.algolia.com/) searc
 
 ## Dependencies
 
-- [ASP.NET Core 6.0](https://dotnet.microsoft.com/en-us/download)
+- [ASP.NET Core 8.0](https://dotnet.microsoft.com/en-us/download)
 - [Xperience by Kentico](https://docs.xperience.io/xp/changelog)
-
+- [Algolia](https://www.algolia.com/doc/)
 ## Package Installation
 
 Add the package to your application using the .NET CLI

@@ -5,6 +5,7 @@ using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 [assembly: RegisterModule(typeof(AlgoliaAdminModule))]
 
@@ -23,9 +24,17 @@ internal class AlgoliaAdminModule : AdminModule
     protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit(parameters);
-        RegisterClientModule("kentico", "xperience-integrations-algolia");
 
         var services = parameters.Services;
+
+        var options = services.GetRequiredService<IOptions<AlgoliaOptions>>();
+
+        if (!options.Value.IsConfigured)
+        {
+            return;
+        }
+
+        RegisterClientModule("kentico", "xperience-integrations-algolia");
 
         installer = services.GetRequiredService<AlgoliaModuleInstaller>();
         storageService = services.GetRequiredService<IAlgoliaConfigurationStorageService>();

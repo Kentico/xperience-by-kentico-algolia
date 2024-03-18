@@ -8,6 +8,7 @@ using Kentico.Xperience.Algolia;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 [assembly: RegisterModule(typeof(AlgoliaSearchModule))]
 
@@ -37,10 +38,16 @@ internal class AlgoliaSearchModule : Module
 
         var services = parameters.Services;
 
+        var options = services.GetRequiredService<IOptions<AlgoliaOptions>>();
+
+        if (!options.Value.IsConfigured)
+        {
+            return;
+        }
+
         algoliaTaskLogger = services.GetRequiredService<IAlgoliaTaskLogger>();
         appSettingsService = services.GetRequiredService<IAppSettingsService>();
         conversionService = services.GetRequiredService<IConversionService>();
-
 
         WebPageEvents.Publish.Execute += HandleEvent;
         WebPageEvents.Delete.Execute += HandleEvent;
@@ -102,7 +109,15 @@ internal class AlgoliaSearchModule : Module
 
     public static void AddRegisteredIndices()
     {
+        var options = Service.Resolve<IOptions<AlgoliaOptions>>();
+
+        if (!options.Value.IsConfigured)
+        {
+            return;
+        }
+
         var configurationStorageService = Service.Resolve<IAlgoliaConfigurationStorageService>();
+
         var indices = configurationStorageService.GetAllIndexData();
 
         AlgoliaIndexStore.Instance.SetIndicies(indices);
