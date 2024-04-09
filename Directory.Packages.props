@@ -13,8 +13,8 @@
     <PackageVersion Include="Kentico.Xperience.WebApp" Version="28.1.2" />
     <PackageVersion Include="Kentico.Xperience.Core.Tests" Version="28.1.2" />
     <PackageVersion Include="Algolia.Search" Version="6.16.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="9.6.0.74858" />
-
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="NUnit" Version="4.0.1" />
     <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />

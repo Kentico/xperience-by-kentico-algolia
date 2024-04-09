@@ -87,11 +87,11 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
                 if (path.ContentTypes is not null)
                 {
-                    foreach (string? contentType in path.ContentTypes)
+                    foreach (var contentType in path.ContentTypes)
                     {
                         var contentInfo = new AlgoliaContentTypeItemInfo()
                         {
-                            AlgoliaContentTypeItemContentTypeName = contentType,
+                            AlgoliaContentTypeItemContentTypeName = contentType.ContentTypeName,
                             AlgoliaContentTypeItemIncludedPathItemId = pathInfo.AlgoliaIncludedPathItemId,
                             AlgoliaContentTypeItemIndexItemId = newInfo.AlgoliaIndexItemId
                         };
@@ -112,7 +112,23 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         }
 
         var paths = pathProvider.Get().WhereEquals(nameof(AlgoliaIncludedPathItemInfo.AlgoliaIncludedPathItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
-        var contentTypes = contentTypeProvider.Get().WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
+
+        var contentTypesInfoItems = contentTypeProvider
+        .Get()
+        .WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId)
+        .GetEnumerableTypedResult();
+
+        var contentTypes = DataClassInfoProvider.ProviderObject
+            .Get()
+            .WhereIn(
+                nameof(DataClassInfo.ClassName),
+                contentTypesInfoItems
+                    .Select(x => x.AlgoliaContentTypeItemContentTypeName)
+                    .ToArray()
+            ).GetEnumerableTypedResult()
+            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+
+
         var languages = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
         return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypes);
@@ -128,7 +144,21 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         }
 
         var paths = pathProvider.Get().ToList();
-        var contentTypes = contentTypeProvider.Get().ToList();
+
+        var contentTypesInfoItems = contentTypeProvider
+            .Get()
+            .GetEnumerableTypedResult();
+
+        var contentTypes = DataClassInfoProvider.ProviderObject
+            .Get()
+            .WhereIn(
+                nameof(DataClassInfo.ClassName),
+                contentTypesInfoItems
+                    .Select(x => x.AlgoliaContentTypeItemContentTypeName)
+                    .ToArray()
+            ).GetEnumerableTypedResult()
+            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+
         var languages = languageProvider.Get().ToList();
 
         return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypes));
@@ -185,11 +215,11 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
                 if (path.ContentTypes != null)
                 {
-                    foreach (string? contentType in path.ContentTypes)
+                    foreach (var contentType in path.ContentTypes)
                     {
                         var contentInfo = new AlgoliaContentTypeItemInfo()
                         {
-                            AlgoliaContentTypeItemContentTypeName = contentType ?? "",
+                            AlgoliaContentTypeItemContentTypeName = contentType.ContentTypeName ?? "",
                             AlgoliaContentTypeItemIncludedPathItemId = pathInfo.AlgoliaIncludedPathItemId,
                             AlgoliaContentTypeItemIndexItemId = indexInfo.AlgoliaIndexItemId,
                         };

@@ -19,7 +19,7 @@ public class AlgoliaIndexConfigurationComponentProperties : FormComponentPropert
 
 public class AlgoliaIndexConfigurationComponentClientProperties : FormComponentClientProperties<IEnumerable<AlgoliaIndexIncludedPath>>
 {
-    public IEnumerable<string>? PossibleItems { get; set; }
+    public IEnumerable<AlgoliaIndexContentType>? PossibleContentTypeItems { get; set; }
 }
 
 public sealed class AlgoliaIndexConfigurationComponentAttribute : FormComponentAttribute
@@ -81,14 +81,14 @@ public class AlgoliaIndexConfigurationComponent : FormComponent<AlgoliaIndexConf
 
     protected override async Task ConfigureClientProperties(AlgoliaIndexConfigurationComponentClientProperties properties)
     {
-        var allWebsiteContentTypes = await DataClassInfoProvider
-            .GetClasses()
-            .WhereEquals(nameof(DataClassInfo.ClassContentTypeType), "Website")
-            .Columns(nameof(DataClassInfo.ClassName))
-            .GetEnumerableTypedResultAsync();
+        var allWebsiteContentTypes = DataClassInfoProvider.ProviderObject
+           .Get()
+           .WhereEquals(nameof(DataClassInfo.ClassContentTypeType), "Website")
+           .GetEnumerableTypedResult()
+           .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
 
-        properties.Value = Value ?? new();
-        properties.PossibleItems = allWebsiteContentTypes.Select(x => x.ClassName).ToList();
+        properties.Value = Value ?? [];
+        properties.PossibleContentTypeItems = allWebsiteContentTypes.ToList();
 
         await base.ConfigureClientProperties(properties);
     }

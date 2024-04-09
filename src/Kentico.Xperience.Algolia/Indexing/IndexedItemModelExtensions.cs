@@ -42,7 +42,7 @@ internal static class IndexedItemModelExtensions
 
         return algoliaIndex.IncludedPaths.Any(path =>
         {
-            bool matchesContentType = path.ContentTypes.Contains(indexedItemModel.ContentTypeName, StringComparer.OrdinalIgnoreCase);
+            bool matchesContentType = path.ContentTypes.Exists(x => string.Equals(x.ContentTypeName, indexedItemModel.ContentTypeName));
 
             if (!matchesContentType)
             {
