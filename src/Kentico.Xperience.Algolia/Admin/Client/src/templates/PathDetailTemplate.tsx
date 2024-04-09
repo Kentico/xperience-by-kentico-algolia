@@ -1,7 +1,7 @@
 import { usePageCommand } from '@kentico/xperience-admin-base'
 import { Box, Headline, HeadlineSize, Pagination, Spacing, Stack, Table, type TableCell, type TableColumn, type TableRow } from '@kentico/xperience-admin-components'
 import React, { useState } from 'react'
-import localization from '../localization/localization.json'
+import Localization from '../localization/localization.json'
 
 const ListingCommands = {
   LoadData: 'LoadData'
@@ -84,19 +84,19 @@ export const PathDetailTemplate = ({ aliasPath, columns }: PathDetailPageProps):
 
   return (
         <Stack spacing={Spacing.XL}>
-            <Headline size={HeadlineSize.L}>{localization.integrations.algolia.pathdetail.headlines.main}</Headline>
+            <Headline size={HeadlineSize.L}>{Localization.integrations.algolia.pathdetail.headlines.main}</Headline>
             <Box>
-                <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.path}</Headline>
+                <Headline size={HeadlineSize.S}>{Localization.integrations.algolia.pathdetail.headlines.path}</Headline>
                 <span>{aliasPath}</span>
             </Box>
             <Box>
-            <Headline size={HeadlineSize.S}>{localization.integrations.algolia.pathdetail.headlines.pagetypes}</Headline>
+            <Headline size={HeadlineSize.S}>{Localization.integrations.algolia.pathdetail.headlines.pagetypes}</Headline>
             {tableData.totalCount > 0
               ? (
                 <Table isHeaderVisible={false} ref={tableRef} columns={columns.filter(c => c.visible)} rows={prepareRows(tableData.rows)} />
                 )
               : (
-                <p>{localization.integrations.algolia.messages.norecords}</p>
+                <p>{Localization.integrations.algolia.messages.norecords}</p>
                 )}
             </Box>
 
