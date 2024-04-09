@@ -37,7 +37,7 @@ public class AlgoliaConfigurationModel
         AlgoliaIndexItemInfo index,
         IEnumerable<AlgoliaIndexLanguageItemInfo> indexLanguages,
         IEnumerable<AlgoliaIncludedPathItemInfo> indexPaths,
-        IEnumerable<AlgoliaContentTypeItemInfo> contentTypes
+        IEnumerable<AlgoliaIndexContentType> contentTypes
     )
     {
         Id = index.AlgoliaIndexItemId;

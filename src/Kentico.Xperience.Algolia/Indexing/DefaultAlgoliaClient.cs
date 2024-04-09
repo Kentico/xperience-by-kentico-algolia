@@ -141,9 +141,9 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
 
                 if (includedPathAttribute.ContentTypes != null && includedPathAttribute.ContentTypes.Count > 0)
                 {
-                    foreach (string contentType in includedPathAttribute.ContentTypes)
+                    foreach (var contentType in includedPathAttribute.ContentTypes)
                     {
-                        queryBuilder.ForContentType(contentType, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
+                        queryBuilder.ForContentType(contentType.ContentTypeName, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
                     }
                 }
                 queryBuilder.InLanguage(language);

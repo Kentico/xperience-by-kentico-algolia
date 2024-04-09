@@ -1,7 +1,9 @@
 using CMS.Core;
 using CMS.EventLog;
 using CMS.Tests;
+
 using FluentAssertions;
+
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 
@@ -54,7 +56,7 @@ public class Tests : UnitTests
     {
         var log = Substitute.For<EventLogService>();
 
-        IEnumerable<AlgoliaIndexIncludedPath> paths = [new("/path") { ContentTypes = ["contentType"], Identifier = "1" }];
+        IEnumerable<AlgoliaIndexIncludedPath> paths = [new("/path") { ContentTypes = [new("contentType", "contentType")], Identifier = "1" }];
 
         var index = new AlgoliaIndex(new AlgoliaConfigurationModel
         {
@@ -80,7 +82,7 @@ public class Tests : UnitTests
         var log = Substitute.For<EventLogService>();
         List<string> contentTypes = ["contentType"];
 
-        IEnumerable<AlgoliaIndexIncludedPath> exactPaths = [new("/path") { ContentTypes = contentTypes, Identifier = "1" }];
+        IEnumerable<AlgoliaIndexIncludedPath> exactPaths = [new("/path") { ContentTypes = [new("contentType", "contentType")], Identifier = "1" }];
 
         var index1 = new AlgoliaIndex(new AlgoliaConfigurationModel
         {
@@ -94,7 +96,7 @@ public class Tests : UnitTests
         }, new() { { "strategy", typeof(DefaultAlgoliaIndexingStrategy) } });
         AlgoliaIndexStore.Instance.AddIndex(index1);
 
-        IEnumerable<AlgoliaIndexIncludedPath> wildcardPaths = [new("/home/%") { ContentTypes = contentTypes, Identifier = "1" }];
+        IEnumerable<AlgoliaIndexIncludedPath> wildcardPaths = [new("/home/%") { ContentTypes = [new("contentType", "contentType")], Identifier = "1" }];
         var index2 = new AlgoliaIndex(new AlgoliaConfigurationModel
         {
             ChannelName = "channel",
@@ -119,7 +121,7 @@ public class Tests : UnitTests
     public void IsIndexedByIndex_Will_Return_True_When_The_Matching_Index_Has_An_Exact_Path_Match()
     {
         var log = Substitute.For<EventLogService>();
-        List<string> contentTypes = ["contentType"];
+        List<AlgoliaIndexContentType> contentTypes = [new("contentType", "contentType")];
 
         IEnumerable<AlgoliaIndexIncludedPath> exactPaths = [new("/path/abc/def") { ContentTypes = contentTypes, Identifier = "1" }];
 
@@ -135,7 +137,7 @@ public class Tests : UnitTests
         }, new() { { "strategy", typeof(DefaultAlgoliaIndexingStrategy) } });
         AlgoliaIndexStore.Instance.AddIndex(index1);
 
-        IEnumerable<AlgoliaIndexIncludedPath> wildcardPaths = [new("/path/%") { ContentTypes = ["contentType"], Identifier = "1" }];
+        IEnumerable<AlgoliaIndexIncludedPath> wildcardPaths = [new("/path/%") { ContentTypes = [new("contentType", "contentType")], Identifier = "1" }];
 
         var index2 = new AlgoliaIndex(new AlgoliaConfigurationModel
         {
@@ -150,7 +152,7 @@ public class Tests : UnitTests
         AlgoliaIndexStore.Instance.AddIndex(index2);
 
         var sut = GetDefaultIndexEventWebPageItemModel();
-        sut.ContentTypeName = contentTypes[0];
+        sut.ContentTypeName = contentTypes[0].ContentTypeName;
         sut.WebPageItemTreePath = exactPaths.First().AliasPath;
 
         sut.IsIndexedByIndex(log, index1.IndexName, "event").Should().BeTrue();

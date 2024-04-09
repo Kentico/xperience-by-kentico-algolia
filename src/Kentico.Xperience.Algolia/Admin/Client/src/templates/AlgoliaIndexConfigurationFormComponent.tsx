@@ -13,20 +13,34 @@ import {
     type TableCell,
     type TableColumn,
     type TableRow,
-    TextArea,
 } from '@kentico/xperience-admin-components';
-import React, { useEffect, useState } from 'react';
+import React, { type CSSProperties, useEffect, useState } from 'react';
+import { IoCheckmarkSharp } from 'react-icons/io5';
+import { MdOutlineCancel } from 'react-icons/md';
+import { RxCross1 } from 'react-icons/rx';
+import Select, { type CSSObjectWithLabel, type ClearIndicatorProps, type GroupBase, type MultiValue, type MultiValueRemoveProps, type OptionProps, type StylesConfig, components } from 'react-select';
+import { Tooltip } from 'react-tooltip';
+
+export interface AlgoliaIndexContentType {
+    contentTypeName: string;
+    contentTypeDisplayName: string;
+}
 
 export interface IncludedPath {
     aliasPath: string | null;
-    contentTypes: string[];
+    contentTypes: AlgoliaIndexContentType[];
     identifier: string | null;
 }
 
 export interface AlgoliaIndexConfigurationComponentClientProperties
     extends FormComponentProps {
     value: IncludedPath[];
-    possibleItems: string[];
+    possibleContentTypeItems: AlgoliaIndexContentType[] | null;
+}
+
+interface OptionType {
+    value: string;
+    label: string;
 }
 
 export interface TextAreaCell extends TableCell {
@@ -41,10 +55,11 @@ export const AlgoliaIndexConfigurationFormComponent = (
 ): JSX.Element => {
     const [rows, setRows] = useState<TableRow[]>([]);
     const [showPathEdit, setShowPathEdit] = useState<boolean>(false);
-    const [contentTypesValue, setContentTypesValue] = useState<string>('');
-    const [path, setPath] = useState<string>("");
-    const [editedIdentifier, setEditedIdentifier] = useState<string>("");
+    const [contentTypesValue, setContentTypesValue] = useState<OptionType[]>([]);
+    const [path, setPath] = useState<string>('');
+    const [editedIdentifier, setEditedIdentifier] = useState<string>('');
     const [showAddNewPath, setShowAddNewPath] = useState<boolean>(true);
+    const [isClearIndicatorHover, setIsClearIndicatorHover] = useState(false);
 
     const prepareRows = (paths: IncludedPath[]): TableRow[] => {
         if (paths === undefined) {
@@ -57,36 +72,36 @@ export const AlgoliaIndexConfigurationFormComponent = (
             }
             const cell: StringCell = {
                 type: CellType.String,
-                value: pathVal
+                value: pathVal,
             };
             const deleteAction: TableAction = {
                 label: 'delete',
                 icon: 'xp-bin',
                 disabled: false,
-                destructive: true
+                destructive: true,
             };
 
             const deletePath: () => Promise<void> = async () => {
-                await Promise.resolve(() => {
-                    props.value = props.value.filter(x => x.aliasPath !== pathVal);
+                await new Promise(() => {
+                    props.value = props.value.filter((x) => x.aliasPath !== pathVal);
 
-                    if (props.onChange != null) {
+                    if (props.onChange !== null && props.onChange !== undefined) {
                         props.onChange(props.value);
                     }
 
                     setRows(prepareRows(props.value));
                     setShowPathEdit(false);
-                    setContentTypesValue('');
+                    setContentTypesValue([]);
                     setEditedIdentifier('');
                     setPath('');
                     setShowAddNewPath(true);
                 });
-            }
+            };
 
             const deletePathCell: ActionCell = {
                 actions: [deleteAction],
                 type: CellType.Action,
-                onInvokeAction: deletePath
+                onInvokeAction: deletePath,
             };
 
             const cells: TableCell[] = [cell, deletePathCell];
@@ -102,17 +117,15 @@ export const AlgoliaIndexConfigurationFormComponent = (
             return row;
         });
     };
-
     useEffect(() => {
         if (props.value === null || props.value === undefined) {
             props.value = [];
         }
-        if (props.onChange != null) {
+        if (props.onChange !== null && props.onChange !== undefined) {
             props.onChange(props.value);
         }
-        setRows(_prevRows => prepareRows(props.value));
+        setRows(() => prepareRows(props.value));
     }, [props?.value]);
-
     const prepareColumns = (): TableColumn[] => {
         const columns: TableColumn[] = [];
 
@@ -124,7 +137,7 @@ export const AlgoliaIndexConfigurationFormComponent = (
             minWidth: 0,
             maxWidth: 1000,
             sortable: true,
-            searchable: true
+            searchable: true,
         };
 
         const actionColumn: TableColumn = {
@@ -135,13 +148,13 @@ export const AlgoliaIndexConfigurationFormComponent = (
             minWidth: 0,
             maxWidth: 1000,
             sortable: false,
-            searchable: false
-        }
+            searchable: false,
+        };
 
         columns.push(column);
         columns.push(actionColumn);
         return columns;
-    }
+    };
     const showContentItems = (identifier: unknown): void => {
         let rowIndex = -1;
         for (let i = 0; i < rows.length; i++) {
@@ -159,23 +172,18 @@ export const AlgoliaIndexConfigurationFormComponent = (
             setEditedIdentifier('');
         }
 
-        const contentTypes = props.value.find((x) => {
-            return x.aliasPath === identifier;
-        })?.contentTypes;
+        const contentTypes: OptionType[] = props.value.find((x) => x.aliasPath === identifier)?.contentTypes.map(x => {
+            const option: OptionType = {
+                value: x.contentTypeName,
+                label: x.contentTypeDisplayName
+            };
+            return option;
+        }) ?? [];
 
-        let contentTypesAsString: string = '';
-        contentTypes?.forEach((x) => {
-            contentTypesAsString += x + '\n';
-        });
 
-        setContentTypesValue(contentTypesAsString);
+        setContentTypesValue(contentTypes ?? []);
         setShowPathEdit(!showPathEdit);
         setShowAddNewPath(!showAddNewPath);
-    };
-    const handleTextareaChange = (
-        event: React.ChangeEvent<HTMLTextAreaElement>,
-    ): void => {
-        setContentTypesValue(event.target.value);
     };
     const handleInputChange = (
         event: React.ChangeEvent<HTMLInputElement>,
@@ -183,22 +191,24 @@ export const AlgoliaIndexConfigurationFormComponent = (
         setPath(event.target.value);
     };
     const savePath = (): void => {
-        const contentTypesSplit = contentTypesValue.split('\n').filter((x) => {
-            return x !== '' && x !== '' && x !== null && x !== undefined;
-        });
         if (editedIdentifier === '') {
-            if (
-                !rows.some((x) => {
-                    return x.identifier === path;
-                })
-            ) {
+            if (!rows.some((x) => {
+                return x.identifier === path;
+            })) {
                 if (path === '') {
                     alert('Invalid path');
                 } else {
                     const newPath: IncludedPath = {
                         aliasPath: path,
                         identifier: null,
-                        contentTypes: contentTypesSplit,
+                        contentTypes: contentTypesValue.map(x => {
+                            const contentType: AlgoliaIndexContentType = {
+                                contentTypeDisplayName: x.label,
+                                contentTypeName: x.value
+                            };
+
+                            return contentType;
+                        })
                     };
                     props.value.push(newPath);
                     setRows(prepareRows(props.value));
@@ -222,11 +232,20 @@ export const AlgoliaIndexConfigurationFormComponent = (
             const propPathIndex = props.value.findIndex(
                 (p) => p.aliasPath === editedIdentifier,
             );
+
             const updatedPath: IncludedPath = {
                 aliasPath: path,
                 identifier: props.value[propPathIndex].identifier,
-                contentTypes: contentTypesSplit,
+                contentTypes: contentTypesValue.map(x => {
+                    const contentType: AlgoliaIndexContentType = {
+                        contentTypeDisplayName: x.label,
+                        contentTypeName: x.value
+                    };
+
+                    return contentType;
+                })
             };
+
             props.value[propPathIndex] = updatedPath;
 
             editedRow.cells[0] = pathCellInNewRow;
@@ -242,10 +261,139 @@ export const AlgoliaIndexConfigurationFormComponent = (
     };
     const addNewPath = (): void => {
         setShowPathEdit(true);
-        setContentTypesValue('');
+        setContentTypesValue([]);
         setPath('');
         setEditedIdentifier('');
         setShowAddNewPath(false);
+    };
+    const options: OptionType[] = props.possibleContentTypeItems?.map(x => {
+        const option: OptionType = {
+            value: x.contentTypeName,
+            label: x.contentTypeDisplayName
+        };
+        return option;
+    }) ?? [];
+    const selectContentTypes = (newValue: MultiValue<OptionType>): void => {
+        setContentTypesValue(newValue as OptionType[]);
+    }
+
+    /* eslint-disable @typescript-eslint/naming-convention */
+    /* eslint-disable @typescript-eslint/consistent-type-assertions */
+    const customStyle: StylesConfig<OptionType, true, GroupBase<OptionType>> = {
+        control: (styles, { isFocused }) => ({
+            ...styles,
+            backgroundColor: 'white',
+            borderColor: isFocused ? 'black' : 'gray',
+            '&:hover': {
+                borderColor: 'black'
+            },
+            borderRadius: 20,
+            boxShadow: 'gray',
+            padding: 2,
+            minHeight: 'fit-content',
+        } as CSSObjectWithLabel),
+        option: (styles, { isSelected }) => {
+            return {
+                ...styles,
+                backgroundColor: isSelected ? '#bab4f0' : 'white',
+                '&:hover': {
+                    backgroundColor: isSelected ? '#a097f7' : 'lightgray'
+                },
+                color: isSelected ? 'purple' : 'black',
+                cursor: 'pointer'
+            } as CSSObjectWithLabel;
+        },
+        input: (styles) => ({ ...styles }),
+        container: (styles) => ({ ...styles, borderColor: 'gray' } as CSSObjectWithLabel),
+        placeholder: (styles) => ({ ...styles }),
+        multiValue: (styles) => ({
+            ...styles,
+            backgroundColor: '#287ab5',
+            borderRadius: 10,
+            height: 35,
+            alignItems: 'center',
+        } as CSSObjectWithLabel),
+        multiValueLabel: (styles) => ({
+            ...styles,
+            color: 'white',
+            fontSize: 14,
+            alignContent: 'center'
+        } as CSSObjectWithLabel),
+        indicatorSeparator: () => ({}),
+        dropdownIndicator: (styles, state): CSSObjectWithLabel => ({
+            ...styles,
+            transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+        } as CSSObjectWithLabel),
+        multiValueRemove: (styles) => ({
+            ...styles,
+            '&:hover': {
+                background: '#287ab5',
+                borderRadius: 10,
+                cursor: 'pointer',
+                filter: 'grayscale(40%)',
+                height: '100%'
+            }
+        } as CSSObjectWithLabel)
+        /* eslint-enable @typescript-eslint/naming-convention */
+        /* eslint-enable @typescript-eslint/consistent-type-assertions */
+    };
+
+    const MultiValueRemoveStyle: CSSProperties = {
+        color: 'white',
+        height: '20',
+        width: '30'
+    };
+    const MultiValueRemove = (props: MultiValueRemoveProps<OptionType>): JSX.Element => {
+        return (
+            <components.MultiValueRemove {...props}>
+                <RxCross1 style={MultiValueRemoveStyle} />
+            </components.MultiValueRemove>
+        );
+    };
+
+    const Option = (props: OptionProps<OptionType, true, GroupBase<OptionType>>): JSX.Element => {
+        return (
+            <components.Option {...props}>
+                {props.isSelected ? <IoCheckmarkSharp style={{ width: 30, alignContent: 'center' }} /> : <span style={{ width: 30, display: 'inline-block' }}></span>}
+                {props.children}
+            </components.Option>
+        );
+    }
+
+    const handleMouseEnter = (): void => {
+        setIsClearIndicatorHover(true);
+    };
+    const handleMouseLeave = (): void => {
+        setIsClearIndicatorHover(false);
+    };
+    const IndicatorStyle: CSSProperties = {
+        color: 'black',
+        width: '80%',
+        height: '80%',
+    }
+    const ClearIndicator = (props: ClearIndicatorProps<OptionType>): JSX.Element => {
+        return (
+            <components.ClearIndicator {...props}>
+                <Tooltip id="clear-content-type-select-tooltip-1" />
+                <span style={{
+                    background: isClearIndicatorHover ? 'lightgray' : 'white',
+                    width: 25,
+                    height: 25,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 5,
+                    cursor: isClearIndicatorHover ? 'pointer' : 'default'
+                }}>
+                    <MdOutlineCancel style={IndicatorStyle}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        data-tooltip-id="clear-content-type-select-tooltip-1"
+                        data-tooltip-content="Clear selection"
+                    />
+                </span >
+            </components.ClearIndicator>
+        );
     }
 
     return (
@@ -265,35 +413,29 @@ export const AlgoliaIndexConfigurationFormComponent = (
                     />
                     <br></br>
                     <div className="label-wrapper___AcszK">
-                        <label className="label___WET63">Available content types:</label>
+                        <label className="label___WET63">Included content types</label>
                     </div>
-                    <ul>
-                        {props.possibleItems.map((x) => (
-                            <label key={x} className="label___WET63">
-                                <li key={x}>
-                                    <span>{x}</span>
-                                </li>
-                            </label>
-                        ))}
-                    </ul>
-                    <br></br>
-                    <TextArea
-                        label="Included ContentType Items"
-                        value={contentTypesValue}
-                        onChange={handleTextareaChange}
-                    />
-                    <br></br>
-                    <div className="label-wrapper___AcszK">
-                        <label className="label___WET63">
-                            <span>Separate each content type with a new line</span>
-                        </label>
-                    </div>
+                    <Select
+                        isMulti
+                        closeMenuOnSelect={false}
+                        defaultValue={contentTypesValue}
+                        options={options}
+                        onChange={selectContentTypes}
+                        placeholder="Select a tag type"
+                        styles={customStyle}
+                        hideSelectedOptions={false}
+                        components={{ MultiValueRemove, ClearIndicator, Option }}
+                        theme={(theme) => ({
+                            ...theme,
+                            height: 40,
+                            borderRadius: 0,
+                            borderColor: 'gray',
+                        })} />
                     <br></br>
                     <Button
                         type={ButtonType.Button}
                         label="Save Path"
-                        onClick={savePath}
-                    ></Button>
+                        onClick={savePath}></Button>
                 </div>
             )}
             <br></br>

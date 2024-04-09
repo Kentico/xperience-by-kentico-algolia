@@ -1,45 +1,47 @@
 ﻿using CMS.Core;
+using CMS.Tests;
+
 using DancingGoat.Models;
+
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 using Kentico.Xperience.Algolia.Tests.Base;
 namespace Kentico.Xperience.Algolia.Tests.Tests;
 
-internal class MockEventLogService : IEventLogService
+internal class IndexedItemModelExtensionsTests : UnitTests
 {
-    public void LogEvent(EventLogData eventLogData)
-    {
-        // Method intentionally left empty.
-    }
-}
-
-internal class IndexedItemModelExtensionsTests
-{
-    private readonly IEventLogService log;
-
-    public IndexedItemModelExtensionsTests() => log = new MockEventLogService();
-
     [Test]
     public void IsIndexedByIndex()
     {
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
 
-        Assert.That(MockDataProvider.WebModel.IsIndexedByIndex(log, MockDataProvider.DefaultIndex, MockDataProvider.EventName));
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
+        Assert.That(model.IsIndexedByIndex(log, MockDataProvider.DefaultIndex, MockDataProvider.EventName));
     }
 
     [Test]
     public void WildCard()
     {
-        var model = MockDataProvider.WebModel;
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
         model.WebPageItemTreePath = "/Home";
 
         var index = MockDataProvider.Index;
-        var path = new AlgoliaIndexIncludedPath("/%") { ContentTypes = [ArticlePage.CONTENT_TYPE_NAME] };
+        var path = new AlgoliaIndexIncludedPath("/%") { ContentTypes = [new(ArticlePage.CONTENT_TYPE_NAME, nameof(ArticlePage))] };
 
         index.IncludedPaths = new List<AlgoliaIndexIncludedPath>() { path };
 
-        AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
         AlgoliaIndexStore.Instance.AddIndex(index);
 
         Assert.That(model.IsIndexedByIndex(log, MockDataProvider.DefaultIndex, MockDataProvider.EventName));
@@ -48,11 +50,17 @@ internal class IndexedItemModelExtensionsTests
     [Test]
     public void WrongWildCard()
     {
-        var model = MockDataProvider.WebModel;
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
         model.WebPageItemTreePath = "/Home";
 
         var index = MockDataProvider.Index;
-        var path = new AlgoliaIndexIncludedPath("/Index/%") { ContentTypes = [ArticlePage.CONTENT_TYPE_NAME] };
+        var path = new AlgoliaIndexIncludedPath("/Index/%") { ContentTypes = [new("contentType", "contentType")] };
 
         index.IncludedPaths = new List<AlgoliaIndexIncludedPath>() { path };
 
@@ -65,11 +73,17 @@ internal class IndexedItemModelExtensionsTests
     [Test]
     public void WrongPath()
     {
-        var model = MockDataProvider.WebModel;
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
         model.WebPageItemTreePath = "/Home";
 
         var index = MockDataProvider.Index;
-        var path = new AlgoliaIndexIncludedPath("/Index") { ContentTypes = [ArticlePage.CONTENT_TYPE_NAME] };
+        var path = new AlgoliaIndexIncludedPath("/Index") { ContentTypes = [new("contentType", "contentType")] };
 
         index.IncludedPaths = new List<AlgoliaIndexIncludedPath>() { path };
 
@@ -82,7 +96,13 @@ internal class IndexedItemModelExtensionsTests
     [Test]
     public void WrongContentType()
     {
-        var model = MockDataProvider.WebModel;
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
         model.ContentTypeName = "DancingGoat.HomePage";
 
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
@@ -94,16 +114,29 @@ internal class IndexedItemModelExtensionsTests
     [Test]
     public void WrongIndex()
     {
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
 
-        Assert.That(!MockDataProvider.WebModel.IsIndexedByIndex(log, "NewIndex", MockDataProvider.EventName));
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
+        Assert.That(!model.IsIndexedByIndex(log, "NewIndex", MockDataProvider.EventName));
     }
 
     [Test]
     public void WrongLanguage()
     {
-        var model = MockDataProvider.WebModel;
+        Service.InitializeContainer();
+        var log = Substitute.For<IEventLogService>();
+
+        var fixture = new Fixture();
+        var item = fixture.Create<IndexEventWebPageItemModel>();
+
+        var model = MockDataProvider.WebModel(item);
         model.LanguageName = "sk";
 
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());

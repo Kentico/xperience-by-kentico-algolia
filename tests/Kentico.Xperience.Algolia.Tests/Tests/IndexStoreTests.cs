@@ -1,9 +1,11 @@
-﻿using Kentico.Xperience.Algolia.Admin;
+﻿using CMS.Tests;
+
+using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 using Kentico.Xperience.Algolia.Tests.Base;
 
 namespace Kentico.Xperience.Algolia.Tests.Tests;
-internal class IndexStoreTests
+internal class IndexStoreTests : UnitTests
 {
 
     [Test]
@@ -24,6 +26,7 @@ internal class IndexStoreTests
     [Test]
     public void AddIndex_AlreadyExists()
     {
+        var fixture = new Fixture();
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
 
@@ -55,4 +58,7 @@ internal class IndexStoreTests
             Assert.That(AlgoliaIndexStore.Instance.GetIndex(simpleIndex.IndexName) is not null);
         });
     }
+
+    [TearDown]
+    public void TearDown() => AlgoliaIndexStore.Instance.SetIndicies([]);
 }

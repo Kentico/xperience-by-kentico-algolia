@@ -13,7 +13,7 @@ public class AlgoliaIndexIncludedPath
     /// <summary>
     /// A list of content types under the specified <see cref="AliasPath"/> that will be indexed.
     /// </summary>
-    public List<string> ContentTypes { get; set; } = new();
+    public List<AlgoliaIndexContentType> ContentTypes { get; set; } = [];
 
     /// <summary>
     /// The internal identifier of the included path.
@@ -28,10 +28,10 @@ public class AlgoliaIndexIncludedPath
     /// </summary>
     /// <param name="indexPath"></param>
     /// <param name="contentTypes"></param>
-    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaContentTypeItemInfo> contentTypes)
+    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaIndexContentType> contentTypes)
     {
         AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
-        ContentTypes = contentTypes.Where(y => indexPath.AlgoliaIncludedPathItemId == y.AlgoliaContentTypeItemIncludedPathItemId).Select(y => y.AlgoliaContentTypeItemContentTypeName).ToList();
+        ContentTypes = contentTypes.ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }
 }
