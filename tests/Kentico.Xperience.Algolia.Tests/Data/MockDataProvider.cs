@@ -5,23 +5,22 @@ using Kentico.Xperience.Algolia.Indexing;
 namespace Kentico.Xperience.Algolia.Tests.Base;
 internal static class MockDataProvider
 {
-    public static IndexEventWebPageItemModel WebModel => new(
-        itemID: 0,
-        itemGuid: Guid.NewGuid(),
-        languageName: CzechLanguageName,
-        contentTypeName: ArticlePage.CONTENT_TYPE_NAME,
-        name: "Name",
-        isSecured: false,
-        contentTypeID: 1,
-        contentLanguageID: 1,
-        websiteChannelName: DefaultChannel,
-        webPageItemTreePath: "/",
-        order: 0
-    );
+    public static IndexEventWebPageItemModel WebModel(IndexEventWebPageItemModel item)
+    {
+        item.LanguageName = CzechLanguageName;
+        item.ContentTypeName = ArticlePage.CONTENT_TYPE_NAME;
+        item.Name = "Name";
+        item.ContentTypeID = 1;
+        item.ContentLanguageID = 1;
+        item.WebsiteChannelName = DefaultChannel;
+        item.WebPageItemTreePath = "/%";
+
+        return item;
+    }
 
     public static AlgoliaIndexIncludedPath Path => new("/%")
     {
-        ContentTypes = [ArticlePage.CONTENT_TYPE_NAME]
+        ContentTypes = [new AlgoliaIndexContentType(ArticlePage.CONTENT_TYPE_NAME, nameof(ArticlePage))]
     };
 
 
@@ -31,7 +30,8 @@ internal static class MockDataProvider
             IndexName = DefaultIndex,
             ChannelName = DefaultChannel,
             LanguageNames = new List<string>() { EnglishLanguageName, CzechLanguageName },
-            Paths = new List<AlgoliaIndexIncludedPath>() { Path }
+            Paths = new List<AlgoliaIndexIncludedPath>() { Path },
+            StrategyName = "strategy"
         },
         []
     );
