@@ -6,9 +6,9 @@ namespace Kentico.Xperience.Algolia.Admin;
 
 internal class AlgoliaModuleInstaller
 {
-    private readonly IResourceInfoProvider resourceProvider;
+    private readonly IInfoProvider<ResourceInfo> resourceProvider;
 
-    public AlgoliaModuleInstaller(IResourceInfoProvider resourceProvider) => this.resourceProvider = resourceProvider;
+    public AlgoliaModuleInstaller(IInfoProvider<ResourceInfo> resourceProvider) => this.resourceProvider = resourceProvider;
 
     public void Install()
     {
