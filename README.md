@@ -4,7 +4,7 @@
 
 ## Description
 
-This integration enables you to create [Algolia](https://www.algolia.com/) search indexes to index content of pages ([content types](https://docs.xperience.io/x/gYHWCQ) with the 'Page' feature enabled) from the Xperience content tree using a code-first approach. To provide a search interface for the indexed content, developers can use the [.NET API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/csharp/?client=csharp), [JavaScript API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/javascript/?client=javascript), or the [InstantSearch.js](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) library.
+This integration enables you to create [Algolia](https://www.algolia.com/) search indexes to index content of [web pages](https://docs.kentico.com/x/JwKQC) from an Xperience website channel using a code-first approach. To provide a search interface for the indexed content, developers can use the [.NET API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/csharp/?client=csharp), [JavaScript API](https://www.algolia.com/doc/api-client/getting-started/what-is-the-api-client/javascript/?client=javascript), or the [InstantSearch.js](https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/) library.
 
 ## Library Version Matrix
 
