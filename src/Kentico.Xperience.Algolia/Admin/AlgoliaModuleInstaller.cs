@@ -20,6 +20,7 @@ internal class AlgoliaModuleInstaller
         InstallAlgoliaLanguageInfo(resource);
         InstallAlgoliaIndexPathItemInfo(resource);
         InstallAlgoliaContentTypeItemInfo(resource);
+        InstallLuceneReusableContentTypeItemInfo(resource);
     }
 
     public ResourceInfo InitializeResource(ResourceInfo resource)
@@ -284,6 +285,64 @@ internal class AlgoliaModuleInstaller
         formItem = new FormFieldInfo
         {
             Name = nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId),
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "integer",
+            ReferenceToObjectType = AlgoliaIndexItemInfo.OBJECT_TYPE,
+            ReferenceType = ObjectDependencyEnum.Required
+        };
+
+        formInfo.AddFormItem(formItem);
+
+        SetFormDefinition(info, formInfo);
+
+        if (info.HasChanged)
+        {
+            DataClassInfoProvider.SetDataClassInfo(info);
+        }
+    }
+
+    public void InstallLuceneReusableContentTypeItemInfo(ResourceInfo resource)
+    {
+        var info = DataClassInfoProvider.GetDataClassInfo(AlgoliaReusableContentTypeItemInfo.OBJECT_TYPE) ?? DataClassInfo.New(AlgoliaReusableContentTypeItemInfo.OBJECT_TYPE);
+
+        info.ClassName = AlgoliaReusableContentTypeItemInfo.TYPEINFO.ObjectClassName;
+        info.ClassTableName = AlgoliaReusableContentTypeItemInfo.TYPEINFO.ObjectClassName.Replace(".", "_");
+        info.ClassDisplayName = "Algolia Reusable Content Type Item";
+        info.ClassType = ClassType.OTHER;
+        info.ClassResourceID = resource.ResourceID;
+
+        var formInfo = FormHelper.GetBasicFormDefinition(nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemId));
+
+        var formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemContentTypeName),
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            Size = 100,
+            DataType = "text",
+            Enabled = true,
+            IsUnique = false
+        };
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemGuid),
+            Enabled = true,
+            AllowEmpty = false,
+            Visible = true,
+            Precision = 0,
+            DataType = "guid",
+        };
+
+        formInfo.AddFormItem(formItem);
+
+        formItem = new FormFieldInfo
+        {
+            Name = nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemIndexItemId),
             AllowEmpty = false,
             Visible = true,
             Precision = 0,

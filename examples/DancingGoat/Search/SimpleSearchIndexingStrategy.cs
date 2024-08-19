@@ -32,7 +32,7 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
             }
         };
 
-    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         var result = new List<JObject>();
 

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using DancingGoat;
 using DancingGoat.Controllers;
 using DancingGoat.Models;
+
+using Kentico.Content.Web.Mvc;
 using Kentico.Content.Web.Mvc.Routing;
 
 using Microsoft.AspNetCore.Mvc;
@@ -16,29 +18,37 @@ namespace DancingGoat.Controllers
 {
     public class DancingGoatContactsController : Controller
     {
+        private readonly ContactsPageRepository contactsPageRepository;
         private readonly ContactRepository contactRepository;
         private readonly CafeRepository cafeRepository;
         private readonly IPreferredLanguageRetriever currentLanguageRetriever;
+        private readonly IWebPageDataContextRetriever webPageDataContextRetriever;
 
 
-        public DancingGoatContactsController(ContactRepository contactRepository,
-            CafeRepository cafeRepository, IPreferredLanguageRetriever currentLanguageRetriever)
+        public DancingGoatContactsController(ContactsPageRepository contactsPageRepository, ContactRepository contactRepository,
+            CafeRepository cafeRepository, IPreferredLanguageRetriever currentLanguageRetriever, IWebPageDataContextRetriever webPageDataContextRetriever)
         {
+            this.contactsPageRepository = contactsPageRepository;
             this.contactRepository = contactRepository;
             this.cafeRepository = cafeRepository;
             this.currentLanguageRetriever = currentLanguageRetriever;
+            this.webPageDataContextRetriever = webPageDataContextRetriever;
         }
 
 
         public async Task<ActionResult> Index(CancellationToken cancellationToken)
         {
-            var model = await GetIndexViewModel(cancellationToken);
+            var webPage = webPageDataContextRetriever.Retrieve().WebPage;
+
+            var contactsPage = await contactsPageRepository.GetContactsPage(webPage.WebPageItemID, webPage.LanguageName, HttpContext.RequestAborted);
+
+            var model = await GetIndexViewModel(contactsPage, cancellationToken);
 
             return View(model);
         }
 
 
-        private async Task<ContactsIndexViewModel> GetIndexViewModel(CancellationToken cancellationToken)
+        private async Task<ContactsIndexViewModel> GetIndexViewModel(ContactsPage contactsPage, CancellationToken cancellationToken)
         {
             var languageName = currentLanguageRetriever.Get();
             var cafes = await cafeRepository.GetCompanyCafes(4, languageName, cancellationToken);
@@ -47,7 +57,8 @@ namespace DancingGoat.Controllers
             return new ContactsIndexViewModel
             {
                 CompanyContact = ContactViewModel.GetViewModel(contact),
-                CompanyCafes = GetCompanyCafesModel(cafes)
+                CompanyCafes = GetCompanyCafesModel(cafes),
+                WebPage = contactsPage
             };
         }
 

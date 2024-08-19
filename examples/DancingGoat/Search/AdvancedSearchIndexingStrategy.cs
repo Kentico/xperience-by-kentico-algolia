@@ -47,7 +47,7 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
             }
     };
 
-    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         var resultProperties = new DancingGoatSearchResultModel();
 

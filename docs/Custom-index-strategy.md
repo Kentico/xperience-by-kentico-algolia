@@ -95,6 +95,7 @@ Some properties of the `IIndexEventItemModel` are added to the JObjects by defau
 
 public class AlgoliaSearchResultModel
 {
+    // This field is defaultly only added to the document if the indexed item is a web page.
     public string Url { get; set; } = "";
     public string ContentTypeName { get; set; } = "";
     public string LanguageName { get; set; } = "";

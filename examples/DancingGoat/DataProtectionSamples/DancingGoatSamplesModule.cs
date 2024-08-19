@@ -78,7 +78,7 @@ namespace Samples.DancingGoat
         /// </summary>
         private void InitializeSamples()
         {
-            var dataProtectionSamplesEnabledSettingsKey = settingsKeyInfoProvider.Get().WhereEquals(nameof(SettingsKeyInfo.KeyName), DATA_PROTECTION_SAMPLES_ENABLED_SETTINGS_KEY_NAME).FirstOrDefault();
+            var dataProtectionSamplesEnabledSettingsKey = settingsKeyInfoProvider.Get(DATA_PROTECTION_SAMPLES_ENABLED_SETTINGS_KEY_NAME);
             if (dataProtectionSamplesEnabledSettingsKey?.KeyValue.ToBoolean(false) ?? false)
             {
                 RegisterSamples();

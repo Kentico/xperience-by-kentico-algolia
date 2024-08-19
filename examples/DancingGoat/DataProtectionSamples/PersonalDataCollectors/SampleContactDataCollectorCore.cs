@@ -401,11 +401,11 @@ namespace Samples.DancingGoat
                 var stateID = contactInfo.ContactStateID;
                 if (countryID != 0)
                 {
-                    writer.WriteBaseInfo(countryInfoProvider.Get().WithID(countryID).FirstOrDefault(), countryInfoColumns);
+                    writer.WriteBaseInfo(countryInfoProvider.Get(countryID), countryInfoColumns);
                 }
                 if (stateID != 0)
                 {
-                    writer.WriteBaseInfo(stateInfoProvider.Get().WithID(stateID).FirstOrDefault(), stateInfoColumns);
+                    writer.WriteBaseInfo(stateInfoProvider.Get(stateID), stateInfoColumns);
                 }
 
                 writer.WriteEndSection();
