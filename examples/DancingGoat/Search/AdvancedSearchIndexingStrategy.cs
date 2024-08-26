@@ -69,7 +69,7 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
                     return null;
                 }
 
-                resultProperties.SortableTitle = resultProperties.Title = page?.ArticleTitle ?? "";
+                resultProperties.SortableTitle = resultProperties.Title = page?.ArticleTitle ?? string.Empty;
 
                 string rawContent = await webCrawler.CrawlWebPage(page!);
                 resultProperties.Content = htmlSanitizer.SanitizeHtmlDocument(rawContent);

@@ -25,9 +25,9 @@ public static class AlgoliaStartupExtensions
 
         bool isConfigured = false;
 
-        if (algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.SearchKey)).Value != ""
-            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApiKey)).Value != ""
-            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApplicationId)).Value != "")
+        if (algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.SearchKey)).Value != string.Empty
+            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApiKey)).Value != string.Empty
+            && algoliaOptions.Single(x => x.Key == nameof(AlgoliaOptions.ApplicationId)).Value != string.Empty)
         {
             isConfigured = true;
         }
@@ -48,7 +48,7 @@ public static class AlgoliaStartupExtensions
                 var options = s.GetRequiredService<IOptions<AlgoliaOptions>>();
                 var configuration = new SearchConfig(options.Value.ApplicationId, options.Value.ApiKey);
                 var fileVersion = FileVersionInfo.GetVersionInfo(typeof(AlgoliaOptions).Assembly.Location);
-                string versioNumber = new Version(fileVersion.FileVersion ?? "").ToString(3);
+                string versioNumber = new Version(fileVersion.FileVersion ?? string.Empty).ToString(3);
                 configuration.DefaultHeaders["User-Agent"] = $"Kentico Xperience for Algolia ({versioNumber})";
 
                 return new SearchClient(configuration);

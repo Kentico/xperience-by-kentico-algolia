@@ -55,10 +55,10 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         var newInfo = new AlgoliaIndexItemInfo()
         {
-            AlgoliaIndexItemIndexName = configuration.IndexName ?? "",
-            AlgoliaIndexItemChannelName = configuration.ChannelName ?? "",
-            AlgoliaIndexItemStrategyName = configuration.StrategyName ?? "",
-            AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? ""
+            AlgoliaIndexItemIndexName = configuration.IndexName ?? string.Empty,
+            AlgoliaIndexItemChannelName = configuration.ChannelName ?? string.Empty,
+            AlgoliaIndexItemStrategyName = configuration.StrategyName ?? string.Empty,
+            AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? string.Empty
         };
 
         indexProvider.Set(newInfo);
@@ -197,7 +197,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
     public bool TryEditIndex(AlgoliaConfigurationModel configuration)
     {
-        configuration.IndexName = RemoveWhitespacesUsingStringBuilder(configuration.IndexName ?? "");
+        configuration.IndexName = RemoveWhitespacesUsingStringBuilder(configuration.IndexName ?? string.Empty);
 
         var indexInfo = indexProvider.Get()
             .WhereEquals(nameof(AlgoliaIndexItemInfo.AlgoliaIndexItemId), configuration.Id)
@@ -213,10 +213,10 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         languageProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId)} = {configuration.Id}"));
         contentTypeProvider.BulkDelete(new WhereCondition($"{nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId)} = {configuration.Id}"));
 
-        indexInfo.AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? "";
-        indexInfo.AlgoliaIndexItemStrategyName = configuration.StrategyName ?? "";
-        indexInfo.AlgoliaIndexItemChannelName = configuration.ChannelName ?? "";
-        indexInfo.AlgoliaIndexItemIndexName = configuration.IndexName ?? "";
+        indexInfo.AlgoliaIndexItemRebuildHook = configuration.RebuildHook ?? string.Empty;
+        indexInfo.AlgoliaIndexItemStrategyName = configuration.StrategyName ?? string.Empty;
+        indexInfo.AlgoliaIndexItemChannelName = configuration.ChannelName ?? string.Empty;
+        indexInfo.AlgoliaIndexItemIndexName = configuration.IndexName ?? string.Empty;
 
         indexProvider.Set(indexInfo);
 
@@ -251,7 +251,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
                     {
                         var contentInfo = new AlgoliaContentTypeItemInfo()
                         {
-                            AlgoliaContentTypeItemContentTypeName = contentType.ContentTypeName ?? "",
+                            AlgoliaContentTypeItemContentTypeName = contentType.ContentTypeName ?? string.Empty,
                             AlgoliaContentTypeItemIncludedPathItemId = pathInfo.AlgoliaIncludedPathItemId,
                             AlgoliaContentTypeItemIndexItemId = indexInfo.AlgoliaIndexItemId,
                         };

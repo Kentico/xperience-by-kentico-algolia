@@ -14,7 +14,7 @@ public class AlgoliaConfigurationModel
        Order = 1)]
     [Required]
     [MinLength(1)]
-    public string IndexName { get; set; } = "";
+    public string IndexName { get; set; } = string.Empty;
 
     [AlgoliaIndexConfigurationComponent(Label = "Included Paths", Order = 2)]
     public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = new List<AlgoliaIndexIncludedPath>();
@@ -26,13 +26,13 @@ public class AlgoliaConfigurationModel
     public IEnumerable<string> LanguageNames { get; set; } = Enumerable.Empty<string>();
 
     [DropDownComponent(Label = "Channel Name", DataProviderType = typeof(ChannelOptionsProvider), Order = 5)]
-    public string ChannelName { get; set; } = "";
+    public string ChannelName { get; set; } = string.Empty;
 
     [DropDownComponent(Label = "Indexing Strategy", DataProviderType = typeof(IndexingStrategyOptionsProvider), Order = 6)]
-    public string StrategyName { get; set; } = "";
+    public string StrategyName { get; set; } = string.Empty;
 
     [TextInputComponent(Label = "Rebuild Hook", Order = 7)]
-    public string RebuildHook { get; set; } = "";
+    public string RebuildHook { get; set; } = string.Empty;
 
     public AlgoliaConfigurationModel() { }
 
