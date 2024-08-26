@@ -5,18 +5,18 @@ namespace Kentico.Xperience.Algolia.Admin;
 
 internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfigurationStorageService
 {
-    private readonly IAlgoliaIndexItemInfoProvider indexProvider;
-    private readonly IAlgoliaIncludedPathItemInfoProvider pathProvider;
-    private readonly IAlgoliaContentTypeItemInfoProvider contentTypeProvider;
-    private readonly IAlgoliaIndexLanguageItemInfoProvider languageProvider;
-    private readonly IAlgoliaReusableContentTypeItemInfoProvider reusableContentTypeProvider;
+    private readonly IInfoProvider<AlgoliaIndexItemInfo> indexProvider;
+    private readonly IInfoProvider<AlgoliaIncludedPathItemInfo> pathProvider;
+    private readonly IInfoProvider<AlgoliaContentTypeItemInfo> contentTypeProvider;
+    private readonly IInfoProvider<AlgoliaIndexLanguageItemInfo> languageProvider;
+    private readonly IInfoProvider<AlgoliaReusableContentTypeItemInfo> reusableContentTypeProvider;
 
     public DefaultAlgoliaConfigurationStorageService(
-        IAlgoliaIndexItemInfoProvider indexProvider,
-        IAlgoliaIncludedPathItemInfoProvider pathProvider,
-        IAlgoliaContentTypeItemInfoProvider contentTypeProvider,
-        IAlgoliaIndexLanguageItemInfoProvider languageProvider,
-        IAlgoliaReusableContentTypeItemInfoProvider reusableContentTypeProvider
+        IInfoProvider<AlgoliaIndexItemInfo> indexProvider,
+        IInfoProvider<AlgoliaIncludedPathItemInfo> pathProvider,
+        IInfoProvider<AlgoliaContentTypeItemInfo> contentTypeProvider,
+        IInfoProvider<AlgoliaIndexLanguageItemInfo> languageProvider,
+        IInfoProvider<AlgoliaReusableContentTypeItemInfo> reusableContentTypeProvider
     )
     {
         this.indexProvider = indexProvider;
