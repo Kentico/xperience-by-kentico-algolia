@@ -42,7 +42,7 @@ public class ExampleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
     {
         var result = new List<JObject>();
 
-        string title = "";
+        string title = string.Empty;
 
         // IIndexEventItemModel could be a reusable content item or a web page item, so we use
         // pattern matching to get access to the web page item specific type and fields
@@ -96,11 +96,11 @@ Some properties of the `IIndexEventItemModel` are added to the JObjects by defau
 public class AlgoliaSearchResultModel
 {
     // This field is defaultly only added to the document if the indexed item is a web page.
-    public string Url { get; set; } = "";
-    public string ContentTypeName { get; set; } = "";
-    public string LanguageName { get; set; } = "";
+    public string Url { get; set; } = string.Empty;
+    public string ContentTypeName { get; set; } = string.Empty;
+    public string LanguageName { get; set; } = string.Empty;
     public Guid ItemGuid { get; set; }
-    public string ObjectID { get; set; } = "";
+    public string ObjectID { get; set; } = string.Empty;
 }
 ```
 
