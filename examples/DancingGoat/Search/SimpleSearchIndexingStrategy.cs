@@ -36,7 +36,7 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
     {
         var result = new List<JObject>();
 
-        string title = "";
+        string title = string.Empty;
 
         // IIndexEventItemModel could be a reusable content item or a web page item, so we use
         // pattern matching to get access to the web page item specific type and fields

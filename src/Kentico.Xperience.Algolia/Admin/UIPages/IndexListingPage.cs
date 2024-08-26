@@ -149,7 +149,7 @@ internal class IndexListingPage : ListingPage
         int indexID = conversionService.GetInteger(row.Identifier, 0);
         string indexName = AlgoliaIndexStore.Instance.GetIndex(indexID) is AlgoliaIndex index
             ? index.IndexName
-            : "";
+            : string.Empty;
 
         return statistics.FirstOrDefault(s => string.Equals(s.Name, indexName, StringComparison.OrdinalIgnoreCase));
     }
