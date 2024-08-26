@@ -36,36 +36,33 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
     {
         var result = new List<JObject>();
 
-        string title = string.Empty;
+        string title;
 
         // IIndexEventItemModel could be a reusable content item or a web page item, so we use
         // pattern matching to get access to the web page item specific type and fields
-        if (algoliaPageItem is IndexEventWebPageItemModel indexedPage)
+        if (algoliaPageItem is not IndexEventWebPageItemModel indexedPage)
         {
-            if (string.Equals(algoliaPageItem.ContentTypeName, HomePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
-            {
-                var page = await GetPage<HomePage>(
-                    indexedPage.ItemGuid,
-                    indexedPage.WebsiteChannelName,
-                    indexedPage.LanguageName,
-                    HomePage.CONTENT_TYPE_NAME);
+            return null;
+        }
+        if (string.Equals(algoliaPageItem.ContentTypeName, HomePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
+        {
+            var page = await GetPage<HomePage>(
+                indexedPage.ItemGuid,
+                indexedPage.WebsiteChannelName,
+                indexedPage.LanguageName,
+                HomePage.CONTENT_TYPE_NAME);
 
-                if (page is null)
-                {
-                    return null;
-                }
-
-                if (page.HomePageBanner.IsNullOrEmpty())
-                {
-                    return null;
-                }
-
-                title = page!.HomePageBanner.First().BannerHeaderText;
-            }
-            else
+            if (page is null)
             {
                 return null;
             }
+
+            if (page.HomePageBanner.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            title = page!.HomePageBanner.First().BannerHeaderText;
         }
         else
         {

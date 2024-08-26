@@ -63,54 +63,51 @@ public class ReusableContentItemsIndexingStrategy : DefaultAlgoliaIndexingStrate
 
         // IIndexEventItemModel could be a reusable content item or a web page item, so we use
         // pattern matching to get access to the web page item specific type and fields
-        if (algoliaPageItem is IndexEventReusableItemModel indexedItem)
+        if (algoliaPageItem is not IndexEventReusableItemModel indexedItem)
         {
-            if (string.Equals(algoliaPageItem.ContentTypeName, Banner.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
+            return null;
+        }
+        if (string.Equals(algoliaPageItem.ContentTypeName, Banner.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
+        {
+            var query = new ContentItemQueryBuilder()
+            .ForContentType(HomePage.CONTENT_TYPE_NAME,
+                config =>
+                    config
+                        .WithLinkedItems(4)
+                        // Because the changedItem is a reusable content item, we don't have a website channel name to use here
+                        // so we use a hardcoded channel name.
+                        .ForWebsite(INDEXED_WEBSITECHANNEL_NAME)
+                        // Retrieves all HomePages that link to the Banner through the HomePage.HomePageBanner field
+                        .Linking(nameof(HomePage.HomePageBanner), new[] { indexedItem.ItemID }))
+            .InLanguage(indexedItem.LanguageName);
+
+            var associatedWebPageItem = (await queryExecutor.GetWebPageResult(query, webPageMapper.Map<HomePage>)).First();
+            string url = string.Empty;
+            try
             {
-                var query = new ContentItemQueryBuilder()
-                .ForContentType(HomePage.CONTENT_TYPE_NAME,
-                    config =>
-                        config
-                            .WithLinkedItems(4)
-                            // Because the changedItem is a reusable content item, we don't have a website channel name to use here
-                            // so we use a hardcoded channel name.
-                            .ForWebsite(INDEXED_WEBSITECHANNEL_NAME)
-                            // Retrieves all HomePages that link to the Banner through the HomePage.HomePageBanner field
-                            .Linking(nameof(HomePage.HomePageBanner), new[] { indexedItem.ItemID }))
-                .InLanguage(indexedItem.LanguageName);
-
-                var associatedWebPageItem = (await queryExecutor.GetWebPageResult(query, webPageMapper.Map<HomePage>)).First();
-                string url = string.Empty;
-                try
-                {
-                    url = (await urlRetriever.Retrieve(associatedWebPageItem.SystemFields.WebPageItemTreePath,
-                        INDEXED_WEBSITECHANNEL_NAME, indexedItem.LanguageName)).RelativePath;
-                }
-                catch (Exception)
-                {
-                    // Retrieve can throw an exception when processing a page update LuceneQueueItem
-                    // and the page was deleted before the update task has processed. In this case, return no item.
-                    return null;
-                }
-
-                //If the indexed item is a reusable content item, we need to set the url manually.
-                resultProperties.Url = url;
-                resultProperties.SortableTitle = resultProperties.Title = associatedWebPageItem!.HomePageBanner.First().BannerText;
-                string rawContent = await webCrawler.CrawlWebPage(associatedWebPageItem!);
-                resultProperties.Content = htmlSanitizer.SanitizeHtmlDocument(rawContent);
-
-                //If the indexed item is a reusable content item, we need to set the url manually.
-                var result = new List<JObject>()
-                {
-                    AssignProperties(resultProperties)
-                };
-
-                return result;
+                url = (await urlRetriever.Retrieve(associatedWebPageItem.SystemFields.WebPageItemTreePath,
+                    INDEXED_WEBSITECHANNEL_NAME, indexedItem.LanguageName)).RelativePath;
             }
-            else
+            catch (Exception)
             {
+                // Retrieve can throw an exception when processing a page update LuceneQueueItem
+                // and the page was deleted before the update task has processed. In this case, return no item.
                 return null;
             }
+
+            //If the indexed item is a reusable content item, we need to set the url manually.
+            resultProperties.Url = url;
+            resultProperties.SortableTitle = resultProperties.Title = associatedWebPageItem!.HomePageBanner.First().BannerText;
+            string rawContent = await webCrawler.CrawlWebPage(associatedWebPageItem!);
+            resultProperties.Content = htmlSanitizer.SanitizeHtmlDocument(rawContent);
+
+            //If the indexed item is a reusable content item, we need to set the url manually.
+            var result = new List<JObject>()
+            {
+                AssignProperties(resultProperties)
+            };
+
+            return result;
         }
         else
         {
