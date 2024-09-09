@@ -124,15 +124,15 @@ public class ReusableContentItemsIndexingStrategy : DefaultAlgoliaIndexingStrate
             var type = prop.PropertyType;
             if (type == typeof(string))
             {
-                jObject[prop.Name] = (string)prop.GetValue(value);
+                jObject[prop.Name] = prop.GetValue(value) as string;
             }
             else if (type == typeof(int))
             {
-                jObject[prop.Name] = (int)prop.GetValue(value);
+                jObject[prop.Name] = (int?)prop.GetValue(value) ?? 0;
             }
             else if (type == typeof(bool))
             {
-                jObject[prop.Name] = (bool)prop.GetValue(value);
+                jObject[prop.Name] = (bool?)prop.GetValue(value) ?? false;
             }
         }
 
