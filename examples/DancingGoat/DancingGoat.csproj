@@ -4,6 +4,8 @@
     <RootNamespace>DancingGoat</RootNamespace>
     <UserSecretsId>79c858af-5444-4954-8d0a-6592a961e82a</UserSecretsId>
     <SeparatedAdmin Condition="'$(SeparatedAdmin)' == ''">false</SeparatedAdmin>
+    <Nullable>annotations</Nullable>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="App_Data\CMSModules\WebFarm\webfarm.sync" />
