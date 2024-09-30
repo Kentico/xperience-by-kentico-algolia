@@ -32,4 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kentico.Xperience.Algolia\Kentico.Xperience.Algolia.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
+  </ItemGroup>
 </Project>
