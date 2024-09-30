@@ -21,7 +21,7 @@ namespace Kentico.Xperience.Algolia.Admin;
 internal class IndexListingPage : ListingPage
 {
     private readonly IAlgoliaClient algoliaClient;
-    private readonly IPageUrlGenerator pageUrlGenerator;
+    private readonly IPageLinkGenerator pageLinkGenerator;
     private readonly IAlgoliaConfigurationStorageService configurationStorageService;
     private readonly IConversionService conversionService;
 
@@ -32,12 +32,12 @@ internal class IndexListingPage : ListingPage
     /// </summary>
     public IndexListingPage(
         IAlgoliaClient algoliaClient,
-        IPageUrlGenerator pageUrlGenerator,
+        IPageLinkGenerator pageLinkGenerator,
         IAlgoliaConfigurationStorageService configurationStorageService,
         IConversionService conversionService)
     {
         this.algoliaClient = algoliaClient;
-        this.pageUrlGenerator = pageUrlGenerator;
+        this.pageLinkGenerator = pageLinkGenerator;
         this.configurationStorageService = configurationStorageService;
         this.conversionService = conversionService;
     }
@@ -48,8 +48,8 @@ internal class IndexListingPage : ListingPage
     {
         if (!AlgoliaIndexStore.Instance.GetAllIndices().Any())
         {
-            PageConfiguration.Callouts = new List<CalloutConfiguration>
-            {
+            PageConfiguration.Callouts =
+            [
                 new()
                 {
                     Headline = "No indexes",
@@ -58,7 +58,7 @@ internal class IndexListingPage : ListingPage
                     Type = CalloutType.FriendlyWarning,
                     Placement = CalloutPlacement.OnDesk
                 }
-            };
+            ];
         }
 
         PageConfiguration.ColumnConfigurations
@@ -80,7 +80,7 @@ internal class IndexListingPage : ListingPage
     [PageCommand(Permission = SystemPermissions.DELETE)]
     public async Task<INavigateResponse> Delete(int id, CancellationToken cancellationToken)
     {
-        var response = NavigateTo(pageUrlGenerator.GenerateUrl<IndexListingPage>());
+        var response = NavigateTo(pageLinkGenerator.GetPath<IndexListingPage>());
         var index = AlgoliaIndexStore.Instance.GetIndex(id);
         if (index == null)
         {
