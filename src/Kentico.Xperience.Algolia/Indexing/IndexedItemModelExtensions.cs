@@ -35,6 +35,11 @@ internal static class IndexedItemModelExtensions
             return false;
         }
 
+        if (!string.Equals(indexedItemModel.WebsiteChannelName, algoliaIndex.WebSiteChannelName))
+        {
+            return false;
+        }
+
         if (!algoliaIndex.LanguageNames.Exists(x => x == indexedItemModel.LanguageName))
         {
             return false;

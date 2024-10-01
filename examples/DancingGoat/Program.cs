@@ -1,3 +1,6 @@
+﻿using System;
+using System.Threading.Tasks;
+
 using DancingGoat;
 using DancingGoat.Models;
 
@@ -8,24 +11,21 @@ using Kentico.OnlineMarketing.Web.Mvc;
 using Kentico.PageBuilder.Web.Mvc;
 using Kentico.Web.Mvc;
 
-using Kentico.Xperience.Cloud;
 
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using DancingGoat.Search;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddXperienceCloudApplicationInsights(builder.Configuration);
-
-if (builder.Environment.IsQa() || builder.Environment.IsUat() || builder.Environment.IsProduction())
-{
-    builder.Services.AddKenticoCloud(builder.Configuration);
-    builder.Services.AddXperienceCloudSendGrid(builder.Configuration);
-}
 
 builder.Services.AddKentico(features =>
 {
@@ -73,10 +73,6 @@ app.UseCookiePolicy();
 
 app.UseAuthentication();
 
-if (builder.Environment.IsQa() || builder.Environment.IsUat() || builder.Environment.IsProduction())
-{
-    app.UseKenticoCloud();
-}
 
 app.UseKentico();
 
@@ -109,8 +105,6 @@ app.MapControllerRoute(
         controller = DancingGoatConstants.CONSTRAINT_FOR_NON_ROUTER_PAGE_CONTROLLERS
     }
 );
-
-app.MapControllers();
 
 app.Run();
 

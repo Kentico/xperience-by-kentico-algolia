@@ -54,7 +54,7 @@ internal class DefaultAlgoliaTaskProcessor : IAlgoliaTaskProcessor
                         deleteTasks.Add(queueItem);
                     }
                 }
-                deleteIds.AddRange(GetIdsToDelete(deleteTasks ?? new List<AlgoliaQueueItem>()).Where(x => x is not null).Select(x => x ?? ""));
+                deleteIds.AddRange(GetIdsToDelete(deleteTasks ?? new List<AlgoliaQueueItem>()).Where(x => x is not null).Select(x => x ?? string.Empty));
 
                 successfulOperations += await algoliaClient.DeleteRecords(deleteIds, group.Key, cancellationToken);
                 successfulOperations += await algoliaClient.UpsertRecords(upsertData, group.Key, cancellationToken);

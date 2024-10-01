@@ -47,7 +47,7 @@ public class WebCrawlerService
                 ex,
                 $"Tree Path: {page.SystemFields.WebPageItemTreePath}");
         }
-        return "";
+        return string.Empty;
     }
 
     public async Task<string> CrawlPage(string url)
@@ -65,7 +65,7 @@ public class WebCrawlerService
                 ex,
                 $"Url: {url}");
         }
-        return "";
+        return string.Empty;
     }
 }
 ```
@@ -126,8 +126,8 @@ public class WebScraperHtmlSanitizer
         textContent = HTMLHelper.RegexHtmlToTextWhiteSpace.Replace(textContent, " ");
         textContent = textContent.Trim();
 
-        string title = doc.Head?.QuerySelector("title")?.TextContent ?? "";
-        string description = doc.Head?.QuerySelector("meta[name='description']")?.GetAttribute("content") ?? "";
+        string title = doc.Head?.QuerySelector("title")?.TextContent ?? string.Empty;
+        string description = doc.Head?.QuerySelector("meta[name='description']")?.GetAttribute("content") ?? string.Empty;
 
         return string.Join(
             " ",
@@ -179,7 +179,7 @@ public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IInd
 {
     // ...
 
-    string content = "";
+    string content = string.Empty;
 
     if (item is IndexEventWebPageItemModel webpageItem &&
         string.Equals(indexedModel.ContentTypeName, ArticlePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnorecase))
