@@ -12,6 +12,7 @@ on:
       - "**.targets"
       - "**.sln"
       - "**/Client/**/*.json"
+      - ".github/workflows/ci.yml"
   pull_request:
     branches: [main]
     paths:
@@ -23,6 +24,7 @@ on:
       - "**.targets"
       - "**.sln"
       - "**/Client/**/*.json"
+      - ".github/workflows/ci.yml"
 
 jobs:
   build:
@@ -39,10 +41,10 @@ jobs:
       SIGN_FILE: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
 
