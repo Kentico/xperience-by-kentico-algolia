@@ -16,7 +16,7 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// Data container class for <see cref="AlgoliaIncludedPathItemInfo"/>.
 /// </summary>
 [Serializable]
-public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedPathItemInfo, IAlgoliaIncludedPathItemInfoProvider>
+public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedPathItemInfo, IInfoProvider<AlgoliaIncludedPathItemInfo>>
 {
     /// <summary>
     /// Object type.
@@ -27,7 +27,7 @@ public partial class AlgoliaIncludedPathItemInfo : AbstractInfo<AlgoliaIncludedP
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaIncludedPathItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIncludedPathItem", nameof(AlgoliaIncludedPathItemId), null, nameof(AlgoliaIncludedPathItemGuid), null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(IInfoProvider<AlgoliaIncludedPathItemInfo>), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIncludedPathItem", nameof(AlgoliaIncludedPathItemId), null, nameof(AlgoliaIncludedPathItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()

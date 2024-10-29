@@ -16,7 +16,7 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// Data container class for <see cref="AlgoliaContentTypeItemInfo"/>.
 /// </summary>
 [Serializable]
-public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTypeItemInfo, IAlgoliaContentTypeItemInfoProvider>
+public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTypeItemInfo, IInfoProvider<AlgoliaContentTypeItemInfo>>
 {
     /// <summary>
     /// Object type.
@@ -27,7 +27,7 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaContentTypeItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaContentTypeItem", nameof(AlgoliaContentTypeItemId), null, nameof(AlgoliaContentTypeItemGuid), null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(IInfoProvider<AlgoliaContentTypeItemInfo>), OBJECT_TYPE, "KenticoAlgolia.AlgoliaContentTypeItem", nameof(AlgoliaContentTypeItemId), null, nameof(AlgoliaContentTypeItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()

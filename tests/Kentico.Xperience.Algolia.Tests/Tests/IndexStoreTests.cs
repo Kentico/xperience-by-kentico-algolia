@@ -26,7 +26,6 @@ internal class IndexStoreTests : UnitTests
     [Test]
     public void AddIndex_AlreadyExists()
     {
-        var fixture = new Fixture();
         AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
 

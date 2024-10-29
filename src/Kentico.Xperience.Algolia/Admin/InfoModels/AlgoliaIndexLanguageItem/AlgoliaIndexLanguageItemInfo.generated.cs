@@ -15,7 +15,7 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// Data container class for <see cref="AlgoliaIndexLanguageItemInfo"/>.
 /// </summary>
 [Serializable]
-public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLanguageItemInfo, IAlgoliaIndexLanguageItemInfoProvider>
+public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLanguageItemInfo, IInfoProvider<AlgoliaIndexLanguageItemInfo>>
 {
     /// <summary>
     /// Object type.
@@ -26,7 +26,7 @@ public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLan
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaIndexedLanguageInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguageItem", nameof(AlgoliaIndexLanguageItemID), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(IInfoProvider<AlgoliaIndexLanguageItemInfo>), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexLanguageItem", nameof(AlgoliaIndexLanguageItemID), null, nameof(AlgoliaIndexLanguageItemGuid), null, null, null, null, null)
     {
         TouchCacheDependencies = true,
         DependsOn = new List<ObjectDependency>()

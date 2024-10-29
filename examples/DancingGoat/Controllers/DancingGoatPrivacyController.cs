@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using CMS.ContactManagement;
 using CMS.DataEngine;
@@ -27,6 +28,8 @@ namespace DancingGoat.Controllers
         private readonly IConsentAgreementService consentAgreementService;
         private readonly IInfoProvider<ConsentInfo> consentInfoProvider;
         private readonly IPreferredLanguageRetriever currentLanguageRetriever;
+        private readonly IWebPageDataContextRetriever webPageDataContextRetriever;
+        private readonly PrivacyPageRepository privacyPageRepository;
         private ContactInfo currentContact;
 
 
@@ -44,17 +47,23 @@ namespace DancingGoat.Controllers
         }
 
 
-        public DancingGoatPrivacyController(IConsentAgreementService consentAgreementService, IInfoProvider<ConsentInfo> consentInfoProvider, IPreferredLanguageRetriever currentLanguageRetriever)
+        public DancingGoatPrivacyController(PrivacyPageRepository privacyPageRepository, IConsentAgreementService consentAgreementService, IInfoProvider<ConsentInfo> consentInfoProvider, IPreferredLanguageRetriever currentLanguageRetriever, IWebPageDataContextRetriever webPageDataContextRetriever)
         {
+            this.privacyPageRepository = privacyPageRepository;
             this.consentAgreementService = consentAgreementService;
             this.consentInfoProvider = consentInfoProvider;
             this.currentLanguageRetriever = currentLanguageRetriever;
+            this.webPageDataContextRetriever = webPageDataContextRetriever;
         }
 
 
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var model = new PrivacyViewModel();
+            var webPage = webPageDataContextRetriever.Retrieve().WebPage;
+
+            var privacyPage = await privacyPageRepository.GetPrivacyPage(webPage.WebPageItemID, webPage.LanguageName, HttpContext.RequestAborted);
+
+            var model = new PrivacyViewModel { WebPage = privacyPage };
 
             if (!IsDemoEnabled())
             {

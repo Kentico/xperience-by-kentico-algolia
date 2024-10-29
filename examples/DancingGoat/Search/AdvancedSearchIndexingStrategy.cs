@@ -47,57 +47,54 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
             }
     };
 
-    public override async Task<IEnumerable<JObject>> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
+    public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
     {
         var resultProperties = new DancingGoatSearchResultModel();
 
         // IIndexEventItemModel could be a reusable content item or a web page item, so we use
         // pattern matching to get access to the web page item specific type and fields
-        if (algoliaPageItem is IndexEventWebPageItemModel indexedPage)
+        if (algoliaPageItem is not IndexEventWebPageItemModel indexedPage)
         {
-            if (string.Equals(algoliaPageItem.ContentTypeName, ArticlePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
-            {
-                // The implementation of GetPage<T>() is below
-                var page = await GetPage<ArticlePage>(
-                    indexedPage.ItemGuid,
-                    indexedPage.WebsiteChannelName,
-                    indexedPage.LanguageName,
-                    ArticlePage.CONTENT_TYPE_NAME);
+            return null;
+        }
+        if (string.Equals(algoliaPageItem.ContentTypeName, ArticlePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
+        {
+            // The implementation of GetPage<T>() is below
+            var page = await GetPage<ArticlePage>(
+                indexedPage.ItemGuid,
+                indexedPage.WebsiteChannelName,
+                indexedPage.LanguageName,
+                ArticlePage.CONTENT_TYPE_NAME);
 
-                if (page is null)
-                {
-                    return null;
-                }
-
-                resultProperties.SortableTitle = resultProperties.Title = page?.ArticleTitle ?? "";
-
-                string rawContent = await webCrawler.CrawlWebPage(page!);
-                resultProperties.Content = htmlSanitizer.SanitizeHtmlDocument(rawContent);
-            }
-            else if (string.Equals(algoliaPageItem.ContentTypeName, HomePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
-            {
-                var page = await GetPage<HomePage>(
-                    indexedPage.ItemGuid,
-                    indexedPage.WebsiteChannelName,
-                    indexedPage.LanguageName,
-                    HomePage.CONTENT_TYPE_NAME);
-
-                if (page is null)
-                {
-                    return null;
-                }
-
-                if (page.HomePageBanner.IsNullOrEmpty())
-                {
-                    return null;
-                }
-
-                resultProperties.Title = page!.HomePageBanner.First().BannerHeaderText;
-            }
-            else
+            if (page is null)
             {
                 return null;
             }
+
+            resultProperties.SortableTitle = resultProperties.Title = page?.ArticleTitle ?? string.Empty;
+
+            string rawContent = await webCrawler.CrawlWebPage(page!);
+            resultProperties.Content = htmlSanitizer.SanitizeHtmlDocument(rawContent);
+        }
+        else if (string.Equals(algoliaPageItem.ContentTypeName, HomePage.CONTENT_TYPE_NAME, StringComparison.OrdinalIgnoreCase))
+        {
+            var page = await GetPage<HomePage>(
+                indexedPage.ItemGuid,
+                indexedPage.WebsiteChannelName,
+                indexedPage.LanguageName,
+                HomePage.CONTENT_TYPE_NAME);
+
+            if (page is null)
+            {
+                return null;
+            }
+
+            if (page.HomePageBanner.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            resultProperties.Title = page!.HomePageBanner.First().BannerHeaderText;
         }
         else
         {

@@ -1,8 +1,10 @@
 ﻿using CMS.Membership;
+
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Admin.Base.Forms;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
+
 using IFormItemCollectionProvider = Kentico.Xperience.Admin.Base.Forms.Internal.IFormItemCollectionProvider;
 
 [assembly: UIPage(
@@ -18,15 +20,15 @@ namespace Kentico.Xperience.Algolia.Admin;
 [UIEvaluatePermission(SystemPermissions.CREATE)]
 internal class IndexCreatePage : BaseIndexEditPage
 {
-    private readonly IPageUrlGenerator pageUrlGenerator;
+    private readonly IPageLinkGenerator pageLinkGenerator;
     private AlgoliaConfigurationModel? model = null;
 
     public IndexCreatePage(
         IFormItemCollectionProvider formItemCollectionProvider,
         IFormDataBinder formDataBinder,
         IAlgoliaConfigurationStorageService storageService,
-        IPageUrlGenerator pageUrlGenerator)
-        : base(formItemCollectionProvider, formDataBinder, storageService) => this.pageUrlGenerator = pageUrlGenerator;
+        IPageLinkGenerator pageLinkGenerator)
+        : base(formItemCollectionProvider, formDataBinder, storageService) => this.pageLinkGenerator = pageLinkGenerator;
 
     protected override AlgoliaConfigurationModel Model
     {
@@ -46,7 +48,12 @@ internal class IndexCreatePage : BaseIndexEditPage
         {
             var index = AlgoliaIndexStore.Instance.GetRequiredIndex(model.IndexName);
 
-            var successResponse = NavigateTo(pageUrlGenerator.GenerateUrl<IndexEditPage>(index.Identifier.ToString()))
+            var pageParameterValues = new PageParameterValues
+            {
+                { typeof(IndexEditPage), index.Identifier }
+            };
+
+            var successResponse = NavigateTo(pageLinkGenerator.GetPath<IndexEditPage>(pageParameterValues))
                 .AddSuccessMessage("Index created.");
 
             return Task.FromResult<ICommandResponse>(successResponse);

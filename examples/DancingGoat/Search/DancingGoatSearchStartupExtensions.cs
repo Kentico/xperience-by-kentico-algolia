@@ -10,6 +10,7 @@ public static class DancingGoatSearchStartupExtensions
         services.AddKenticoAlgolia(builder => {
             builder.RegisterStrategy<AdvancedSearchIndexingStrategy>("DancingGoatAdvancedExampleStrategy");
             builder.RegisterStrategy<SimpleSearchIndexingStrategy>("DancingGoatMinimalExampleStrategy");
+            builder.RegisterStrategy<ReusableContentItemsIndexingStrategy>(nameof(ReusableContentItemsIndexingStrategy));
         }, configuration);
 
         services.AddHttpClient<WebCrawlerService>();

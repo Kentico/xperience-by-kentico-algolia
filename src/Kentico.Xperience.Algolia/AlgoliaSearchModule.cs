@@ -51,7 +51,9 @@ internal class AlgoliaSearchModule : Module
 
         WebPageEvents.Publish.Execute += HandleEvent;
         WebPageEvents.Delete.Execute += HandleEvent;
+        WebPageEvents.Unpublish.Execute += HandleEvent;
         ContentItemEvents.Publish.Execute += HandleContentItemEvent;
+        ContentItemEvents.Unpublish.Execute += HandleContentItemEvent;
         ContentItemEvents.Delete.Execute += HandleContentItemEvent;
 
         RequestEvents.RunEndRequestTasks.Execute += (sender, eventArgs) => AlgoliaQueueWorker.Current.EnsureRunningThread();
