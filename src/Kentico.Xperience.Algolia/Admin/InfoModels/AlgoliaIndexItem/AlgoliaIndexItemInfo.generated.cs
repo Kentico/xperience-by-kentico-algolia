@@ -14,7 +14,7 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// Data container class for <see cref="AlgoliaIndexItemInfo"/>.
 /// </summary>
 [Serializable]
-public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, IAlgoliaIndexItemInfoProvider>
+public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, IInfoProvider<AlgoliaIndexItemInfo>>
 {
     /// <summary>
     /// Object type.
@@ -25,7 +25,7 @@ public partial class AlgoliaIndexItemInfo : AbstractInfo<AlgoliaIndexItemInfo, I
     /// <summary>
     /// Type information.
     /// </summary>
-    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(AlgoliaIndexItemInfoProvider), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexItem", nameof(AlgoliaIndexItemId), null, nameof(AlgoliaIndexItemGuid), nameof(AlgoliaIndexItemIndexName), null, null, null, null)
+    public static readonly ObjectTypeInfo TYPEINFO = new(typeof(IInfoProvider<AlgoliaIndexItemInfo>), OBJECT_TYPE, "KenticoAlgolia.AlgoliaIndexItem", nameof(AlgoliaIndexItemId), null, nameof(AlgoliaIndexItemGuid), nameof(AlgoliaIndexItemIndexName), null, null, null, null)
     {
         TouchCacheDependencies = true,
         ContinuousIntegrationSettings =

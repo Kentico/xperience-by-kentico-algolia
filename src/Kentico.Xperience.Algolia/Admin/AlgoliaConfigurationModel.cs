@@ -14,22 +14,25 @@ public class AlgoliaConfigurationModel
        Order = 1)]
     [Required]
     [MinLength(1)]
-    public string IndexName { get; set; } = "";
+    public string IndexName { get; set; } = string.Empty;
 
-    [GeneralSelectorComponent(dataProviderType: typeof(LanguageOptionsProvider), Label = "Indexed Languages", Order = 2)]
+    [AlgoliaIndexConfigurationComponent(Label = "Included Paths", Order = 2)]
+    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = new List<AlgoliaIndexIncludedPath>();
+
+    [GeneralSelectorComponent(dataProviderType: typeof(ReusableContentOptionsProvider), Label = "Included Reusable Content Types", Order = 3)]
+    public IEnumerable<string> ReusableContentTypeNames { get; set; } = Enumerable.Empty<string>();
+
+    [GeneralSelectorComponent(dataProviderType: typeof(LanguageOptionsProvider), Label = "Indexed Languages", Order = 4)]
     public IEnumerable<string> LanguageNames { get; set; } = Enumerable.Empty<string>();
 
-    [DropDownComponent(Label = "Channel Name", DataProviderType = typeof(ChannelOptionsProvider), Order = 3)]
-    public string ChannelName { get; set; } = "";
+    [DropDownComponent(Label = "Channel Name", DataProviderType = typeof(ChannelOptionsProvider), Order = 5)]
+    public string ChannelName { get; set; } = string.Empty;
 
-    [DropDownComponent(Label = "Indexing Strategy", DataProviderType = typeof(IndexingStrategyOptionsProvider), Order = 4)]
-    public string StrategyName { get; set; } = "";
+    [DropDownComponent(Label = "Indexing Strategy", DataProviderType = typeof(IndexingStrategyOptionsProvider), Order = 6)]
+    public string StrategyName { get; set; } = string.Empty;
 
-    [TextInputComponent(Label = "Rebuild Hook")]
-    public string RebuildHook { get; set; } = "";
-
-    [AlgoliaIndexConfigurationComponent(Label = "Included Paths")]
-    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = new List<AlgoliaIndexIncludedPath>();
+    [TextInputComponent(Label = "Rebuild Hook", Order = 7)]
+    public string RebuildHook { get; set; } = string.Empty;
 
     public AlgoliaConfigurationModel() { }
 
@@ -37,7 +40,8 @@ public class AlgoliaConfigurationModel
         AlgoliaIndexItemInfo index,
         IEnumerable<AlgoliaIndexLanguageItemInfo> indexLanguages,
         IEnumerable<AlgoliaIncludedPathItemInfo> indexPaths,
-        IEnumerable<AlgoliaIndexContentType> contentTypes
+        IEnumerable<AlgoliaIndexContentType> contentTypes,
+        IEnumerable<AlgoliaReusableContentTypeItemInfo> reusableContentTypes
     )
     {
         Id = index.AlgoliaIndexItemId;
@@ -49,6 +53,10 @@ public class AlgoliaConfigurationModel
             .Where(l => l.AlgoliaIndexLanguageItemIndexItemId == index.AlgoliaIndexItemId)
             .Select(l => l.AlgoliaIndexLanguageItemName)
             .ToList();
+        ReusableContentTypeNames = reusableContentTypes
+              .Where(c => c.AlgoliaReusableContentTypeItemIndexItemId == index.AlgoliaIndexItemId)
+              .Select(c => c.AlgoliaReusableContentTypeItemContentTypeName)
+              .ToList();
         Paths = indexPaths
             .Where(p => p.AlgoliaIncludedPathItemIndexItemId == index.AlgoliaIndexItemId)
             .Select(p => new AlgoliaIndexIncludedPath(p, contentTypes))

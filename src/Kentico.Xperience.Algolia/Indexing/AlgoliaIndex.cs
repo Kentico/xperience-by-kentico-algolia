@@ -28,6 +28,11 @@ public sealed class AlgoliaIndex
     public List<string> LanguageNames { get; }
 
     /// <summary>
+    /// A list of reusable content types that will be indexed.
+    /// </summary>
+    public List<string> IncludedReusableContentTypes { get; }
+
+    /// <summary>
     /// The type of the class which extends <see cref="IAlgoliaIndexingStrategy"/>.
     /// </summary>
     public Type AlgoliaIndexingStrategyType { get; }
@@ -41,6 +46,7 @@ public sealed class AlgoliaIndex
         WebSiteChannelName = indexConfiguration.ChannelName;
         LanguageNames = indexConfiguration.LanguageNames.ToList();
         IncludedPaths = indexConfiguration.Paths;
+        IncludedReusableContentTypes = indexConfiguration.ReusableContentTypeNames.ToList();
 
         var strategy = typeof(DefaultAlgoliaIndexingStrategy);
 

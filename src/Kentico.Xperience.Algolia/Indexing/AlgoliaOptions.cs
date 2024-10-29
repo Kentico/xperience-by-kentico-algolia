@@ -46,7 +46,7 @@ public sealed class AlgoliaOptions
     {
         get;
         set;
-    } = "";
+    } = string.Empty;
 
 
     /// <summary>
@@ -56,7 +56,7 @@ public sealed class AlgoliaOptions
     {
         get;
         set;
-    } = "";
+    } = string.Empty;
 
 
     /// <summary>
@@ -66,7 +66,7 @@ public sealed class AlgoliaOptions
     {
         get;
         set;
-    } = "";
+    } = string.Empty;
 
 
     /// <summary>

@@ -132,9 +132,14 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
 
     private async Task RebuildInternal(AlgoliaIndex algoliaIndex, CancellationToken cancellationToken)
     {
-        var indexedItems = new List<IndexEventWebPageItemModel>();
+        var indexedItems = new List<IIndexEventItemModel>();
         foreach (var includedPathAttribute in algoliaIndex.IncludedPaths)
         {
+            var pathMatch =
+                includedPathAttribute.AliasPath.EndsWith("/%", StringComparison.OrdinalIgnoreCase)
+                    ? PathMatch.Children(includedPathAttribute.AliasPath[..^2])
+                    : PathMatch.Single(includedPathAttribute.AliasPath);
+
             foreach (string language in algoliaIndex.LanguageNames)
             {
                 var queryBuilder = new ContentItemQueryBuilder();
@@ -143,16 +148,40 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
                 {
                     foreach (var contentType in includedPathAttribute.ContentTypes)
                     {
-                        queryBuilder.ForContentType(contentType.ContentTypeName, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true));
+                        queryBuilder.ForContentType(contentType.ContentTypeName, config => config.ForWebsite(algoliaIndex.WebSiteChannelName, includeUrlPath: true, pathMatch: pathMatch));
+                    }
+
+                    queryBuilder.InLanguage(language);
+
+                    var webpages = await executor.GetWebPageResult(queryBuilder, container => container, cancellationToken: cancellationToken);
+
+                    foreach (var page in webpages)
+                    {
+                        var item = await MapToEventItem(page);
+                        indexedItems.Add(item);
                     }
                 }
+            }
+        }
+
+        foreach (string language in algoliaIndex.LanguageNames)
+        {
+            var queryBuilder = new ContentItemQueryBuilder();
+
+            if (algoliaIndex.IncludedReusableContentTypes != null && algoliaIndex.IncludedReusableContentTypes.Count > 0)
+            {
+                foreach (string reusableContentType in algoliaIndex.IncludedReusableContentTypes)
+                {
+                    queryBuilder.ForContentType(reusableContentType);
+                }
+
                 queryBuilder.InLanguage(language);
 
-                var webpages = await executor.GetWebPageResult(queryBuilder, container => container, cancellationToken: cancellationToken);
+                var reusableItems = await executor.GetResult(queryBuilder, result => result, cancellationToken: cancellationToken);
 
-                foreach (var page in webpages)
+                foreach (var reusableItem in reusableItems)
                 {
-                    var item = await MapToEventItem(page);
+                    var item = await MapToEventReusableItem(reusableItem);
                     indexedItems.Add(item);
                 }
             }
@@ -168,11 +197,11 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
     {
         var languages = await GetAllLanguages();
 
-        string languageName = languages.FirstOrDefault(l => l.ContentLanguageID == content.ContentItemCommonDataContentLanguageID)?.ContentLanguageName ?? "";
+        string languageName = languages.FirstOrDefault(l => l.ContentLanguageID == content.ContentItemCommonDataContentLanguageID)?.ContentLanguageName ?? string.Empty;
 
         var websiteChannels = await GetAllWebsiteChannels();
 
-        string channelName = websiteChannels.FirstOrDefault(c => c.WebsiteChannelID == content.WebPageItemWebsiteChannelID).ChannelName ?? "";
+        string channelName = websiteChannels.FirstOrDefault(c => c.WebsiteChannelID == content.WebPageItemWebsiteChannelID).ChannelName ?? string.Empty;
 
         var item = new IndexEventWebPageItemModel(
             content.WebPageItemID,
@@ -186,6 +215,25 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             channelName,
             content.WebPageItemTreePath,
             content.WebPageItemOrder);
+
+        return item;
+    }
+
+    private async Task<IndexEventReusableItemModel> MapToEventReusableItem(IContentQueryDataContainer content)
+    {
+        var languages = await GetAllLanguages();
+
+        string languageName = languages.FirstOrDefault(l => l.ContentLanguageID == content.ContentItemCommonDataContentLanguageID)?.ContentLanguageName ?? string.Empty;
+
+        var item = new IndexEventReusableItemModel(
+            content.ContentItemID,
+            content.ContentItemGUID,
+            languageName,
+            content.ContentTypeName,
+            content.ContentItemName,
+            content.ContentItemIsSecured,
+            content.ContentItemContentTypeID,
+            content.ContentItemCommonDataContentLanguageID);
 
         return item;
     }
@@ -231,7 +279,7 @@ internal class DefaultAlgoliaClient : IAlgoliaClient
             {
                 if (item.TryGetValue(nameof(WebsiteChannelInfo.WebsiteChannelID), out object channelID) && item.TryGetValue(nameof(ChannelInfo.ChannelName), out object channelName))
                 {
-                    items.Add(new(conversionService.GetInteger(channelID, 0), conversionService.GetString(channelName, "")));
+                    items.Add(new(conversionService.GetInteger(channelID, 0), conversionService.GetString(channelName, string.Empty)));
                 }
             }
 

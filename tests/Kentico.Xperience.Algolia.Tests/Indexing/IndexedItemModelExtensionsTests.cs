@@ -154,6 +154,7 @@ public class Tests : UnitTests
         var sut = GetDefaultIndexEventWebPageItemModel();
         sut.ContentTypeName = contentTypes[0].ContentTypeName;
         sut.WebPageItemTreePath = exactPaths.First().AliasPath;
+        sut.WebsiteChannelName = "channel";
 
         sut.IsIndexedByIndex(log, index1.IndexName, "event").Should().BeTrue();
         sut.IsIndexedByIndex(log, index2.IndexName, "event").Should().BeTrue();
