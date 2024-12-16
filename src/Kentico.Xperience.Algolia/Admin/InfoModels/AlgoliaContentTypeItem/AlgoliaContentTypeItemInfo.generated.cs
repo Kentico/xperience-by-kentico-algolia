@@ -15,7 +15,6 @@ namespace Kentico.Xperience.Algolia.Admin;
 /// <summary>
 /// Data container class for <see cref="AlgoliaContentTypeItemInfo"/>.
 /// </summary>
-[Serializable]
 public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTypeItemInfo, IInfoProvider<AlgoliaContentTypeItemInfo>>
 {
     /// <summary>
@@ -112,17 +111,6 @@ public partial class AlgoliaContentTypeItemInfo : AbstractInfo<AlgoliaContentTyp
     protected override void SetObject()
     {
         Provider.Set(this);
-    }
-
-
-    /// <summary>
-    /// Constructor for de-serialization.
-    /// </summary>
-    /// <param name="info">Serialization info.</param>
-    /// <param name="context">Streaming context.</param>
-    protected AlgoliaContentTypeItemInfo(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
     }
 
 
