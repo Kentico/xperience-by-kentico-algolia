@@ -103,17 +103,6 @@ public partial class AlgoliaIndexLanguageItemInfo : AbstractInfo<AlgoliaIndexLan
 
 
     /// <summary>
-    /// Constructor for de-serialization.
-    /// </summary>
-    /// <param name="info">Serialization info.</param>
-    /// <param name="context">Streaming context.</param>
-    protected AlgoliaIndexLanguageItemInfo(SerializationInfo info, StreamingContext context)
-        : base(info, context)
-    {
-    }
-
-
-    /// <summary>
     /// Creates an empty instance of the <see cref="AlgoliaIndexLanguageItemInfo"/> class.
     /// </summary>
     public AlgoliaIndexLanguageItemInfo()
