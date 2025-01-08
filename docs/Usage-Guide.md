@@ -33,3 +33,7 @@ See [Search index querying](Search-index-querying.md)
 ## Upgrades and Uninstalling
 
 See [Uninstall](Uninstall.md)
+
+## Custom search index rebuilding
+
+See [Search index rebuilding](Custom-search-index-rebuilding.md)
