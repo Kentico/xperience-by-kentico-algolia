@@ -20,7 +20,6 @@ internal class AlgoliaAdminModule : AdminModule
     private AlgoliaModuleInstaller installer = null!;
 
     public AlgoliaAdminModule() : base(nameof(AlgoliaAdminModule)) { }
-
     protected override void OnInit(ModuleInitParameters parameters)
     {
         base.OnInit(parameters);
@@ -39,7 +38,7 @@ internal class AlgoliaAdminModule : AdminModule
         installer = services.GetRequiredService<AlgoliaModuleInstaller>();
         storageService = services.GetRequiredService<IAlgoliaConfigurationStorageService>();
 
-        ApplicationEvents.PostStart.Execute += InitializeModule;
+        ApplicationEvents.Initialized.Execute += InitializeModule;
     }
 
     private void InitializeModule(object? sender, EventArgs e)
