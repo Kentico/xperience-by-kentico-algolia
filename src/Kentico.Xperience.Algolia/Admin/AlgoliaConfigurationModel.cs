@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 using Kentico.Xperience.Admin.Base.FormAnnotations;
 using Kentico.Xperience.Algolia.Admin.Providers;
 
@@ -17,7 +18,7 @@ public class AlgoliaConfigurationModel
     public string IndexName { get; set; } = string.Empty;
 
     [AlgoliaIndexConfigurationComponent(Label = "Included Paths", Order = 2)]
-    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = new List<AlgoliaIndexIncludedPath>();
+    public IEnumerable<AlgoliaIndexIncludedPath> Paths { get; set; } = [];
 
     [GeneralSelectorComponent(dataProviderType: typeof(ReusableContentOptionsProvider), Label = "Included Reusable Content Types", Order = 3)]
     public IEnumerable<string> ReusableContentTypeNames { get; set; } = Enumerable.Empty<string>();

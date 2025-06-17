@@ -1,6 +1,8 @@
 ﻿using CMS.Core;
 using CMS.Websites;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing;
@@ -54,7 +56,7 @@ internal class DefaultAlgoliaTaskProcessor : IAlgoliaTaskProcessor
                         deleteTasks.Add(queueItem);
                     }
                 }
-                deleteIds.AddRange(GetIdsToDelete(deleteTasks ?? new List<AlgoliaQueueItem>()).Where(x => x is not null).Select(x => x ?? string.Empty));
+                deleteIds.AddRange(GetIdsToDelete(deleteTasks ?? []).Where(x => x is not null).Select(x => x ?? string.Empty));
 
                 successfulOperations += await algoliaClient.DeleteRecords(deleteIds, group.Key, cancellationToken);
                 successfulOperations += await algoliaClient.UpsertRecords(upsertData, group.Key, cancellationToken);

@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
+
 using Algolia.Search.Clients;
+
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

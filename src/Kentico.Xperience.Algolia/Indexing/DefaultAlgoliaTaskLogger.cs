@@ -1,5 +1,6 @@
 ﻿using CMS.Core;
 using CMS.Websites;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kentico.Xperience.Algolia.Indexing;

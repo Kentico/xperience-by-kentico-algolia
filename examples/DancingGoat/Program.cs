@@ -1,28 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using CMS;
+using CMS.Base;
+
 using DancingGoat;
+using DancingGoat.Commerce;
+using DancingGoat.EmailComponents;
+using DancingGoat.Helpers.Generators;
 using DancingGoat.Models;
+using DancingGoat.Search;
 
 using Kentico.Activities.Web.Mvc;
+using Kentico.Commerce.Web.Mvc;
 using Kentico.Content.Web.Mvc.Routing;
+using Kentico.EmailBuilder.Web.Mvc;
 using Kentico.Membership;
 using Kentico.OnlineMarketing.Web.Mvc;
 using Kentico.PageBuilder.Web.Mvc;
 using Kentico.Web.Mvc;
-
+using Kentico.Xperience.Mjml;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using DancingGoat.Search;
+using Microsoft.Extensions.Hosting;
 
+using Samples.DancingGoat;
 
+[assembly: AssemblyDiscoverable]
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,10 +53,14 @@ builder.Services.AddKentico(features =>
         }
     });
 
+    features.UseEmailBuilder();
     features.UseWebPageRouting();
     features.UseEmailMarketing();
     features.UseEmailStatisticsLogging();
     features.UseActivityTracking();
+#pragma warning disable KXE0002 // Commerce feature is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+    features.UseCommerce();
+#pragma warning restore KXE0002 // Commerce feature is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 });
 
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -58,14 +74,22 @@ builder.Services.AddLocalization()
     });
 
 builder.Services.AddDancingGoatServices();
-
+builder.Services.AddSingleton<IEmailActivityTrackingEvaluator, EmailActivityTrackingEvaluator>();
 builder.Services.AddKenticoAlgoliaServices(builder.Configuration);
 
+ConfigureEmailBuilder(builder.Services);
 ConfigureMembershipServices(builder.Services);
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.Configure<UrlResolveOptions>(options => options.UseSSL = false);
+}
 
 var app = builder.Build();
 
 app.InitKentico();
+
+Initialize(app.Services);
 
 app.UseStaticFiles();
 
@@ -146,9 +170,34 @@ static void ConfigureMembershipServices(IServiceCollection services)
 
     services.Configure<AdminIdentityOptions>(options =>
     {
-        // The expiration time span of 8 hours is set for demo purposes only. In production environment, set expiration according to best practices.
+        // The expiration time span of 8 hours is set for demo purposes only. In production environments, set expiration according to best practices.
         options.AuthenticationOptions.ExpireTimeSpan = TimeSpan.FromHours(8);
+
+        // The forbidden passwords are set for demo purposes only. In production environments, set password options according to best practices.
+        var companySpecificKeywords = new List<string> { "kentico", "dancinggoat", "admin", "coffee" };
+        var specificNumberCombinations = new List<string> { "2023", "23", "2024", "24", "2025", "25" };
+        options.PasswordOptions.ForbiddenPasswords = ForbiddenPasswordGenerator.Generate(companySpecificKeywords, specificNumberCombinations);
     });
 
     services.AddAuthorization();
+}
+
+
+static void Initialize(IServiceProvider serviceProvider)
+{
+    var contentItemEventHandlers = serviceProvider.GetRequiredService<ContentItemEventHandlers>();
+    contentItemEventHandlers.Initialize();
+}
+
+
+static void ConfigureEmailBuilder(IServiceCollection services)
+{
+    services.Configure((EmailBuilderOptions options) =>
+    {
+        options.AllowedEmailContentTypeNames = ["DancingGoat.BuilderEmail"];
+        options.RegisterDefaultSection = false;
+        options.DefaultSectionIdentifier = DancingGoatFullWidthEmailSection.IDENTIFIER;
+    });
+
+    services.AddMjmlForEmails();
 }

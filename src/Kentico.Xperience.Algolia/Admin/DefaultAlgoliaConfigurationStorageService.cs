@@ -1,4 +1,5 @@
 ﻿using System.Text;
+
 using CMS.DataEngine;
 
 namespace Kentico.Xperience.Algolia.Admin;
@@ -168,7 +169,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         var indexInfos = indexProvider.Get().GetEnumerableTypedResult().ToList();
         if (indexInfos.Count == 0)
         {
-            return new List<AlgoliaConfigurationModel>();
+            return [];
         }
 
         var paths = pathProvider.Get().ToList();

@@ -2,6 +2,7 @@
 using System.Linq;
 
 using DancingGoat.Widgets;
+
 using Kentico.PageBuilder.Web.Mvc;
 
 namespace DancingGoat.Sections

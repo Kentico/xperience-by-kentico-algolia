@@ -8,7 +8,7 @@ namespace Kentico.Xperience.Algolia.Indexing;
 public sealed class AlgoliaIndexStore
 {
     private static readonly Lazy<AlgoliaIndexStore> mInstance = new();
-    private readonly List<AlgoliaIndex> registeredIndexes = new();
+    private readonly List<AlgoliaIndex> registeredIndexes = [];
 
     /// <summary>
     /// Gets current instance of the <see cref="AlgoliaIndexStore"/> class.

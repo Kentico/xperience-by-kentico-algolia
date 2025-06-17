@@ -1,9 +1,11 @@
 ﻿using CMS;
 using CMS.Base;
 using CMS.Core;
+
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 

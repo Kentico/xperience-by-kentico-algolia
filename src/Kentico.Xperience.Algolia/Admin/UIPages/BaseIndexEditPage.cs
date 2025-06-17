@@ -1,7 +1,9 @@
 ﻿using System.Text;
+
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Admin.Base.Forms;
 using Kentico.Xperience.Algolia.Indexing;
+
 using IFormItemCollectionProvider = Kentico.Xperience.Admin.Base.Forms.Internal.IFormItemCollectionProvider;
 
 namespace Kentico.Xperience.Algolia.Admin;

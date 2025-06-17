@@ -11,7 +11,7 @@ internal class IndexStoreTests : UnitTests
     [Test]
     public void AddAndGetIndex()
     {
-        AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
+        AlgoliaIndexStore.Instance.SetIndicies([]);
 
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.GetIndex("TestIndex", 1));
@@ -26,7 +26,7 @@ internal class IndexStoreTests : UnitTests
     [Test]
     public void AddIndex_AlreadyExists()
     {
-        AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>());
+        AlgoliaIndexStore.Instance.SetIndicies([]);
         AlgoliaIndexStore.Instance.AddIndex(MockDataProvider.Index);
 
         bool hasThrown = false;
@@ -49,7 +49,7 @@ internal class IndexStoreTests : UnitTests
         var defaultIndex = new AlgoliaConfigurationModel { IndexName = "DefaultIndex", Id = 0 };
         var simpleIndex = new AlgoliaConfigurationModel { IndexName = "SimpleIndex", Id = 1 };
 
-        AlgoliaIndexStore.Instance.SetIndicies(new List<AlgoliaConfigurationModel>() { defaultIndex, simpleIndex });
+        AlgoliaIndexStore.Instance.SetIndicies([defaultIndex, simpleIndex]);
 
         Assert.Multiple(() =>
         {

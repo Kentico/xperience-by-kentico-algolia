@@ -1,4 +1,5 @@
 using Kentico.Xperience.Algolia.Admin;
+
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing;

@@ -1,4 +1,5 @@
 using Algolia.Search.Clients;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kentico.Xperience.Algolia.Indexing;
@@ -30,7 +31,7 @@ internal class DefaultAlgoliaIndexService : IAlgoliaIndexService
         var algoliaStrategy = serviceProvider.GetRequiredStrategy(algoliaIndex);
         var indexSettings = algoliaStrategy.GetAlgoliaIndexSettings();
 
-        indexSettings.AttributesToRetrieve ??= new List<string>();
+        indexSettings.AttributesToRetrieve ??= [];
 
         indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.OBJECT_ID);
         indexSettings.AttributesToRetrieve.Add(BaseJObjectProperties.URL);

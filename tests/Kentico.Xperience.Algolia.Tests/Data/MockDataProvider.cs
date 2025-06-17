@@ -1,4 +1,5 @@
 ﻿using DancingGoat.Models;
+
 using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 
@@ -29,8 +30,8 @@ internal static class MockDataProvider
         {
             IndexName = DefaultIndex,
             ChannelName = DefaultChannel,
-            LanguageNames = new List<string>() { EnglishLanguageName, CzechLanguageName },
-            Paths = new List<AlgoliaIndexIncludedPath>() { Path },
+            LanguageNames = [EnglishLanguageName, CzechLanguageName],
+            Paths = [Path],
             StrategyName = "strategy"
         },
         []
@@ -49,8 +50,8 @@ internal static class MockDataProvider
             Id = id,
             IndexName = indexName,
             ChannelName = DefaultChannel,
-            LanguageNames = new List<string>() { EnglishLanguageName, CzechLanguageName },
-            Paths = new List<AlgoliaIndexIncludedPath>() { Path }
+            LanguageNames = [EnglishLanguageName, CzechLanguageName],
+            Paths = [Path]
         },
         []
     );
