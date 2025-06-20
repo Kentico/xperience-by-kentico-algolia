@@ -10,6 +10,7 @@ This integration enables you to create [Algolia](https://www.algolia.com/) searc
 
 | Xperience Version   | Library Version |
 | ------------------- | --------------- |
+| >= 30.6.0           | >= 6.2.0        |
 | >= 30.5.1           | >= 6.1.0        |
 | >= 30.0.0           | >= 6.0.0        |
 | >= 29.5.0           | >= 5.0.0        |
