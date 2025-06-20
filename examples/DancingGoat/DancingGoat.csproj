@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>DancingGoat</RootNamespace>
@@ -28,6 +28,7 @@
     <PackageReference Include="kentico.xperience.cloud" />
     <PackageReference Include="kentico.xperience.imageprocessing" />
     <PackageReference Include="kentico.xperience.webapp" />
+	<PackageReference Include="kentico.xperience.mjml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kentico.Xperience.Algolia\Kentico.Xperience.Algolia.csproj" />

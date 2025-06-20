@@ -1,5 +1,6 @@
 ﻿using CMS.Base;
 using CMS.Core;
+
 using Kentico.Xperience.Algolia.Indexing;
 
 namespace Kentico.Xperience.Algolia;

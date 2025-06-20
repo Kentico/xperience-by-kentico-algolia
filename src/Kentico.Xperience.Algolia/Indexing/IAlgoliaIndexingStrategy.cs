@@ -1,4 +1,5 @@
 ﻿using Algolia.Search.Models.Settings;
+
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing;

@@ -1,4 +1,5 @@
 ﻿using CMS.DataEngine;
+
 using Kentico.Xperience.Admin.Base;
 using Kentico.Xperience.Admin.Base.FormAnnotations;
 using Kentico.Xperience.Admin.Base.Forms;
@@ -35,7 +36,7 @@ public class AlgoliaIndexConfigurationComponent : FormComponent<AlgoliaIndexConf
 
     public override string ClientComponentName => "@kentico/xperience-integrations-algolia/AlgoliaIndexConfiguration";
 
-    public override IEnumerable<AlgoliaIndexIncludedPath> GetValue() => Value ?? new();
+    public override IEnumerable<AlgoliaIndexIncludedPath> GetValue() => Value ?? [];
     public override void SetValue(IEnumerable<AlgoliaIndexIncludedPath> value) => Value = value.ToList();
 
     [FormComponentCommand]

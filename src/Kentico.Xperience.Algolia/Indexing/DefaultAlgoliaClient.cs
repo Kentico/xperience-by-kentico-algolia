@@ -1,11 +1,14 @@
 using Algolia.Search.Clients;
 using Algolia.Search.Models.Common;
+
 using CMS.ContentEngine;
 using CMS.Core;
 using CMS.DataEngine;
 using CMS.Helpers;
 using CMS.Websites;
+
 using Kentico.Xperience.Algolia.Admin;
+
 using Newtonsoft.Json.Linq;
 
 namespace Kentico.Xperience.Algolia.Indexing;
