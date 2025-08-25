@@ -95,7 +95,7 @@ The controller retrieves `Index.cshtml` stored in `Views/Search/` solution folde
 @model SearchResponse<DancingGoatSearchResultModel>
 @{
     Dictionary<string, string> GetRouteData(int page) =>
-        new Dictionary<string, string>() { { "query", Model.Query }, { "pageSize", Model.ToString() }, { "page", page.ToString() } };
+        new Dictionary<string, string>() { { "query", Model.Query }, { "pageSize", Model.HitsPerPage.ToString() }, { "page", page.ToString() } };
 }
 
 <h1>Search</h1>
