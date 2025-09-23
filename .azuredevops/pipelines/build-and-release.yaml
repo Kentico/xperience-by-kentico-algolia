@@ -4,7 +4,7 @@ trigger: none # Manual Publish
 pr: none # GitHub Actions handle PRs
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: windows-latest
 
 resources:
   repositories:
