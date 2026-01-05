@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using CMS.Commerce;
+﻿using CMS.Commerce;
 using CMS.ContentEngine;
 
 using DancingGoat;
@@ -54,7 +48,7 @@ public sealed class DancingGoatShoppingCartController : Controller
         var shoppingCart = await currentShoppingCartRetriever.Get(cancellationToken);
         if (shoppingCart == null)
         {
-            return View(new ShoppingCartViewModel(new List<ShoppingCartItemViewModel>(), 0));
+            return View(new ShoppingCartViewModel([], 0));
         }
 
         var shoppingCartData = shoppingCart.GetShoppingCartDataModel();
@@ -127,12 +121,9 @@ public sealed class DancingGoatShoppingCartController : Controller
     }
 
 
-    private static string FormatProductName(string productName, IDictionary<int, string> variants, int? variantId)
-    {
-        return variants != null && variantId != null && variants.TryGetValue(variantId.Value, out string variantValue)
+    private static string FormatProductName(string productName, IDictionary<int, string> variants, int? variantId) => variants != null && variantId != null && variants.TryGetValue(variantId.Value, out string variantValue)
             ? $"{productName} - {variantValue}"
             : productName;
-    }
 
 
     /// <summary>

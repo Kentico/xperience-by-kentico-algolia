@@ -45,16 +45,16 @@ public class ReusableContentItemsIndexingStrategy : DefaultAlgoliaIndexingStrate
 
     public override IndexSettings GetAlgoliaIndexSettings() => new()
     {
-        AttributesToRetrieve = new List<string>
-            {
+        AttributesToRetrieve =
+            [
                 nameof(DancingGoatSearchResultModel.Title),
                 nameof(DancingGoatSearchResultModel.SortableTitle),
                 nameof(DancingGoatSearchResultModel.Content)
-            },
-        AttributesForFaceting = new List<string>
-            {
+            ],
+        AttributesForFaceting =
+            [
                 nameof(DancingGoatSearchResultModel.ContentTypeName)
-            }
+            ]
     };
 
     public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)

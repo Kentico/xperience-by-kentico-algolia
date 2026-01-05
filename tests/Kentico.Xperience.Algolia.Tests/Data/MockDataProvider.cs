@@ -4,6 +4,7 @@ using Kentico.Xperience.Algolia.Admin;
 using Kentico.Xperience.Algolia.Indexing;
 
 namespace Kentico.Xperience.Algolia.Tests.Base;
+
 internal static class MockDataProvider
 {
     public static IndexEventWebPageItemModel WebModel(IndexEventWebPageItemModel item)

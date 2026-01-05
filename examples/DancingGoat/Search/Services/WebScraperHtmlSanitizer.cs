@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
 using AngleSharp.Html.Parser;
-using CMS.Helpers;
 
 namespace DancingGoat.Search.Services;
 

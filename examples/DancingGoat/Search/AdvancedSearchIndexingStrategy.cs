@@ -1,13 +1,16 @@
 ﻿using Algolia.Search.Models.Settings;
+
 using CMS.ContentEngine;
 using CMS.Websites;
+
 using DancingGoat.Models;
-using Kentico.Xperience.Algolia.Indexing;
-using Newtonsoft.Json.Linq;
-using Microsoft.IdentityModel.Tokens;
-using DancingGoat.Search.Services;
 using DancingGoat.Search.Models;
+using DancingGoat.Search.Services;
+
+using Kentico.Xperience.Algolia.Indexing;
 using Kentico.Xperience.Algolia.Search;
+
+using Newtonsoft.Json.Linq;
 
 namespace DancingGoat.Search;
 
@@ -35,16 +38,16 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
 
     public override IndexSettings GetAlgoliaIndexSettings() => new()
     {
-        AttributesToRetrieve = new List<string>
-            {
+        AttributesToRetrieve =
+            [
                 nameof(DancingGoatSearchResultModel.Title),
                 nameof(DancingGoatSearchResultModel.SortableTitle),
                 nameof(DancingGoatSearchResultModel.Content)
-            },
-        AttributesForFaceting = new List<string>
-            {
+            ],
+        AttributesForFaceting =
+            [
                 nameof(DancingGoatSearchResultModel.ContentTypeName)
-            }
+            ]
     };
 
     public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
