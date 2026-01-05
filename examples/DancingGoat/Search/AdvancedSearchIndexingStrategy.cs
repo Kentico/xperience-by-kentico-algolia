@@ -89,7 +89,7 @@ public class AdvancedSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
                 return null;
             }
 
-            if (page.HomePageBanner.IsNullOrEmpty())
+            if (page.HomePageBanner == null || !page.HomePageBanner.Any())
             {
                 return null;
             }
