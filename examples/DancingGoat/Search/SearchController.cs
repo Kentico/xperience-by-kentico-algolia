@@ -1,5 +1,4 @@
 ﻿using DancingGoat.Search.Services;
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace DancingGoat.Search;

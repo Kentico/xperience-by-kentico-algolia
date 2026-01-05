@@ -1,7 +1,5 @@
 ﻿using Algolia.Search.Models.Search;
-
 using DancingGoat.Search.Models;
-
 using Kentico.Xperience.Algolia.Indexing;
 
 namespace DancingGoat.Search.Services;

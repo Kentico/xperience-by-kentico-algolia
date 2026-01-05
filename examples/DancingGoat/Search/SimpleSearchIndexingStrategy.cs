@@ -1,14 +1,11 @@
-﻿using Algolia.Search.Models.Settings;
-
-using CMS.ContentEngine;
+﻿using CMS.ContentEngine;
 using CMS.Websites;
-
-using DancingGoat.Models;
-using DancingGoat.Search.Models;
-
 using Kentico.Xperience.Algolia.Indexing;
-
 using Newtonsoft.Json.Linq;
+using DancingGoat.Models;
+using Microsoft.IdentityModel.Tokens;
+using Algolia.Search.Models.Settings;
+using DancingGoat.Search.Models;
 
 namespace DancingGoat.Search;
 
@@ -29,10 +26,10 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
     public override IndexSettings GetAlgoliaIndexSettings() =>
         new()
         {
-            AttributesToRetrieve =
-            [
+            AttributesToRetrieve = new List<string>
+            {
                 nameof(DancingGoatSimpleSearchResultModel.Title)
-            ]
+            }
         };
 
     public override async Task<IEnumerable<JObject>?> MapToAlgoliaJObjectsOrNull(IIndexEventItemModel algoliaPageItem)
@@ -72,10 +69,8 @@ public class SimpleSearchIndexingStrategy : DefaultAlgoliaIndexingStrategy
             return null;
         }
 
-        var jObject = new JObject
-        {
-            [nameof(DancingGoatSimpleSearchResultModel.Title)] = title
-        };
+        var jObject = new JObject();
+        jObject[nameof(DancingGoatSimpleSearchResultModel.Title)] = title;
 
         result.Add(jObject);
 

@@ -5,7 +5,6 @@ using Kentico.Xperience.Algolia.Indexing;
 using Kentico.Xperience.Algolia.Tests.Base;
 
 namespace Kentico.Xperience.Algolia.Tests.Tests;
-
 internal class IndexStoreTests : UnitTests
 {
 
