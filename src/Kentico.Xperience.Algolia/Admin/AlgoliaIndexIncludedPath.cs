@@ -24,14 +24,21 @@ public class AlgoliaIndexIncludedPath
     public AlgoliaIndexIncludedPath(string aliasPath) => AliasPath = aliasPath;
 
     /// <summary>
-    /// 
+    /// Initializes a new instance of the <see cref="AlgoliaIndexIncludedPath"/> class from database entities,
+    /// filtering content types to only those associated with this specific path.
     /// </summary>
     /// <param name="indexPath"></param>
-    /// <param name="contentTypes"></param>
-    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaIndexContentType> contentTypes)
+    /// <param name="contentTypesInfoItems"></param>
+    /// <param name="contentTypeDisplayNames"></param>
+    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaContentTypeItemInfo> contentTypesInfoItems, IReadOnlyDictionary<string, string> contentTypeDisplayNames)
     {
         AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
-        ContentTypes = contentTypes.ToList();
+        ContentTypes = contentTypesInfoItems
+            .Where(ct => ct.AlgoliaContentTypeItemIncludedPathItemId == indexPath.AlgoliaIncludedPathItemId)
+            .Select(ct => new AlgoliaIndexContentType(
+                ct.AlgoliaContentTypeItemContentTypeName,
+                contentTypeDisplayNames.GetValueOrDefault(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName)))
+            .ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }
 }

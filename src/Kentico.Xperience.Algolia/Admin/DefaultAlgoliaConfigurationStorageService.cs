@@ -138,9 +138,10 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         var contentTypesInfoItems = contentTypeProvider
         .Get()
         .WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId)
-        .GetEnumerableTypedResult();
+        .GetEnumerableTypedResult()
+        .ToList();
 
-        var contentTypes = DataClassInfoProvider.ProviderObject
+        var contentTypeDisplayNames = DataClassInfoProvider.ProviderObject
             .Get()
             .WhereIn(
                 nameof(DataClassInfo.ClassName),
@@ -148,13 +149,14 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
                     .Select(x => x.AlgoliaContentTypeItemContentTypeName)
                     .ToArray()
             ).GetEnumerableTypedResult()
-            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+            .GroupBy(x => x.ClassName)
+            .ToDictionary(g => g.Key, g => g.First().ClassDisplayName);
 
         var reusableContentTypes = reusableContentTypeProvider.Get().WhereEquals(nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
         var languages = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
-        return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypes, reusableContentTypes);
+        return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypesInfoItems, contentTypeDisplayNames, reusableContentTypes);
     }
 
 
@@ -176,9 +178,10 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         var contentTypesInfoItems = contentTypeProvider
             .Get()
-            .GetEnumerableTypedResult();
+            .GetEnumerableTypedResult()
+            .ToList();
 
-        var contentTypes = DataClassInfoProvider.ProviderObject
+        var contentTypeDisplayNames = DataClassInfoProvider.ProviderObject
             .Get()
             .WhereIn(
                 nameof(DataClassInfo.ClassName),
@@ -186,13 +189,14 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
                     .Select(x => x.AlgoliaContentTypeItemContentTypeName)
                     .ToArray()
             ).GetEnumerableTypedResult()
-            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+            .GroupBy(x => x.ClassName)
+            .ToDictionary(g => g.Key, g => g.First().ClassDisplayName);
 
         var languages = languageProvider.Get().ToList();
 
         var reusableContentTypes = reusableContentTypeProvider.Get().ToList();
 
-        return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypes, reusableContentTypes));
+        return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypesInfoItems, contentTypeDisplayNames, reusableContentTypes));
     }
 
 
