@@ -154,7 +154,7 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         var languages = languageProvider.Get().WhereEquals(nameof(AlgoliaIndexLanguageItemInfo.AlgoliaIndexLanguageItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
-        return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypes, reusableContentTypes);
+        return new AlgoliaConfigurationModel(indexInfo, languages, paths, contentTypesInfoItems, contentTypes, reusableContentTypes);
     }
 
 
@@ -192,7 +192,9 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         var reusableContentTypes = reusableContentTypeProvider.Get().ToList();
 
-        return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypes, reusableContentTypes));
+        var contentTypeItems = contentTypesInfoItems.ToList();
+
+        return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypeItems, contentTypes, reusableContentTypes));
     }
 
 

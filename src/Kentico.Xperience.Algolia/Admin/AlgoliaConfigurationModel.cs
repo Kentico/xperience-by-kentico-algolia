@@ -41,6 +41,7 @@ public class AlgoliaConfigurationModel
         AlgoliaIndexItemInfo index,
         IEnumerable<AlgoliaIndexLanguageItemInfo> indexLanguages,
         IEnumerable<AlgoliaIncludedPathItemInfo> indexPaths,
+        IEnumerable<AlgoliaContentTypeItemInfo> contentTypeItems,
         IEnumerable<AlgoliaIndexContentType> contentTypes,
         IEnumerable<AlgoliaReusableContentTypeItemInfo> reusableContentTypes
     )
@@ -60,7 +61,7 @@ public class AlgoliaConfigurationModel
               .ToList();
         Paths = indexPaths
             .Where(p => p.AlgoliaIncludedPathItemIndexItemId == index.AlgoliaIndexItemId)
-            .Select(p => new AlgoliaIndexIncludedPath(p, contentTypes))
+            .Select(p => new AlgoliaIndexIncludedPath(p, contentTypeItems, contentTypes))
             .ToList();
     }
 }

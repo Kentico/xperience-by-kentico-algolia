@@ -24,14 +24,25 @@ public class AlgoliaIndexIncludedPath
     public AlgoliaIndexIncludedPath(string aliasPath) => AliasPath = aliasPath;
 
     /// <summary>
-    /// 
+    /// Reconstructs an included path from persisted data, attaching only the content
+    /// types that are linked to this specific path via
+    /// <see cref="AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIncludedPathItemId"/>.
     /// </summary>
-    /// <param name="indexPath"></param>
-    /// <param name="contentTypes"></param>
-    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaIndexContentType> contentTypes)
+    /// <param name="indexPath">The persisted included path.</param>
+    /// <param name="contentTypeItems">Content type link rows (may span multiple paths/indexes; filtered by path id).</param>
+    /// <param name="contentTypes">Resolved content type metadata used to provide display names.</param>
+    public AlgoliaIndexIncludedPath(
+        AlgoliaIncludedPathItemInfo indexPath,
+        IEnumerable<AlgoliaContentTypeItemInfo> contentTypeItems,
+        IEnumerable<AlgoliaIndexContentType> contentTypes)
     {
         AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
-        ContentTypes = contentTypes.ToList();
+        ContentTypes = contentTypeItems
+            .Where(ct => ct.AlgoliaContentTypeItemIncludedPathItemId == indexPath.AlgoliaIncludedPathItemId)
+            .Select(ct => contentTypes.FirstOrDefault(c =>
+                string.Equals(c.ContentTypeName, ct.AlgoliaContentTypeItemContentTypeName, StringComparison.OrdinalIgnoreCase))
+                ?? new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))
+            .ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }
 }
