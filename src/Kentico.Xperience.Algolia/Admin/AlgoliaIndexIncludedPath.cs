@@ -37,11 +37,16 @@ public class AlgoliaIndexIncludedPath
         IEnumerable<AlgoliaIndexContentType> contentTypes)
     {
         AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
+
+        var contentTypesByName = contentTypes
+            .GroupBy(c => c.ContentTypeName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
         ContentTypes = contentTypeItems
             .Where(ct => ct.AlgoliaContentTypeItemIncludedPathItemId == indexPath.AlgoliaIncludedPathItemId)
-            .Select(ct => contentTypes.FirstOrDefault(c =>
-                string.Equals(c.ContentTypeName, ct.AlgoliaContentTypeItemContentTypeName, StringComparison.OrdinalIgnoreCase))
-                ?? new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))
+            .Select(ct => contentTypesByName.TryGetValue(ct.AlgoliaContentTypeItemContentTypeName, out var contentType)
+                ? contentType
+                : new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))
             .ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }
