@@ -174,25 +174,25 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
 
         var paths = pathProvider.Get().ToList();
 
-        var contentTypesInfoItems = contentTypeProvider
+        var contentTypeItems = contentTypeProvider
             .Get()
-            .GetEnumerableTypedResult();
+            .GetEnumerableTypedResult()
+            .ToList();
 
         var contentTypes = DataClassInfoProvider.ProviderObject
             .Get()
             .WhereIn(
                 nameof(DataClassInfo.ClassName),
-                contentTypesInfoItems
+                contentTypeItems
                     .Select(x => x.AlgoliaContentTypeItemContentTypeName)
                     .ToArray()
             ).GetEnumerableTypedResult()
-            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName))
+            .ToList();
 
         var languages = languageProvider.Get().ToList();
 
         var reusableContentTypes = reusableContentTypeProvider.Get().ToList();
-
-        var contentTypeItems = contentTypesInfoItems.ToList();
 
         return indexInfos.Select(index => new AlgoliaConfigurationModel(index, languages, paths, contentTypeItems, contentTypes, reusableContentTypes));
     }
