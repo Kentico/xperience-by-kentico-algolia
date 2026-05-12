@@ -42,12 +42,20 @@ public class AlgoliaIndexIncludedPath
             .GroupBy(c => c.ContentTypeName, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
 
-        ContentTypes = contentTypeItems
+        ContentTypes = [.. contentTypeItems
             .Where(ct => ct.AlgoliaContentTypeItemIncludedPathItemId == indexPath.AlgoliaIncludedPathItemId)
             .Select(ct => contentTypesByName.TryGetValue(ct.AlgoliaContentTypeItemContentTypeName, out var contentType)
                 ? contentType
-                : new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))
-            .ToList();
+                : new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))];
+        Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
+    }
+
+
+    [Obsolete("This constructor does not support content type filtering by path. Use the constructor with contentTypeItems parameter instead.")]
+    public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaIndexContentType> contentTypes)
+    {
+        AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
+        ContentTypes = contentTypes.ToList();
         Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
     }
 }

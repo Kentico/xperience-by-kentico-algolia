@@ -37,11 +37,7 @@ public sealed class AlgoliaIndex
     /// </summary>
     public Type AlgoliaIndexingStrategyType { get; }
 
-    /// <summary>
-    /// The included paths configured for this index in the Xperience admin UI,
-    /// along with the content types allowed at each path.
-    /// </summary>
-    public IEnumerable<AlgoliaIndexIncludedPath> IncludedPaths { get; internal set; }
+    internal IEnumerable<AlgoliaIndexIncludedPath> IncludedPaths { get; set; }
 
     internal AlgoliaIndex(AlgoliaConfigurationModel indexConfiguration, Dictionary<string, Type> strategies)
     {

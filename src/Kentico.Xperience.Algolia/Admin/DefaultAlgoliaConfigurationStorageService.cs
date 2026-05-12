@@ -138,7 +138,8 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
         var contentTypesInfoItems = contentTypeProvider
         .Get()
         .WhereEquals(nameof(AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId)
-        .GetEnumerableTypedResult();
+        .GetEnumerableTypedResult()
+        .ToList();
 
         var contentTypes = DataClassInfoProvider.ProviderObject
             .Get()
@@ -148,7 +149,8 @@ internal class DefaultAlgoliaConfigurationStorageService : IAlgoliaConfiguration
                     .Select(x => x.AlgoliaContentTypeItemContentTypeName)
                     .ToArray()
             ).GetEnumerableTypedResult()
-            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName));
+            .Select(x => new AlgoliaIndexContentType(x.ClassName, x.ClassDisplayName))
+            .ToList();
 
         var reusableContentTypes = reusableContentTypeProvider.Get().WhereEquals(nameof(AlgoliaReusableContentTypeItemInfo.AlgoliaReusableContentTypeItemIndexItemId), indexInfo.AlgoliaIndexItemId).GetEnumerableTypedResult();
 
