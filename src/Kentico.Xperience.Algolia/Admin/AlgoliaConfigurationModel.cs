@@ -41,6 +41,36 @@ public class AlgoliaConfigurationModel
         AlgoliaIndexItemInfo index,
         IEnumerable<AlgoliaIndexLanguageItemInfo> indexLanguages,
         IEnumerable<AlgoliaIncludedPathItemInfo> indexPaths,
+        IEnumerable<AlgoliaContentTypeItemInfo> contentTypeItems,
+        IEnumerable<AlgoliaIndexContentType> contentTypes,
+        IEnumerable<AlgoliaReusableContentTypeItemInfo> reusableContentTypes
+    )
+    {
+        Id = index.AlgoliaIndexItemId;
+        IndexName = index.AlgoliaIndexItemIndexName;
+        ChannelName = index.AlgoliaIndexItemChannelName;
+        RebuildHook = index.AlgoliaIndexItemRebuildHook;
+        StrategyName = index.AlgoliaIndexItemStrategyName;
+        LanguageNames = indexLanguages
+            .Where(l => l.AlgoliaIndexLanguageItemIndexItemId == index.AlgoliaIndexItemId)
+            .Select(l => l.AlgoliaIndexLanguageItemName)
+            .ToList();
+        ReusableContentTypeNames = reusableContentTypes
+              .Where(c => c.AlgoliaReusableContentTypeItemIndexItemId == index.AlgoliaIndexItemId)
+              .Select(c => c.AlgoliaReusableContentTypeItemContentTypeName)
+              .ToList();
+        Paths = indexPaths
+            .Where(p => p.AlgoliaIncludedPathItemIndexItemId == index.AlgoliaIndexItemId)
+            .Select(p => new AlgoliaIndexIncludedPath(p, contentTypeItems, contentTypes))
+            .ToList();
+    }
+
+
+    [Obsolete("This constructor does not support content type filtering by path. Use the constructor with contentTypeItems parameter instead.")]
+    public AlgoliaConfigurationModel(
+        AlgoliaIndexItemInfo index,
+        IEnumerable<AlgoliaIndexLanguageItemInfo> indexLanguages,
+        IEnumerable<AlgoliaIncludedPathItemInfo> indexPaths,
         IEnumerable<AlgoliaIndexContentType> contentTypes,
         IEnumerable<AlgoliaReusableContentTypeItemInfo> reusableContentTypes
     )

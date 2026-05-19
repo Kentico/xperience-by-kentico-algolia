@@ -24,10 +24,34 @@ public class AlgoliaIndexIncludedPath
     public AlgoliaIndexIncludedPath(string aliasPath) => AliasPath = aliasPath;
 
     /// <summary>
-    /// 
+    /// Reconstructs an included path from persisted data, attaching only the content
+    /// types that are linked to this specific path via
+    /// <see cref="AlgoliaContentTypeItemInfo.AlgoliaContentTypeItemIncludedPathItemId"/>.
     /// </summary>
-    /// <param name="indexPath"></param>
-    /// <param name="contentTypes"></param>
+    /// <param name="indexPath">The persisted included path.</param>
+    /// <param name="contentTypeItems">Content type link rows (may span multiple paths/indexes; filtered by path id).</param>
+    /// <param name="contentTypes">Resolved content type metadata used to provide display names.</param>
+    public AlgoliaIndexIncludedPath(
+        AlgoliaIncludedPathItemInfo indexPath,
+        IEnumerable<AlgoliaContentTypeItemInfo> contentTypeItems,
+        IEnumerable<AlgoliaIndexContentType> contentTypes)
+    {
+        AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
+
+        var contentTypesByName = contentTypes
+            .GroupBy(c => c.ContentTypeName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+
+        ContentTypes = [.. contentTypeItems
+            .Where(ct => ct.AlgoliaContentTypeItemIncludedPathItemId == indexPath.AlgoliaIncludedPathItemId)
+            .Select(ct => contentTypesByName.TryGetValue(ct.AlgoliaContentTypeItemContentTypeName, out var contentType)
+                ? contentType
+                : new AlgoliaIndexContentType(ct.AlgoliaContentTypeItemContentTypeName, ct.AlgoliaContentTypeItemContentTypeName))];
+        Identifier = indexPath.AlgoliaIncludedPathItemId.ToString();
+    }
+
+
+    [Obsolete("This constructor does not support content type filtering by path. Use the constructor with contentTypeItems parameter instead.")]
     public AlgoliaIndexIncludedPath(AlgoliaIncludedPathItemInfo indexPath, IEnumerable<AlgoliaIndexContentType> contentTypes)
     {
         AliasPath = indexPath.AlgoliaIncludedPathItemAliasPath;
